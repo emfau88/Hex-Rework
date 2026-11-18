@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 18.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt (Stand 0.3), Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -39,6 +39,19 @@ Dazu fünf Anpassungen:
 Die Kronenregel bleibt: Wer eine Burg nimmt, bekommt das Reich. Die Truppen des gefallenen Reichs werden
 aber auf ein Viertel gekürzt, damit der Sieger Land erbt und keine fertige Armee.
 
+**Bauen** (seit Stand 0.3.1 so): Ein Gebäude wird mit den Truppen des Feldes bezahlt, eine bleibt stehen.
+Ein Turm kostet 10 und je vorhandenem Turm 5 mehr, ein Hof 8 und je Hof 3 mehr.
+
+| Das Feld braucht | Was geht | Betrifft |
+|---|---|---|
+| bis 20 Truppen | Vormerken und sparen, oder sofort kaufen | Turm 1 und 2, Hof 1 bis 4 |
+| 21 bis 30 Truppen | nur Sofortkauf, wenn die Truppen schon auf dem Feld stehen | Turm 3 und 4, Hof 5 bis 8 |
+| mehr als 30 Truppen | gesperrt | ab Turm 5, ab Hof 9 |
+
+Der Preis steht mit dem Auftrag fest; ein offener Auftrag zählt für den Preis des nächsten Gebäudes schon
+mit. Ein Feld ohne Verbindung zur Burg kann nicht sparen, sein Auftrag verfällt. So wird kein Auftrag mehr
+angenommen, der nie fertig würde, und die Preisleiter begrenzt weiter die Zahl der Gebäude.
+
 ## 3 · Bulks
 
 Jeder Bulk endet mit einem prüfbaren Ergebnis und einem eigenen Sicherungspunkt in der lokalen
@@ -63,7 +76,8 @@ Versionsverwaltung. Bulk 0 bis 5 gehören zu dieser Arbeitsrunde, Bulk 6 bis 11 
 **Fertig, wenn** die Regeltests grün sind: ein Angriff von drei Seiten kostet höchstens halb so viel wie von
 einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mit ihrem Reich.
 
-**Stand: erledigt.** Inzwischen 12 Regeltests grün (`node --test tests/rules.test.mjs`).
+**Stand: erledigt.** Inzwischen 45 Tests grün (`node --test`): 12 für die Regeln, 9 fürs Bauen, 8 für die
+Vorhersage, 16 für die Eingabe.
 
 ### Bulk 2 · Gegner und Messwerkzeug
 
@@ -77,9 +91,9 @@ einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mi
 7 Minuten dauert, höchstens 1 von 20 Partien festfährt und ein untätiger Spieler mindestens 2:30 übersteht.
 
 **Stand: erledigt.** Der Stapel-Bot gewinnt 0 von 60 Partien. Ein starker Testspieler braucht auf „Normal“
-2:52 bis 6:03. Ein untätiger Spieler übersteht mindestens 2:34. Ohne Mensch enden auf „Normal“ höchstens 3 von 60
-Partien ohne Sieger. Beim ersten Anlauf war das letzte Kriterium verfehlt; es wurde mit den Nachbesserungen
-in Abschnitt 9 erreicht.
+2:46 bis 5:42 (Mission 1 ist damit kürzer als das Ziel, siehe „Bekannte Schwächen“ in Abschnitt 7). Ein
+untätiger Spieler übersteht mindestens 2:39. Ohne Mensch enden auf „Normal“ höchstens 2 von 60 Partien ohne Sieger. Beim ersten
+Anlauf war das letzte Kriterium verfehlt; es wurde mit den Nachbesserungen in Abschnitt 9 erreicht.
 
 ### Bulk 3 · Darstellung und Bedienung
 
@@ -92,7 +106,8 @@ in Abschnitt 9 erreicht.
 **Fertig, wenn** ein Angriff von zwei Seiten im Bild als solcher erkennbar ist und die Vorhersage des Pfeils
 mit dem tatsächlichen Ausgang übereinstimmt.
 
-**Stand: erledigt.** Im Browser geprüft; die Übereinstimmung von Vorhersage und Ausgang ist ein Regeltest.
+**Stand: erledigt.** Im Browser geprüft. Die Übereinstimmung von Vorhersage und Ausgang prüfen seit Stand
+0.3.1 neun Tests, auch für abgeschnittene und überfüllte Verteidiger (Abschnitt 10).
 
 ### Bulk 4 · Missionssystem und Missionen 1 bis 3
 
@@ -133,7 +148,7 @@ und nicht von einem Menschen.
 
 ### Bulk 7 · Akt 1 abschließen (Missionen 4 und 5)
 
-- Neuer Baustein „schmale Kante“: Brücken und Furten, an denen nur 3 statt 6 Angreifer kämpfen.
+- Neuer Baustein „schmale Kante“: Brücken und Furten, an denen nur 3 statt 8 Angreifer kämpfen.
 - Mission 4: Flusskarte mit drei Brücken. Mission 5: Verbündeter, dessen Burg nicht fallen darf.
 
 ### Bulk 8 · Akt 2 (Missionen 6 bis 9)
@@ -160,7 +175,9 @@ und nicht von einem Menschen.
 ## 4 · Was bewusst nicht in dieser Runde steckt
 
 - Kein Mehrspieler, kein Zoom, keine Fähigkeiten, keine neuen Gebäude.
-- Das alte hexwars-Repository wird nicht angefasst. Es wird nichts nach GitHub hochgeladen.
+- Das alte hexwars-Repository wird nicht angefasst.
+- Veröffentlicht wird seit Stand 0.3 über GitHub Pages: Jeder Push auf `main` lässt die Tests laufen und ersetzt
+  danach die öffentliche Spielversion (https://emfau88.github.io/Hex-Rework/). Portale folgen erst in Bulk 11.
 
 ## 5 · Risiken
 
@@ -180,20 +197,21 @@ neben dem Projekt, ohne die neue Arbeit zu berühren:
 git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ```
 
-## 7 · Ergebnisse (Stand 18.11.2026, nach den Nachbesserungen)
+## 7 · Ergebnisse (Stand 19.11.2026, Stand 0.3.1)
 
-Gemessen mit `node tools/simulate.mjs 60` (60 Partien je Karte und Stärke, Breitbild).
+Gemessen mit `node tools/simulate.mjs 60` (60 Partien je Karte und Stärke, Breitbild). Die Werte vor den
+Korrekturen und der Vergleich mit anderen Würfeln stehen in Abschnitt 10.
 
 **Starker Testspieler** (plant wie der schwere Computer, gibt aber nur alle 1,5 Sekunden einen Befehl und sitzt
-auf dem Platz des Spielers):
+auf dem Platz des Spielers). Die Zeit ist der Median nur seiner gewonnenen Partien:
 
 | Mission | Leicht | Normal | Schwer |
 |---|---|---|---|
-| 1 · Erste Krone | 59 von 60 Siegen, 3:05 | 58 von 60, 2:52 | 59 von 60, 2:49 |
-| 2 · Die zwei Pässe | 60 von 60, 4:38 | 60 von 60, 3:45 | 58 von 60, 5:05 |
-| 3 · Drei Reiche | 57 von 60, 4:53 | 59 von 60, 6:03 | 23 von 60, 8:00 |
-| Gefecht · Duell | 59 von 60, 2:48 | 49 von 60, 3:35 | 16 von 60, 4:31 |
-| Gefecht · Vier Reiche | 47 von 60, 5:09 | 17 von 60, 5:01 | 4 von 60, 5:02 |
+| 1 · Erste Krone | 60 von 60 Siegen, 2:42 | 60 von 60, 2:46 | 60 von 60, 2:38 |
+| 2 · Die zwei Pässe | 60 von 60, 4:20 | 60 von 60, 4:06 | 53 von 60, 5:12 |
+| 3 · Drei Reiche | 59 von 60, 4:36 | 58 von 60, 5:42 | 28 von 60, 6:59 |
+| Gefecht · Duell | 59 von 60, 2:32 | 54 von 60, 3:26 | 21 von 60, 4:11 |
+| Gefecht · Vier Reiche | 54 von 60, 4:16 | 17 von 60, 5:38 | 3 von 60, 5:01 |
 
 Mission 1 ist die Einführung; ihr Gegner verhält sich auf allen Stärken gleich. Die Werte gelten ohne die
 geführten Schritte, die den Gegner anfangs stillhalten lassen.
@@ -201,39 +219,50 @@ geführten Schritte, die den Gegner anfangs stillhalten lassen.
 **Stapel-Bot** (alles auf ein Feld, geradeaus zur Burg): 0 von 60 Siegen auf jeder Karte und jeder Stärke.
 Im Prototyp 0.1 waren es 13 bis 23 von 40 Duellen.
 
-**Untätiger Spieler** fällt auf „Normal“ frühestens nach 4:04 (Mission 1), 3:35 (Mission 2), 2:34 (Mission 3).
+**Untätiger Spieler** fällt auf „Normal“ frühestens nach 4:04 (Mission 1), 3:34 (Mission 2), 2:39 (Mission 3).
 
-**Ohne Mensch, „Normal“:** Partien ohne Sieger nach 15 Minuten: Mission 1 und 2 keine, Mission 3 drei von 60.
-Siege je Startplatz auf Mission 3: 4 / 34 / 19 (der Platz des Spielers ist nicht mehr im Vorteil).
+**Ohne Mensch, „Normal“:** Partien ohne Sieger nach 15 Minuten: Mission 1 und 2 keine, Mission 3 zwei von 60.
+Siege je Startplatz auf Mission 3: 2 / 25 / 31 (der Platz des Spielers ist nicht im Vorteil).
 
-**Zahlen im Bild:** In einer vom Testspieler gespielten Partie überdeckte in Mission 1 nie eine Zahl eine
-andere, in Mission 2 in 5 von 237 geprüften Bildern eine einzelne, in Mission 3 in 3 von 215.
+**Zahlen im Bild:** nicht neu gemessen, die Darstellung der Zahlen ist unverändert. Stand 0.3: In einer vom
+Testspieler gespielten Partie überdeckte in Mission 1 nie eine Zahl eine andere, in Mission 2 in 5 von 237
+geprüften Bildern eine einzelne, in Mission 3 in 3 von 215.
 
 ### Geprüft und nicht geprüft
 
 | Geprüft | Wie |
 |---|---|
-| Regeln | 12 Regeltests, darunter Vorhersage gegen tatsächlichen Ausgang, Waffenruhe der Einführung und gleiches Land für jedes Reich auf Zufallskarten |
-| Menü, Besprechung, Partie, Sieg, Niederlage, nächste Mission, Freischaltung | im Browser, Missionen 1 bis 3 vom Testspieler-Programm durchgespielt, keine Fehlermeldung |
-| Ziehen mit Vorhersage, Sturmbefehl mit zwei Tipps | im Browser mit nachgestellten Mausereignissen |
-| Geführte Schritte | Mission 1 mit nachgestellten Klicks; Mission 2 und 3 mit gestellten Spielständen durch jeden Schritt und jede Verzweigung |
-| Hochformat | 375 × 812: Karten gedreht, eigene Burg unten, jedes Feld antippbar, auch auf der Zufallskarte |
+| Regeln | 12 Regeltests, darunter Waffenruhe der Einführung und gleiches Land für jedes Reich auf Zufallskarten |
+| Bauen | 9 Tests: kein Auftrag, der nicht fertig werden kann; Sofortkauf; Preis steht mit dem Auftrag fest; in Computer-Partien nach jedem Regelschritt kein unerfüllbarer Auftrag |
+| Vorhersage gegen tatsächlichen Ausgang | 9 Tests: versorgte, abgeschnittene und überfüllte Verteidiger, Burg, Turm auf Hügel, zweite Welle; derselbe Sieger, Rest auf 0,05 Truppen gleich |
+| Eingabe | 16 Tests ohne Browser: zwei Tipps lösen aus, elf Arten von Abbruch oder Zwischenaktion entschärfen |
+| Menü, Besprechung, Partie, Sieg, Niederlage, nächste Mission, Freischaltung | im Browser, Missionen 1 bis 3 vom Testspieler-Programm durchgespielt, keine Fehlermeldung (Stand 0.3; mit Stand 0.3.1 erneut Mission 1 bis zum Sieg und der Übergang zu Mission 2) |
+| Ziehen mit Vorhersage, Sturmbefehl mit zwei Tipps, Abbruch mit Esc | im Browser mit echten Mausklicks: Tipp, Esc, Tipp schickt nichts; zwei Tipps schicken alle Nachbarn |
+| Geführte Schritte | Stand 0.3.1: Mission 1 mit echten Klicks durch alle vier Schritte; Mission 2 mit gestelltem Spielstand durch alle drei Schritte, die Vorhersage am Verbindungsfeld (23 bleiben) traf genau ein. Mission 3 zuletzt mit Stand 0.3 |
+| Bauknöpfe | im Browser am PC und bei 375 × 812: vormerken, „ab 21 Truppen“, „nur auf Wiese“; der vorgemerkte Turm wurde fertig |
+| Hochformat | 375 × 812: Karten gedreht, eigene Burg unten, jedes Feld antippbar, auch auf der Zufallskarte (Stand 0.3) |
 
 | Nicht geprüft | Folge |
 |---|---|
 | Ein Mensch am Spiel | Spielgefühl, Verständlichkeit und Schwierigkeit sind offen; das ist Bulk 6 |
 | Echtes Handy, Ton, Safari | wie beim Prototyp 0.1 |
+| Sturm mit zwei Tipps auf einem echten Touch-Bildschirm | Die Eingabe unterscheidet jetzt Maus und Finger (Abschnitt 10, Fehler 3). Das ist nur mit nachgestellten Ereignissen getestet, nicht mit einem Finger |
 | Flüssigkeit | der Browser-Bereich hier zeigt nur wenige Bilder pro Sekunde |
 
 ### Bekannte Schwächen
 
-- **Mission 3 auf „Schwer“ ist sehr hart.** Der Testspieler gewinnt 23 von 60 Partien und verliert meist
+- **Mission 3 auf „Schwer“ ist sehr hart.** Der Testspieler gewinnt 28 von 60 Partien und verliert meist
   die eigene Burg, weil ihn beide Rivalen angreifen.
-- **Gefecht mit vier Reichen ist ab „Normal“ schwer** (17 von 60). Drei Gegner gegen einen lassen wenig Luft.
+- **Gefecht mit vier Reichen ist ab „Normal“ schwer** (17 von 60, auf „Schwer“ 3 von 60). Drei Gegner gegen
+  einen lassen wenig Luft.
+- **Mission 1 ist für den Testspieler kurz.** Er braucht 2:38 bis 2:46, das Ziel für eine Mission sind 3 bis
+  7 Minuten. Ein Mensch mit den geführten Schritten braucht länger; gemessen ist das nicht.
 - **Leichte Gegner beenden nichts untereinander.** Ohne Mensch laufen auf „Leicht“ Mission 2 immer und
-  Mission 3 in 11 von 60 Partien bis zum Zeitlimit. Im Spiel fällt das nur auf, wenn man selbst nichts tut.
-- **Auf „Schwer“ im Vier-Reiche-Gefecht** gewinnt der beste Startplatz genau doppelt so oft wie der
-  schwächste (20 zu 10). Die Karte ist gespiegelt; der Rest ist Würfelglück in 60 Partien.
+  Mission 3 in 5 von 60 Partien bis zum Zeitlimit. Im Spiel fällt das nur auf, wenn man selbst nichts tut.
+- **Mission 3 fährt ohne Mensch auf „Normal“ gelegentlich fest.** Mit den festen Startwerten 2 von 60, mit
+  anderen Würfeln 4 und 5 von 60 (Abschnitt 10). Drei gleich starke Reiche halten sich dann die Waage.
+- **Auf „Schwer“ im Vier-Reiche-Gefecht** gewinnt der beste Startplatz deutlich öfter als der schwächste
+  (20 zu 12). Die Karte ist gespiegelt; der Rest ist Würfelglück in 60 Partien.
 - **Der Testspieler ist ein Programm.** Er nutzt weder gezieltes Abschneiden noch das Überfüllen von
   Feldern vor einem Sturm. Ein Mensch kann besser oder schlechter abschneiden.
 
@@ -272,3 +301,140 @@ In Mission 1 hält der Gegner bis zum letzten Schritt still, in Mission 2 und 3 
 | 7 | PC-Bedienung (Zoom, Verschieben, Tastenkürzel) | offen, gesondert |
 | 8 | Ton, echtes Handy, Safari prüfen | offen, das kannst nur du |
 | 9 | Geführte Schritte für Mission 2 und 3 | **Erledigt**, siehe Abschnitt 8. |
+| 10 | Drei Fehler aus der Fremdprüfung | **Erledigt** mit Stand 0.3.1, siehe Abschnitt 10. |
+
+## 10 · Korrekturen nach der Fremdprüfung (Stand 0.3.1, 19.11.2026)
+
+Eine Fremdprüfung von Stand 0.3 hat drei Fehler nachgewiesen. Alle drei sind behoben und mit Tests
+abgesichert. Roadmap-Punkte wurden dabei nicht begonnen, auch nicht die Rückmeldung bei abgelehnten Befehlen.
+
+### Fehler 1 · Bauaufträge, die nie fertig wurden
+
+- **Vorher:** Ein Auftrag wurde auch vorgemerkt, wenn das Feld den Preis nie erreichen konnte (dritter Turm,
+  fünfter Hof). Das Feld gab dann keinen Nachschub mehr ab. In 180 von 180 Computer-Partien (Missionen 1 bis
+  3, „Normal“ und „Schwer“, je 30 Startwerte) hing so ein Auftrag fest, der längste 827 Sekunden.
+- **Jetzt:** Es gelten die Bauregeln aus Abschnitt 2. In denselben 180 Partien ist nach jedem einzelnen
+  Regelschritt kein unerfüllbarer Auftrag offen, der längste Auftrag stand 64 Sekunden. Gebaut wird fast
+  gleich viel (2086 statt 2223 Gebäude). Der Computer bestellt nichts mehr, was er nicht bezahlen kann.
+- **Am Bauknopf:** Geht ein Gebäude nicht, steht der Grund darunter: „ab 21 Truppen“ (nur Sofortkauf),
+  „Höchstzahl“ (gesperrt) oder „nur auf Wiese“ (Hof auf falschem Gelände).
+- **Über den Vorschlag hinaus:** Der Preis steht mit dem Auftrag fest, und offene Aufträge zählen für den
+  nächsten Preis mit. Ohne das könnte ein späterer Kauf oder ein erobertes Gebäude den Preis eines offenen
+  Auftrags nachträglich über das hinausheben, was das Feld erreicht. Ein abgeschnittenes Feld verliert
+  seinen Auftrag sofort, weil es nicht wächst.
+
+### Fehler 2 · Die Vorhersage wich vom Kampf ab
+
+- **Vorher:** Die Vorhersage rechnete beim Verteidiger weder den Schwund abgeschnittener Felder noch das
+  Schmelzen überfüllter Felder mit, ließ die Angreifer ohne Anmarsch sofort kämpfen und versprach mehr
+  Überlebende, als auf das eroberte Feld passen.
+- **Jetzt:** Kampf und Vorhersage benutzen dieselben drei Rechenschritte in `src/sim/game.js`: `_drift`
+  (Wachstum, Schwund, Schmelzen), `_clash` (ein Schritt Kampf an den Kanten) und `_spoils` (wer einzieht und
+  mit wie vielen). Die Vorhersage zählt außerdem die Schritte des Anmarschs so wie das Spiel. Sie kann
+  deshalb nur noch abweichen, wenn jemand nach dem Befehl noch etwas anderes befiehlt.
+
+| Nachgestellter Fall | Vorhersage vorher | Tatsächlich |
+|---|---|---|
+| Abgeschnittenes Feld mit 8, ein Nachbar schickt 8 | hält, Rest 0,01 | fällt, 3,64 bleiben |
+| Abgeschnittenes Feld mit 20, je 10 von zwei Seiten | hält mit 4,1 | fällt, 4,85 bleiben |
+| Freies Feld mit 8, zweimal 19 Angreifer | 35,8 bleiben | 30 bleiben |
+| Überfülltes, versorgtes Feld mit 29, dreimal 14 Angreifer | 23,6 bleiben | 25,2 bleiben |
+| Zweite Welle, während die erste schon kämpft | 10,9 bleiben | 6,4 bleiben |
+
+  Jetzt nennt die Vorhersage in allen neun getesteten Fällen denselben Sieger, und der Rest stimmt auf 0,05
+  Truppen.
+- **Sicherheitsreserve des Computers:** Der Computer plant mit einem Aufschlag (`margin`). Früher tat er so,
+  als stünden mehr Verteidiger auf dem Feld; mit dem Schmelzen überfüllter Felder wäre dieser Aufschlag
+  weggeschmolzen. Jetzt nimmt er an, dass die Besatzung um den Aufschlag besser kämpft.
+- **Einführung:** Die geführten Schritte, die die Vorhersage benutzen (Festung in Mission 1, Zitadelle in
+  Mission 3) und der Ablauf „Abschneiden“ in Mission 2 laufen wie zuvor; Mission 1 und 2 sind im Browser
+  nachgespielt.
+- **Zwei alte Tests** rechnen mit 36 statt 60 Angreifern. Mit 60 passen die Überlebenden nicht mehr auf das
+  Feld, und die Vorhersage verspricht sie nicht mehr.
+
+### Fehler 3 · Ein abgebrochener Sturm löste trotzdem aus
+
+- **Vorher:** Der erste Tipp auf ein fremdes Feld schaltete den Sturm scharf. Esc, Rechtsklick, Tipp ins
+  Leere, Tipp auf ein eigenes Feld oder eine abgebrochene Geste blendeten nur die Vorschau aus. Ein
+  einzelner Tipp danach schickte alle Nachbarfelder los.
+- **Jetzt:** Jeder Abbruch und jede andere Aktion entschärft: dazu ein Zug, ein Befehl dazwischen, ein Knopf
+  oder eine Taste, die Pause, und wenn die Maus das Feld oder die Karte verlässt. Ausgelöst wird nur, wenn
+  die Vorschau genau dieses Feldes noch im Bild steht.
+- **Dabei gefunden:** Am Handy meldet der Browser nach jedem Tipp, dass der Zeiger die Karte verlassen hat.
+  Das blendete die Vorschau des ersten Tipps aus; jetzt gilt das nur noch für die Maus. Das folgt aus der
+  Beschreibung, wie Browser Berührungen melden, und ist mit nachgestellten Ereignissen getestet, nicht mit
+  einem Finger auf einem echten Handy.
+
+### Balance vorher und nachher
+
+Starker Testspieler, Siege von 60 und Median der Zeit seiner Siege, mit den festen Startwerten:
+
+| Karte | Leicht | Normal | Schwer |
+|---|---|---|---|
+| Mission 1 | 59 in 3:05 → 60 in 2:42 | 58 in 2:52 → 60 in 2:46 | 59 in 2:49 → 60 in 2:38 |
+| Mission 2 | 60 in 4:38 → 60 in 4:20 | 60 in 3:45 → 60 in 4:06 | 58 in 5:05 → 53 in 5:12 |
+| Mission 3 | 57 in 4:53 → 59 in 4:36 | 59 in 6:03 → 58 in 5:42 | 23 in 8:00 → 28 in 6:59 |
+| Gefecht · Duell | 59 in 2:48 → 59 in 2:32 | 49 in 3:35 → 54 in 3:26 | 16 in 4:31 → 21 in 4:11 |
+| Gefecht · Vier Reiche | 47 in 5:09 → 54 in 4:16 | 17 in 5:01 → 17 in 5:38 | 4 in 5:02 → 3 in 5:01 |
+
+Unterschiede von wenigen Siegen sind bei 60 Partien Würfelglück. Deshalb sind alle Karten zusätzlich mit zwei
+weiteren Sätzen von Startwerten gemessen (`--shift=1` und `--shift=2`), vorher wie nachher. Siege von 180:
+
+| Karte | Leicht | Normal | Schwer |
+|---|---|---|---|
+| Mission 1 | 170 → 180 | 178 → 180 | 179 → 180 |
+| Mission 2 | 180 → 180 | 180 → 180 | 169 → 168 |
+| Mission 3 | 163 → 178 | 170 → 177 | 79 → 84 |
+| Gefecht · Duell | 178 → 179 | 152 → 164 | 61 → 66 |
+| Gefecht · Vier Reiche | 149 → 171 | 55 → 56 | 18 → 18 |
+
+Der Stapel-Bot gewinnt vorher wie nachher 0 von 180 auf jeder Karte und Stärke.
+
+Partien ohne Sieger nach 15 Minuten, ohne Mensch (feste Startwerte von 60, in Klammern alle drei Sätze von 180):
+
+| Karte | Leicht | Normal | Schwer |
+|---|---|---|---|
+| Mission 1 | 0 → 0 | 0 → 0 | 0 → 0 |
+| Mission 2 | 60 → 60 | 0 → 0 | 0 → 0 |
+| Mission 3 | 11 → 5 (27 → 15) | 3 → 2 (5 → 11) | 0 → 0 |
+| Gefecht · Duell | 4 → 5 (10 → 11) | 0 → 0 (1 → 1) | 0 → 0 |
+| Gefecht · Vier Reiche | 37 → 35 (105 → 87) | 0 → 0 | 0 → 0 |
+
+**Abgleich mit den Zielen**
+
+| Ziel | Ergebnis |
+|---|---|
+| Stapel-Bot bleibt bei 0 | erreicht |
+| Kampagne auf „Leicht“ und „Normal“ klar gewinnbar (etwa 55 von 60) | erreicht: 58 bis 60 von 60 |
+| 3 bis 7 Minuten | Mission 2 und 3 erreicht. **Mission 1 nicht:** 2:42 und 2:46 statt 3:05 und 2:52 |
+| Mission 3 auf „Schwer“ nicht schlechter | erreicht: 28 statt 23 von 60, über drei Sätze 84 statt 79 von 180 |
+| Vier-Reiche-Gefecht nicht schlechter | kein Unterschied messbar: „Normal“ 17 → 17, „Schwer“ 4 → 3, über drei Sätze 55 → 56 und 18 → 18 von 180 |
+| Patt-Partien nehmen nicht zu | insgesamt weniger (auf „Leicht“). **Offen bei Mission 3 auf „Normal“:** mit den festen Startwerten 2 statt 3, über drei Sätze aber 11 statt 5 von 180 |
+
+**Nachstimmen: nichts geändert.** Die Zahlen in `src/sim/rules.js` und `src/sim/missions.js` sind dieselben
+wie in Stand 0.3. Geprüft wurde je eine Stellschraube mit 60 Partien, keine wurde übernommen:
+
+| Stellschraube | Gemessen | Warum nicht übernommen |
+|---|---|---|
+| Mission 1: Zuwachs des Gegners 0,9 → 1,0 | 56 / 59 / 55 Siege in 3:06 / 2:52 / 3:07 | bringt die alte Dauer zurück, kostet aber Siege und macht die Einführung schwerer. Das soll der Spieltest entscheiden |
+| Mission 1: Zuwachs des Gegners 0,9 → 0,95 | 60 / 59 / 60 in 2:44 / 2:44 / 2:52 | kaum Wirkung auf die Dauer |
+| Mission 1: Gegner lässt 7 statt 5 Truppen an der Front | 60 / 60 / 60 in 2:41 / 2:32 / 2:44 | keine Wirkung |
+| Mission 2 auf „Schwer“: Zuwachs 0,85 → 0,8 | 60 in 4:17 | nicht nötig: der Rückgang von 58 auf 53 ist Würfelglück (über drei Sätze 169 → 168) |
+| Mission 2 auf „Schwer“: eine statt zwei Folgewellen | 56 in 5:16 | wie oben |
+| Mission 2 auf „Schwer“: Burgsturm erst ab 5:00 statt 3:30 | 53 in 5:12 | keine Wirkung |
+| Mission 3 auf „Normal“: Aufschlag 1,18 → 1,12 | 10 von 180 ohne Sieger | hilft nicht |
+| Mission 3 auf „Normal“: zwei statt einer Folgewelle | 9 von 180 ohne Sieger | hilft nicht nachweisbar |
+| Sicherheitsreserve anders gerechnet (mehr Verteidiger statt bessere) | Mission 3 „Normal“ 11 von 180 ohne Sieger, Vier Reiche „Normal“ 47 statt 56 Siege von 180 | hilft nicht, im Vier-Reiche-Gefecht eher schlechter |
+
+**Was gemessen ist und was nur vermutet**
+
+- Gemessen: alle Zahlen in den Tabellen oben, mit dem Stand, der committet ist.
+- Vermutet: Dass Mission 3 auf „Normal“ ohne Mensch etwas öfter festfährt als vorher. 11 gegen 5 von 180
+  kann noch Zufall sein. Dass drei weitere Varianten des neuen Standes ebenfalls bei 9 bis 11 landen, spricht
+  eher für eine kleine echte Zunahme. In diesen Partien halten sich drei etwa gleich große Reiche die Waage,
+  keines kommt auf 60 Sekunden an der Zitadelle. Die Ursache ist nicht geklärt.
+- Vermutet: Dass Mission 1 schneller endet, weil der Testspieler mit der genauen Vorhersage sparsamer
+  angreift. Geprüft ist nur, dass es an allen drei Sätzen von Startwerten so ist (2:34 bis 2:46).
+
+Das Messwerkzeug kann seit diesem Stand mit anderen Würfeln messen: `node tools/simulate.mjs 60 --shift=1`.
+Ohne die Angabe bleiben die Startwerte die, mit denen alle Zahlen in Abschnitt 7 gemessen sind.

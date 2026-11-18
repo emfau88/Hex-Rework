@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.3 vom 18.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.3.1 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -42,8 +42,11 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
   an. Nach dem ersten Tipp (am PC schon beim Überfahren mit der Maus) steht die Vorhersage für alle zusammen da.
 - **Senden 50 % / 100 %:** Knopf unten links, am PC auch Tasten `1` und `2`.
 - **Turm / Hof:** eigenes Feld antippen, dann bauen. Reicht es noch nicht, spart das Feld (goldener Punkt).
+  Jedes weitere Gebäude derselben Art kostet mehr. Was ein Feld nicht mehr ersparen kann, gibt es nur sofort:
+  Am Knopf steht dann, ab wie vielen Truppen auf dem Feld (zum Beispiel „ab 21 Truppen“).
 - **Nachschub:** schickt Truppen aus dem Hinterland an Frontfelder, die noch Platz haben.
-- **Abbrechen:** `Esc`, rechte Maustaste oder das gewählte Feld erneut antippen.
+- **Abbrechen:** `Esc`, rechte Maustaste oder das gewählte Feld erneut antippen. Das nimmt auch einen
+  Sturm zurück, der nach dem ersten Tipp bereitstand.
 - **Pause:** Knopf oben links, am PC Leertaste.
 
 ## Missionen
@@ -63,7 +66,7 @@ jedes Reich startet auf genau gleichem Land.
 ## Prüfen ohne Browser
 
 ```bash
-node --test tests/rules.test.mjs
+node --test
 ```
 
 ```bash
@@ -78,8 +81,10 @@ node tools/showmap.mjs m2
 node tools/regions.mjs m3
 ```
 
-Die Messung zeigt je Karte und Stärke: Partiedauer, Siege je Startplatz, festgefahrene Partien, wie lange ein
-untätiger Spieler überlebt, wie ein starker Testspieler abschneidet und ob der Stapel-Bot gewinnt.
+Der erste Befehl lässt alle Tests laufen (Regeln, Bauen, Vorhersage, Eingabe). Die Messung zeigt je Karte und
+Stärke: Partiedauer, Siege je Startplatz, festgefahrene Partien, wie lange ein untätiger Spieler überlebt, wie
+ein starker Testspieler abschneidet und ob der Stapel-Bot gewinnt. Mit `--only=m3`, `--level=hard` und
+`--shift=1` (andere Würfel) lässt sie sich eingrenzen.
 Alle Stellschrauben stehen in `src/sim/rules.js`, die Karten als Textraster in `src/sim/missions.js`.
 
 ## Aufbau
@@ -91,7 +96,7 @@ src/ui/       Zahlen, Pfeile und Vorhersage, Sprachen, Speicherstand
 src/audio/    erzeugte Klänge
 src/input.js  Ziehen, Tippen, Sturmbefehl
 src/main.js   Menü, Besprechung, Spielschleife, Einführung
-tests/        Regeltests
+tests/        Tests für Regeln, Bauen, Vorhersage und Eingabe
 tools/        Messung, Testspieler, Kartenanzeige
 ```
 
@@ -108,5 +113,7 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
-Stand 0.3 vom 18.11.2026. Geprüft mit Regeltests, Messläufen und Durchläufen im Browser am PC und im
-Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.
+Stand 0.3.1 vom 19.11.2026: drei Fehler aus einer Fremdprüfung behoben (Bauaufträge, Angriffsvorhersage,
+abgebrochener Sturm), Einzelheiten in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md), Abschnitt 10. Geprüft mit
+45 Tests, Messläufen und Durchläufen im Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am
+Spiel, echtes Handy, Ton, Safari.
