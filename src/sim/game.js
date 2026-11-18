@@ -211,9 +211,11 @@ export class Game {
    *        owner. They march first; `path` is their route if they do not start on `from`.
    * @param {object} [o]
    * @param {number} [o.defMul]   pretend the garrison fights this much better (safety margin for planners)
+   * @param {boolean} [o.marching]  also count every army that is already on its way to this field
+   *        (the battle display uses this; planners look only at what stands at the edges)
    * @returns {{holds:boolean, winner:number, left:number, time:number, undecided:boolean, sent:Map<number,number>}}
    */
-  forecast(tileId, extra = [], { defMul = 1, horizon = 40 } = {}) {
+  forecast(tileId, extra = [], { defMul = 1, horizon = 40, marching = false } = {}) {
     const t = this.tiles[tileId];
     const R = this.R;
     const def = this.defense(t);
@@ -240,6 +242,14 @@ export class Game {
       if (!(x.units > 0)) continue;
       coming.push({ owner: x.owner, from: x.from, units: x.units, tick: this._marchTicks(x.path || [x.from, tileId]) });
       if (x.owner !== t.owner) sent.set(x.owner, (sent.get(x.owner) || 0) + x.units);
+    }
+    if (marching) {
+      for (const a of this.armies) {
+        const n = a.path.length;
+        if (a.done || a.path[n - 1] !== tileId) continue;
+        coming.push({ owner: a.owner, from: a.path[n - 2], units: a.units, tick: this._marchTicks(a.path, a.seg, a.t) });
+        if (a.owner !== t.owner) sent.set(a.owner, (sent.get(a.owner) || 0) + a.units);
+      }
     }
     coming.sort((a, b) => a.tick - b.tick);
 
@@ -277,12 +287,15 @@ export class Game {
     return { holds: true, winner: t.owner, left: D, time, undecided: pools.length > 0 || next < coming.length, sent };
   }
 
-  /** Steps an army needs along `path` until it stands at the last field. Counted exactly as in _tick. */
-  _marchTicks(path) {
+  /**
+   * Steps an army needs along `path` until it stands at the last field. Counted exactly as in _tick.
+   * `seg` and `t` say how far an army that is already marching has come.
+   */
+  _marchTicks(path, seg = 0, t = 0) {
     const dt = this.R.step;
-    let x = 0;
+    let x = t;
     let n = 0;
-    for (let i = 1; i < path.length; i++) {
+    for (let i = seg + 1; i < path.length; i++) {
       const leg = this._legTime(this.tiles[path[i]]);
       while (x < 1) {
         x += dt / leg;
@@ -578,6 +591,7 @@ export class Game {
 
   /** An army reaches a foreign field and lines up at the edge it came through. */
   _engage(a, tile, from) {
+    if (!tile.pools.length) tile.siegeFrom = tile.units; // a new battle: the display measures the garrison against this
     let pool = tile.pools.find((p) => p.owner === a.owner && p.from === from);
     if (!pool) tile.pools.push((pool = { owner: a.owner, from, units: 0, since: this.time }));
     pool.units += a.units;
@@ -624,6 +638,7 @@ export class Game {
     t.pools = t.pools.filter((p) => p.owner !== winner);
     t.owner = winner;
     t.units = units;
+    t.siegeFrom = units; // whoever still stands at the edges now fights the new garrison
     t.lastCapture = this.time;
     t.stormedAt = this.time; // taken in battle, as opposed to inherited with a fallen castle
     if (t.order) {

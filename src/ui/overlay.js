@@ -30,6 +30,9 @@ export class Overlay {
     this.offsets.sort((p, q) => Math.hypot(p[0], p[1] * 1.3) - Math.hypot(q[0], q[1] * 1.3));
     this.stats = { plates: 0, covered: 0 };
     this.trace = null; // set to an array to collect plates that found no free spot (debugging)
+    // Battles in progress: field -> garrison at its strongest and the last forecast of the outcome.
+    this.fights = new Map();
+    this.fightsOf = null;
   }
 
   resize(width, height, dpr) {
@@ -77,6 +80,7 @@ export class Overlay {
 
     // Troop numbers on fields.
     ctx.font = `800 ${fs}px ${FONT}`;
+    const contested = [];
     for (const t of game.tiles) {
       if (!t.passable) continue;
       const p = renderer.tileAnchor(t);
@@ -84,7 +88,10 @@ export class Overlay {
       const owned = t.owner >= 0;
       const w = Math.max(fs * 1.7, ctx.measureText(text).width + fs * 0.95);
       const h = fs + 6;
-      plates.push({ x: p.x, y: p.y, w, h });
+      const fought = t.pools.some((pool) => pool.owner !== t.owner);
+      if (fought) contested.push({ t, p, w, h });
+      // A contested field carries a rim around its number; other plates keep clear of it.
+      plates.push({ x: p.x, y: p.y, w: fought ? w + 9 : w, h: fought ? h + 9 : h });
       pill(ctx, p.x, p.y, w, h);
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
       ctx.fill();
@@ -111,6 +118,7 @@ export class Overlay {
     // Only what concerns the player gets a number: own troops, and rivals marching on or fighting
     // for the player's fields. Everything else is told by the soldiers themselves.
     const concerns = (owner, tile) => ui.human < 0 || owner === ui.human || tile.owner === ui.human;
+    this._battles(ctx, game, ui, contested, fs, settle, concerns);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
     const badge = (x, y, text, color, ring) => {
@@ -162,6 +170,111 @@ export class Overlay {
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
     else if (ui.tutorialPath) this._tutorial(ctx, game, renderer, ui.tutorialPath, time);
+  }
+
+  /**
+   * Battles in progress. The rim of the number plate turns to the attackers' colours as the garrison
+   * goes down, starting at the top and running clockwise: once it has gone all the way round, the
+   * field falls. Two kingdoms attacking the same field share the turned part by their strength at
+   * the edges. Where the battle concerns the player, a small tag says how it will end: in how many
+   * seconds the field falls and to whom (the dot), or that it holds.
+   */
+  _battles(ctx, game, ui, contested, fs, settle, concerns) {
+    if (this.fightsOf !== game) {
+      this.fights.clear();
+      this.fightsOf = game;
+    }
+    const colorOf = (owner) => (owner >= 0 ? PALETTE_HEX[game.factions[owner].color] : '#b9c9c6');
+    const live = new Set();
+    const tagSize = Math.max(9, fs - 3);
+
+    for (const { t, p, w, h } of contested) {
+      live.add(t.id);
+      let state = this.fights.get(t.id);
+      if (!state || state.owner !== t.owner) this.fights.set(t.id, (state = { owner: t.owner, base: 1, key: '', fc: null }));
+      // Measured against the garrison at the start of the battle, or its peak if it was reinforced.
+      state.base = Math.max(state.base, t.siegeFrom, t.units);
+
+      const strength = new Map();
+      let total = 0;
+      for (const pool of t.pools) {
+        if (pool.owner === t.owner) continue;
+        strength.set(pool.owner, (strength.get(pool.owner) || 0) + pool.units);
+        total += pool.units;
+      }
+      const left = Math.min(1, Math.max(0, t.units / state.base));
+      const parts = [];
+      for (const [owner, units] of [...strength].sort((a, b) => b[1] - a[1])) parts.push([colorOf(owner), ((1 - left) * units) / total]);
+      parts.push([colorOf(t.owner), left]);
+      this._rim(ctx, p.x, p.y, w + 5, h + 5, parts);
+
+      if (![...strength.keys()].some((owner) => concerns(owner, t))) continue;
+      // The same forecast the order arrow uses, including every army already on its way here.
+      const key = `${game.ticks}:${game.nextArmyId}`;
+      if (state.key !== key) {
+        state.key = key;
+        state.fc = game.forecast(t.id, [], { marching: true });
+      }
+      const fc = state.fc;
+      if (fc.holds && fc.undecided) continue;
+      const text = fc.holds ? i18n.t('battleHolds') : i18n.t('battleFalls', { s: Math.max(1, Math.ceil(fc.time / (ui.pace || 1))) });
+      const color = colorOf(fc.holds ? t.owner : fc.winner);
+      ctx.font = `800 ${tagSize}px ${FONT}`;
+      const dot = fc.holds ? 0 : tagSize * 0.9;
+      const tw = ctx.measureText(text).width + tagSize * 0.9 + dot;
+      const th = tagSize + 5;
+      const [x, y] = settle(p.x, p.y + h / 2 + th / 2 + 6, tw, th);
+      pill(ctx, x, y, tw, th);
+      ctx.fillStyle = 'rgba(6, 20, 27, 0.94)';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      if (dot) {
+        ctx.beginPath();
+        ctx.arc(x - tw / 2 + tagSize * 0.45 + dot / 2, y, tagSize * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, x + dot / 2, y + 0.5);
+    }
+    for (const id of this.fights.keys()) if (!live.has(id)) this.fights.delete(id);
+  }
+
+  /** Coloured stretches along the rim of a number plate, from the top centre clockwise. `parts`: [colour, share]. */
+  _rim(ctx, x, y, w, h, parts) {
+    const r = h / 2;
+    const trace = () => {
+      ctx.beginPath();
+      ctx.moveTo(x, y - r);
+      ctx.lineTo(x + w / 2 - r, y - r);
+      ctx.arc(x + w / 2 - r, y, r, -Math.PI / 2, Math.PI / 2);
+      ctx.lineTo(x - w / 2 + r, y + r);
+      ctx.arc(x - w / 2 + r, y, r, Math.PI / 2, (Math.PI * 3) / 2);
+      ctx.closePath();
+    };
+    const length = 2 * (w - h) + Math.PI * h;
+    ctx.lineCap = 'butt';
+    trace();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(6, 20, 27, 0.92)';
+    ctx.stroke();
+    ctx.lineWidth = 3.5;
+    let at = 0;
+    for (const [color, share] of parts) {
+      const len = share * length;
+      if (len > 0.5) {
+        trace();
+        ctx.setLineDash([len, length]);
+        ctx.lineDashOffset = -at;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+      }
+      at += len;
+    }
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
   }
 
   _points(game, renderer, path) {

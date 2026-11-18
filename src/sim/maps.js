@@ -188,6 +188,7 @@ function initTile(t) {
   t.supplied = false;
   t.fixed = false; // true: the map set the garrison, the start-up must not overwrite it
   t.pools = []; // attackers lined up at the edges: { owner, from, units }
+  t.siegeFrom = 0; // garrison when the current battle began (for the battle display)
   t.lastCapture = -100;
   t.stormedAt = -100;
   t.lastBattle = -100;

@@ -125,3 +125,26 @@ test('troops that are already at the edges are part of the forecast', () => {
   const result = fight(game, target, [second]);
   agrees('second wave', result, { holds: false });
 });
+
+test('the battle display also counts armies that are still marching towards the field', () => {
+  const game = lab();
+  const target = at(game, 2, 1);
+  target.units = 14;
+  const blue = at(game, 1, 1);
+  const red = at(game, 3, 1);
+  give(game, blue, 0, 16);
+  give(game, red, 1, 20);
+  game.send(0, blue.id, target.id, 1);
+  for (let i = 0; i < 5; i++) game.step(0.1);
+  game.send(1, red.id, target.id, 1); // half a second later, from the other side
+  for (let i = 0; i < 2; i++) game.step(0.1);
+  assert.equal(game.armies.length, 2, 'both are still on their way');
+  const blind = game.forecast(target.id);
+  assert.equal(blind.holds, true, 'nobody stands at the edges yet');
+  const fc = game.forecast(target.id, [], { marching: true });
+  for (let i = 0; i < 400 && target.owner < 0; i++) game.step(0.1);
+  assert.equal(fc.holds, false);
+  assert.equal(fc.winner, target.owner, `forecast ${fc.winner}, really ${target.owner}`);
+  assert.ok(Math.abs(fc.left - target.units) < 0.05, `forecast ${fc.left.toFixed(2)}, really ${target.units.toFixed(2)}`);
+  assert.ok(Math.abs(fc.time - (game.time - 0.7)) < 0.051, `forecast ${fc.time.toFixed(1)} s, really ${(game.time - 0.7).toFixed(1)} s`);
+});
