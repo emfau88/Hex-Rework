@@ -202,58 +202,129 @@ export class Game {
   }
 
   /**
-   * Plays a battle for one field forward without touching the game.
+   * Plays a battle for one field forward without touching the game. It runs the very same steps as
+   * the match itself (_drift, _clash, _spoils), so what it promises is what happens unless somebody
+   * gives another order in the meantime.
    * @param {number} tileId
-   * @param {{owner:number, from:number, units:number}[]} [extra]  troops that would join: attackers at an
-   *        edge (`from` is the field they come from) or, for the field's owner, reinforcements.
+   * @param {{owner:number, from:number, units:number, path?:number[]}[]} [extra]  troops that would be sent
+   *        now: attackers that will stand at the edge towards `from`, or reinforcements for the field's
+   *        owner. They march first; `path` is their route if they do not start on `from`.
    * @param {object} [o]
-   * @param {number} [o.defMul]   pretend the garrison is this much larger (safety margin for planners)
+   * @param {number} [o.defMul]   pretend the garrison fights this much better (safety margin for planners)
    * @returns {{holds:boolean, winner:number, left:number, time:number, undecided:boolean, sent:Map<number,number>}}
    */
   forecast(tileId, extra = [], { defMul = 1, horizon = 40 } = {}) {
     const t = this.tiles[tileId];
-    const dt = this.R.step;
+    const R = this.R;
     const def = this.defense(t);
     const F = this.frontage();
-    const hit = this.R.hit;
-    let D = t.units * defMul;
-    const pools = [];
-    const add = (owner, from, units) => {
-      if (!(units > 0)) return;
-      if (owner === t.owner) {
-        D += units;
-        return;
-      }
-      const p = pools.find((x) => x.owner === owner && x.from === from);
-      if (p) p.units += units;
-      else pools.push({ owner, from, units });
-    };
-    for (const p of t.pools) add(p.owner, p.from, p.units);
-    for (const p of extra) add(p.owner, p.from, p.units);
-    const sent = new Map();
-    for (const p of pools) sent.set(p.owner, (sent.get(p.owner) || 0) + p.units);
-
-    const grow = t.owner >= 0 && t.supplied ? this.income(t) : 0;
     const cap = this.cap(t);
-    let time = 0;
-    while (pools.length && D > 0 && time < horizon) {
-      let eng = 0;
-      for (const p of pools) eng += p.e = Math.min(p.units, F);
-      const toAtt = hit * dt * D;
-      for (const p of pools) p.units -= (toAtt * p.e) / eng;
-      D -= (hit * dt * eng) / def;
-      time += dt;
+    const room = cap + R.overfill;
+    const owned = t.owner >= 0;
+    const grow = owned && t.supplied ? this.income(t) : 0;
+    let D = t.units;
+
+    const pools = []; // attackers at the edges
+    const coming = []; // troops still on their way, with the step in which they arrive
+    const sent = new Map();
+    for (const p of t.pools) {
+      if (!(p.units > 0)) continue;
+      // Troops of the side that owns the field by now join its garrison in the next step.
+      if (p.owner === t.owner) coming.push({ owner: p.owner, from: p.from, units: p.units, tick: 1 });
+      else {
+        pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0 });
+        sent.set(p.owner, (sent.get(p.owner) || 0) + p.units);
+      }
+    }
+    for (const x of extra) {
+      if (!(x.units > 0)) continue;
+      coming.push({ owner: x.owner, from: x.from, units: x.units, tick: this._marchTicks(x.path || [x.from, tileId]) });
+      if (x.owner !== t.owner) sent.set(x.owner, (sent.get(x.owner) || 0) + x.units);
+    }
+    coming.sort((a, b) => a.tick - b.tick);
+
+    const last = Math.round(horizon / R.step);
+    let tick = 0;
+    let next = 0;
+    let fallen = false;
+    while (tick < last && (pools.length || next < coming.length)) {
+      tick++;
+      if (owned) D = this._drift(D, t.supplied, cap, grow);
+      for (; next < coming.length && coming[next].tick <= tick; next++) {
+        const c = coming[next];
+        if (c.owner === t.owner) D = Math.min(room, D + c.units);
+        else {
+          const p = pools.find((x) => x.owner === c.owner && x.from === c.from);
+          if (p) p.units += c.units;
+          else pools.push({ owner: c.owner, from: c.from, units: c.units, e: 0 });
+        }
+      }
+      if (!pools.length) continue;
+      D = this._clash(D, pools, def, F, defMul);
       for (let i = pools.length - 1; i >= 0; i--) if (pools[i].units <= 0.01) pools.splice(i, 1);
-      if (D > 0 && D < cap) D = Math.min(cap, D + grow * dt);
+      if (D > 0) continue;
+      D = 0;
+      if (pools.length) {
+        fallen = true;
+        break;
+      }
     }
-    if (D <= 0 && pools.length) {
-      const left = new Map();
-      for (const p of pools) left.set(p.owner, (left.get(p.owner) || 0) + p.units);
-      let winner = -1;
-      for (const [o, u] of left) if (winner < 0 || u > left.get(winner)) winner = o;
-      return { holds: false, winner, left: left.get(winner), time, undecided: false, sent };
+    const time = tick * R.step;
+    if (fallen) {
+      const { winner, units } = this._spoils(pools, room);
+      return { holds: false, winner, left: units, time, undecided: false, sent };
     }
-    return { holds: true, winner: t.owner, left: Math.max(0, D), time, undecided: pools.length > 0, sent };
+    return { holds: true, winner: t.owner, left: D, time, undecided: pools.length > 0 || next < coming.length, sent };
+  }
+
+  /** Steps an army needs along `path` until it stands at the last field. Counted exactly as in _tick. */
+  _marchTicks(path) {
+    const dt = this.R.step;
+    let x = 0;
+    let n = 0;
+    for (let i = 1; i < path.length; i++) {
+      const leg = this._legTime(this.tiles[path[i]]);
+      while (x < 1) {
+        x += dt / leg;
+        n++;
+      }
+      x -= 1;
+    }
+    return n;
+  }
+
+  /**
+   * One step of growth, crowding and withering for the garrison of an owned field.
+   * Used by the match and by the forecast alike.
+   */
+  _drift(units, supplied, cap, grow) {
+    const R = this.R;
+    if (!supplied) return units > 1 ? Math.max(1, units - R.cutOffDecay * R.step) : units;
+    if (units < cap) return Math.min(cap, units + grow * R.step);
+    if (units > cap) return Math.max(cap, units - R.overfillDecay * R.step);
+    return units;
+  }
+
+  /**
+   * One step of battle at the edges of a field: every pool loses troops, the new garrison is returned.
+   * Used by the match and by the forecast alike. `mul` lets a planner assume a tougher garrison.
+   */
+  _clash(units, pools, def, F, mul = 1) {
+    const R = this.R;
+    let eng = 0;
+    for (const p of pools) eng += p.e = Math.min(p.units, F);
+    const toAtt = R.hit * R.step * units * mul;
+    for (const p of pools) p.units -= (toAtt * p.e) / eng;
+    return units - (R.hit * R.step * eng) / (def * mul);
+  }
+
+  /** Who moves into a field whose garrison is gone, and with how many troops: the strongest attacker. */
+  _spoils(pools, room) {
+    const total = new Map();
+    for (const p of pools) total.set(p.owner, (total.get(p.owner) || 0) + p.units);
+    let winner = -1;
+    for (const [o, u] of total) if (winner < 0 || u > total.get(winner)) winner = o;
+    return { winner, units: Math.min(room, Math.max(1, total.get(winner))) };
   }
 
   /** Whether a building may be ordered here at all (troops are checked separately). */
@@ -265,12 +336,41 @@ export class Game {
     return false;
   }
 
-  /** Price in troops; rises with every building of that kind the owner already has. */
+  /**
+   * Price in troops of the next building of that kind. It rises with every one the owner already
+   * has or has ordered, so nobody can wall off a whole border.
+   */
   buildCost(type, owner) {
     let have = 0;
-    for (const t of this.tiles) if (t.owner === owner && t.building === type) have++;
+    for (const t of this.tiles) if (t.owner === owner && (t.building === type || t.order === type)) have++;
     const R = this.R;
     return type === 'tower' ? R.towerCost + R.towerStep * have : R.farmCost + R.farmStep * have;
+  }
+
+  /**
+   * What ordering a building on this field would do right now. `cost` is the price and `need` the
+   * troops the field must hold to pay it (one always stays behind).
+   *   now     the troops stand on the field: it is built at once
+   *   save    the field can grow to `need` by itself: the order is noted and the field saves up
+   *   saving  this very order is open; ordering again takes it back
+   *   short   too dear to save up for: it can only be bought once `need` troops stand on the field
+   *   never   dearer than a field can ever hold
+   *   ground  this kind of building needs other ground
+   *   no      nothing can be built here
+   * An order is only ever noted when waiting is enough to finish it.
+   */
+  buildOption(owner, tileId, type) {
+    const t = this.tiles[tileId];
+    if (t && t.owner === owner && t.order === type) return { state: 'saving', cost: t.orderCost, need: t.orderCost + 1 };
+    const cost = this.buildCost(type, owner);
+    const need = cost + 1;
+    let state;
+    if (!this.canBuild(owner, tileId, type)) state = type === 'farm' && this.canBuild(owner, tileId, 'tower') ? 'ground' : 'no';
+    else if (t.units >= need) state = 'now';
+    else if (need > this.cap(t) + this.R.overfill) state = 'never';
+    else if (need > this.cap(t) || !t.supplied) state = 'short';
+    else state = 'save';
+    return { state, cost, need };
   }
 
   stats() {
@@ -329,30 +429,40 @@ export class Game {
   }
 
   /**
-   * Orders a building. It is paid with troops of that field. If there are not enough yet,
-   * the field saves up (no automatic supply leaves it) and builds as soon as it can.
-   * Ordering the same building again cancels the order.
+   * Orders a building. It is paid with troops of that field. If there are not enough yet and the
+   * field can grow to the price, it saves up (no automatic supply leaves it) and builds as soon as
+   * it can; the price is fixed at that moment. Anything the field could not finish by waiting is
+   * refused (see buildOption). Ordering the same building again cancels the order.
    */
   build(owner, tileId, type) {
-    if (this.phase !== 'running' || !this.canBuild(owner, tileId, type)) return false;
+    if (this.phase !== 'running') return false;
     const t = this.tiles[tileId];
-    if (t.order === type) {
-      t.order = null;
-      this.sceneVersion++;
-      this.events.push({ type: 'cancel', owner, tile: tileId });
+    const option = this.buildOption(owner, tileId, type);
+    if (option.state === 'saving') {
+      this._dropOrder(t);
       return true;
     }
+    if (option.state !== 'now' && option.state !== 'save') return false;
     t.order = type;
+    t.orderCost = option.cost;
     this.sceneVersion++;
-    if (t.units >= this.buildCost(type, owner) + 1) this._complete(t);
+    if (option.state === 'now') this._complete(t);
     else this.events.push({ type: 'order', owner, tile: tileId, building: type });
     return true;
   }
 
+  _dropOrder(t) {
+    t.order = null;
+    t.orderCost = 0;
+    this.sceneVersion++;
+    this.events.push({ type: 'cancel', owner: t.owner, tile: t.id });
+  }
+
   _complete(t) {
-    t.units -= this.buildCost(t.order, t.owner);
+    t.units -= t.orderCost;
     t.building = t.order;
     t.order = null;
+    t.orderCost = 0;
     this.sceneVersion++;
     if (t.owner === this.human) this.humanStats.built++;
     this.events.push({ type: 'build', owner: t.owner, tile: t.id, building: t.building });
@@ -384,14 +494,11 @@ export class Game {
     // Growth, crowding and withering.
     for (const t of tiles) {
       if (t.owner < 0) continue;
-      const cap = this.cap(t);
-      if (!t.supplied) {
-        if (t.units > 1) t.units = Math.max(1, t.units - R.cutOffDecay * dt);
-        continue;
-      }
-      if (t.units < cap) t.units = Math.min(cap, t.units + this.income(t) * dt);
-      else if (t.units > cap) t.units = Math.max(cap, t.units - R.overfillDecay * dt);
-      if (t.order && t.units >= this.buildCost(t.order, t.owner) + 1) this._complete(t);
+      t.units = this._drift(t.units, t.supplied, this.cap(t), t.supplied ? this.income(t) : 0);
+      if (!t.order) continue;
+      // A field without a link to its castle cannot save up, so its order lapses.
+      if (!t.supplied) this._dropOrder(t);
+      else if (t.units >= t.orderCost + 1) this._complete(t);
     }
 
     // Marching.
@@ -494,12 +601,7 @@ export class Game {
     }
     if (!t.pools.length) return false;
 
-    const F = this.frontage();
-    let eng = 0;
-    for (const p of t.pools) eng += p.e = Math.min(p.units, F);
-    const toAtt = R.hit * R.step * t.units;
-    for (const p of t.pools) p.units -= (toAtt * p.e) / eng;
-    t.units -= (R.hit * R.step * eng) / this.defense(t);
+    t.units = this._clash(t.units, t.pools, this.defense(t), this.frontage());
     t.lastBattle = this.time;
 
     for (let i = t.pools.length - 1; i >= 0; i--) {
@@ -518,20 +620,18 @@ export class Game {
 
   /** The garrison is gone: the strongest attacker at the edges moves in. */
   _capture(t) {
-    const total = new Map();
-    for (const p of t.pools) total.set(p.owner, (total.get(p.owner) || 0) + p.units);
-    let winner = -1;
-    for (const [o, u] of total) if (winner < 0 || u > total.get(winner)) winner = o;
+    const { winner, units } = this._spoils(t.pools, this.cap(t) + this.R.overfill);
     const sides = t.pools.filter((p) => p.owner === winner).length;
     const previous = t.owner;
 
     t.pools = t.pools.filter((p) => p.owner !== winner);
     t.owner = winner;
-    t.units = Math.min(this.cap(t) + this.R.overfill, Math.max(1, total.get(winner)));
+    t.units = units;
     t.lastCapture = this.time;
     t.stormedAt = this.time; // taken in battle, as opposed to inherited with a fallen castle
     if (t.order) {
       t.order = null;
+      t.orderCost = 0;
       this.sceneVersion++;
     }
     if (this.human >= 0 && previous === this.human) this.humanStats.lost++;
@@ -561,6 +661,7 @@ export class Game {
       t.units = Math.max(1, Math.floor(t.units * this.R.conquestKeep));
       t.lastCapture = this.time;
       t.order = null;
+      t.orderCost = 0;
       flipped.push(t.id);
     }
     for (const x of this.armies) if (x.owner === fallen) x.done = true;

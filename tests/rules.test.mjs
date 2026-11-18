@@ -1,48 +1,23 @@
-// Rule tests without a browser:  node --test tests/
+// Rule tests without a browser:  node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/sim/game.js';
 import { CAMPAIGN, MISSIONS } from '../src/sim/missions.js';
 import { RULES } from '../src/sim/rules.js';
-
-// A small open field. Kingdom 0 sits top left, kingdom 1 bottom right, everything else is free land.
-const LAB = {
-  id: 'lab',
-  factions: 2,
-  ring: false,
-  storm: false,
-  layout: ['K0 .  .  .  .', '  .  .  .  .  .', '.  .  .  .  K1'],
-};
-
-function lab(extra = {}) {
-  const game = new Game({ mission: { ...LAB, ...extra }, human: -1 });
-  for (const f of game.factions) {
-    f.thinkAt = Infinity; // nobody plays: the tests give every order themselves
-    f.autoSupply = false;
-  }
-  return game;
-}
-const at = (game, col, row) => game.tiles.find((t) => t.r === row && t.q === col - ((row - (row & 1)) >> 1));
-const give = (game, tile, owner, units) => {
-  tile.owner = owner;
-  tile.units = units;
-  game._supply();
-};
-const run = (game, seconds) => {
-  for (let i = 0; i < seconds * 10; i++) game.step(0.1);
-};
+import { LAB, lab, at, give, run } from './lab.mjs';
 
 test('an attack from three sides costs less than half of one from a single side', () => {
   const game = lab();
   const target = at(game, 2, 1);
   target.units = 20;
   const [a, b, c] = target.neighbors;
-  const one = game.forecast(target.id, [{ owner: 0, from: a, units: 60 }]);
-  const three = game.forecast(target.id, [a, b, c].map((from) => ({ owner: 0, from, units: 20 })));
+  // 36 attackers either way: few enough that the survivors all fit onto the field they take.
+  const one = game.forecast(target.id, [{ owner: 0, from: a, units: 36 }]);
+  const three = game.forecast(target.id, [a, b, c].map((from) => ({ owner: 0, from, units: 12 })));
   assert.equal(one.winner, 0);
   assert.equal(three.winner, 0);
-  const lossOne = 60 - one.left;
-  const lossThree = 60 - three.left;
+  const lossOne = 36 - one.left;
+  const lossThree = 36 - three.left;
   assert.ok(lossThree < lossOne / 2, `three sides lose ${lossThree.toFixed(1)}, one side loses ${lossOne.toFixed(1)}`);
 });
 
@@ -51,9 +26,10 @@ test('more troops at one edge do not help once the edge is full', () => {
   const target = at(game, 2, 1);
   target.units = 20;
   const from = target.neighbors[0];
-  const a = game.forecast(target.id, [{ owner: 0, from, units: 40 }]);
-  const b = game.forecast(target.id, [{ owner: 0, from, units: 80 }]);
-  assert.ok(Math.abs(40 - a.left - (80 - b.left)) < 0.5, 'losses are the same, only the survivors differ');
+  const a = game.forecast(target.id, [{ owner: 0, from, units: 36 }]);
+  const b = game.forecast(target.id, [{ owner: 0, from, units: 44 }]);
+  assert.equal(a.winner, 0);
+  assert.ok(Math.abs(36 - a.left - (44 - b.left)) < 0.5, 'losses are the same, only the survivors differ');
 });
 
 test('the forecast matches what then really happens', () => {
@@ -67,7 +43,7 @@ test('the forecast matches what then really happens', () => {
   for (let i = 0; i < 200 && target.owner !== 0; i++) game.step(0.1);
   assert.equal(target.owner, 0);
   assert.equal(fc.winner, 0);
-  assert.ok(Math.abs(target.units - fc.left) < 0.6, `forecast ${fc.left.toFixed(1)}, real ${target.units.toFixed(1)}`);
+  assert.ok(Math.abs(target.units - fc.left) < 0.05, `forecast ${fc.left.toFixed(1)}, real ${target.units.toFixed(1)}`);
   const capture = game.drainEvents().find((e) => e.type === 'capture');
   assert.equal(capture.sides, 2);
 });

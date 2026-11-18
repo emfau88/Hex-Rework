@@ -1,4 +1,4 @@
-# Runs the rule tests and, if they pass, publishes the game to GitHub Pages.
+# Runs the tests (rules and input, everything in tests/) and, if they pass, publishes the game to GitHub Pages.
 # The site contains only what the browser needs: index.html, styles.css and src/.
 name: Test and deploy
 
@@ -28,8 +28,8 @@ jobs:
         with:
           node-version: 22
           package-manager-cache: false
-      - name: Rule tests
-        run: node --test tests/rules.test.mjs
+      - name: Rule and input tests
+        run: node --test
       - name: Collect the site
         run: |
           mkdir _site

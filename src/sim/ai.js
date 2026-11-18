@@ -161,7 +161,7 @@ export function aiThink(game, f) {
           if (r.owner !== me || seen.has(n) || r.castle === me) continue;
           seen.add(n);
           const units = spare(r);
-          if (units >= 6) rear.push({ owner: me, from: x.s.id, origin: n, units });
+          if (units >= 6) rear.push({ owner: me, from: x.s.id, origin: n, units, path: [n, x.s.id, o.id] });
         }
       }
       rear.sort((a, b) => b.units - a.units || a.origin - b.origin);
@@ -240,6 +240,8 @@ export function aiThink(game, f) {
   }
 
   // 3. Spend troops on a tower at a threatened border or order a farm in the hinterland.
+  // The game refuses any order the field could not finish by waiting (see Game.buildOption), so a
+  // kingdom never freezes a field for a building that has become too dear; it simply stops building.
   if (game.rng.next() < P.build) {
     let tower = null;
     let farm = null;

@@ -182,7 +182,8 @@ function initTile(t) {
   t.height = HEIGHT[t.terrain];
   t.owner = -1;
   t.building = null;
-  t.order = null;
+  t.order = null; // building the field is saving up for
+  t.orderCost = 0; // its price, fixed when it was ordered
   t.ruin = false;
   t.supplied = false;
   t.fixed = false; // true: the map set the garrison, the start-up must not overwrite it

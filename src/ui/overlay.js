@@ -213,7 +213,7 @@ export class Overlay {
     } else {
       // The troops will stand at the edge of the last own field on their way.
       const edge = ui.dragPath[ui.dragPath.length - 2];
-      const fc = game.forecast(target.id, amount >= 1 ? [{ owner: ui.human, from: edge, units: amount }] : []);
+      const fc = game.forecast(target.id, amount >= 1 ? [{ owner: ui.human, from: edge, units: amount, path: ui.dragPath }] : []);
       wins = !fc.holds && fc.winner === ui.human;
       text = wins ? `✓ ${Math.max(1, Math.floor(fc.left))}` : `✗ ${Math.ceil(fc.left)}`;
     }
