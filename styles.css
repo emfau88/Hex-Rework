@@ -282,6 +282,29 @@ canvas {
   opacity: 0.36;
 }
 
+/* Not available on this field right now; the small line says why. */
+.build.blocked:disabled {
+  opacity: 0.78;
+}
+
+.build.blocked svg,
+.build.blocked .small,
+.build.blocked b {
+  opacity: 0.5;
+}
+
+.build .why {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #ffb9a3;
+  text-align: center;
+}
+
+.build .why:empty {
+  display: none;
+}
+
 .build.ready b {
   background: var(--gold);
   color: var(--gold-ink);

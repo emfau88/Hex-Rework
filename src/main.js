@@ -527,12 +527,16 @@ class App {
     const sel = this.ui.selected >= 0 ? game.tiles[this.ui.selected] : null;
     for (const type of ['tower', 'farm']) {
       const btn = $(`#btn-${type}`);
-      const cost = human >= 0 ? game.buildCost(type, human) : 0;
-      const can = Boolean(sel) && game.canBuild(human, sel.id, type);
-      btn.disabled = !can;
-      btn.classList.toggle('ready', can && sel.units >= cost + 1);
-      btn.classList.toggle('saving', Boolean(sel) && sel.order === type);
-      $(`#cost-${type}`).textContent = cost;
+      // The button only takes what the rules will finish, and says why it refuses the rest.
+      const option = sel && human >= 0 ? game.buildOption(human, sel.id, type) : { state: 'no', cost: human >= 0 ? game.buildCost(type, human) : 0, need: 0 };
+      const state = option.state;
+      const why = state === 'short' ? i18n.t('buildShort', { n: option.need }) : state === 'never' ? i18n.t('buildNever') : state === 'ground' ? i18n.t('buildGround') : '';
+      btn.disabled = state !== 'now' && state !== 'save' && state !== 'saving';
+      btn.classList.toggle('ready', state === 'now');
+      btn.classList.toggle('saving', state === 'saving');
+      btn.classList.toggle('blocked', Boolean(why));
+      $(`#cost-${type}`).textContent = option.cost;
+      $(`#why-${type}`).textContent = why;
     }
   }
 
