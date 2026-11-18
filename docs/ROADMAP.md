@@ -1,18 +1,22 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.3.1 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.4 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 ## Als Nächstes
 
-- [ ] **Kampf deutlicher zeigen** (Nachbesserung 6)
+- [ ] **Kampf deutlicher zeigen** (Nachbesserung 6), zum Teil erledigt mit Stand 0.4
+  - [x] Soldaten treffen an der Kante aufeinander, statt nur davor zu stehen
+  - [x] Anzeige, wie weit ein Feld eingenommen ist und wann es fällt (Rand der Feldzahl, Ansage darüber)
+  - [x] Staub an der Kante, Pfeile vom Turm, Figuren schrumpfen mit der Zahl
   - [ ] Mauerstücke an der Burg für jedes Nachbarfeld, das der Verteidiger noch hält
-  - [ ] Soldaten treffen an der Kante aufeinander, statt nur davor zu stehen
   - [ ] Anzeige, wie voll ein Feld ist
+  - [ ] Fahne auf dem Feld, die sinkt und in der neuen Farbe wieder steigt (Alternative zum Rand)
   - [ ] Abgelehnte Befehle rückmelden: Wer einen Befehl gibt, der nicht ausgeführt wird (zu wenig Truppen,
         Ziel voll, kein Weg), sieht kurz warum. Heute verschwindet nur die Auswahl.
   - Fertig, wenn ein Zuschauer ohne Erklärung erkennt, wer wo angreift, und ein Spieler merkt, wenn ein
     Befehl nicht angenommen wurde.
 - [ ] **PC-Bedienung** (Nachbesserung 7)
+  - [x] Pause mit Befehlen (Leertaste, P) und Tempo-Schalter (Stand 0.4)
   - [ ] Mausrad-Zoom und Verschieben der Karte
   - [ ] Tastenkürzel für Sturm und Bauen
   - Fertig, wenn sich eine Partie ohne Blick auf die Leisten spielen lässt.
@@ -20,6 +24,12 @@ Stand 19.11.2026 · Spielstand 0.3.1 · Einzelheiten und Messwerte in [REWORK-PL
 ## Von dir zu prüfen
 
 - [ ] Die drei Missionen am PC spielen. Verstehst du, warum ein Angriff scheitert? Ist „Normal“ zu leicht oder zu schwer?
+- [ ] Eine Mission auf „Ruhig“ spielen: Kommst du mit Lesen, Planen und Bauen mit? Sonst auf „Normal“ vergleichen.
+- [ ] Pause mit Befehlen ausprobieren: Hilft sie, oder zerhackt sie das Spiel?
+- [ ] Kampfanzeige: Erkennst du bei zwei Angreifern ohne Nachrechnen, wer das Feld bekommt? Ist die Ansage
+      („3 s“, „hält“) am Handy lesbar?
+- [ ] Kampfanimation in Bewegung ansehen (bisher nur als Standbilder geprüft): Erkennt man, wer wo angreift?
+- [ ] Gebirge und Böschungen: Gefällt es dir, bleiben die Felder gut antippbar?
 - [ ] Ton anhören
 - [ ] Am echten Handy spielen: Sind die Zahlen lesbar, trifft der Finger das richtige Feld, läuft es flüssig?
 - [ ] Am echten Handy ein fremdes Feld einmal antippen: Bleibt die Vorschau stehen, und schickt erst der
@@ -57,3 +67,6 @@ Stand 19.11.2026 · Spielstand 0.3.1 · Einzelheiten und Messwerte in [REWORK-PL
 - [x] Spiel-Link über GitHub Pages
 - [x] Drei Fehler aus der Fremdprüfung behoben (Stand 0.3.1): Bauaufträge, die nie fertig wurden;
       Angriffsvorhersage, die vom Kampf abwich; abgebrochener Sturm, der trotzdem auslöste
+- [x] Tempo-Schalter und Pause mit Befehlen (Stand 0.4)
+- [x] Kampfanzeige und Kampfanimation (Stand 0.4)
+- [x] Abwechslungsreiche Gebirge, Böschungen statt Steilwände, Strand am Wasser (Stand 0.4)

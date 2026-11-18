@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.3.1 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.4 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -47,7 +47,14 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
 - **Nachschub:** schickt Truppen aus dem Hinterland an Frontfelder, die noch Platz haben.
 - **Abbrechen:** `Esc`, rechte Maustaste oder das gewählte Feld erneut antippen. Das nimmt auch einen
   Sturm zurück, der nach dem ersten Tipp bereitstand.
-- **Pause:** Knopf oben links, am PC Leertaste.
+- **Kampf lesen:** Bei einem Kampf färbt sich der Rand der Feldzahl von oben im Uhrzeigersinn in der Farbe
+  der Angreifer. Ist er einmal herum, fällt das Feld. Greifen zwei Reiche an, teilen sie sich den gefärbten
+  Teil. Betrifft dich der Kampf, steht über der Zahl, in wie vielen Sekunden das Feld fällt (der Punkt zeigt,
+  an wen) oder dass es hält.
+- **Pause mit Befehlen:** Knopf oben links, am PC Leertaste oder `P`. Das Spiel steht, die Karte bleibt
+  sichtbar, Schicken und Bauen gehen weiter. „Hilfe“ öffnet die Kurzanleitung mit Neustart und Menü.
+- **Tempo:** Ruhig (75 %), Normal oder Schnell (130 %), im Menü und unter „Hilfe“. Beim ersten Start gilt
+  Ruhig. Das Tempo dehnt nur die Zeit: Regeln, Gegner und Balance bleiben gleich, die Uhr zählt Spielzeit.
 
 ## Missionen
 
@@ -113,7 +120,7 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
-Stand 0.3.1 vom 19.11.2026: drei Fehler aus einer Fremdprüfung behoben (Bauaufträge, Angriffsvorhersage,
-abgebrochener Sturm), Einzelheiten in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md), Abschnitt 10. Geprüft mit
-45 Tests, Messläufen und Durchläufen im Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am
-Spiel, echtes Handy, Ton, Safari.
+Stand 0.4 vom 19.11.2026: Tempo-Schalter, Pause mit Befehlen, Kampfanzeige, Kampfanimation, abwechslungsreiche
+Gebirge und Böschungen (Abschnitt 11 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.3.1: drei
+Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 46 Tests, Messläufen und Durchläufen im
+Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

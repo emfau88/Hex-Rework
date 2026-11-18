@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -76,7 +76,7 @@ Versionsverwaltung. Bulk 0 bis 5 gehören zu dieser Arbeitsrunde, Bulk 6 bis 11 
 **Fertig, wenn** die Regeltests grün sind: ein Angriff von drei Seiten kostet höchstens halb so viel wie von
 einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mit ihrem Reich.
 
-**Stand: erledigt.** Inzwischen 45 Tests grün (`node --test`): 12 für die Regeln, 9 fürs Bauen, 8 für die
+**Stand: erledigt.** Inzwischen 46 Tests grün (`node --test`): 12 für die Regeln, 9 fürs Bauen, 9 für die
 Vorhersage, 16 für die Eingabe.
 
 ### Bulk 2 · Gegner und Messwerkzeug
@@ -107,7 +107,7 @@ Anlauf war das letzte Kriterium verfehlt; es wurde mit den Nachbesserungen in Ab
 mit dem tatsächlichen Ausgang übereinstimmt.
 
 **Stand: erledigt.** Im Browser geprüft. Die Übereinstimmung von Vorhersage und Ausgang prüfen seit Stand
-0.3.1 neun Tests, auch für abgeschnittene und überfüllte Verteidiger (Abschnitt 10).
+0.3.1 neun Tests, auch für abgeschnittene und überfüllte Verteidiger (Abschnitt 10), seit Stand 0.4 zehn.
 
 ### Bulk 4 · Missionssystem und Missionen 1 bis 3
 
@@ -234,7 +234,7 @@ geprüften Bildern eine einzelne, in Mission 3 in 3 von 215.
 |---|---|
 | Regeln | 12 Regeltests, darunter Waffenruhe der Einführung und gleiches Land für jedes Reich auf Zufallskarten |
 | Bauen | 9 Tests: kein Auftrag, der nicht fertig werden kann; Sofortkauf; Preis steht mit dem Auftrag fest; in Computer-Partien nach jedem Regelschritt kein unerfüllbarer Auftrag |
-| Vorhersage gegen tatsächlichen Ausgang | 9 Tests: versorgte, abgeschnittene und überfüllte Verteidiger, Burg, Turm auf Hügel, zweite Welle; derselbe Sieger, Rest auf 0,05 Truppen gleich |
+| Vorhersage gegen tatsächlichen Ausgang | 10 Tests: versorgte, abgeschnittene und überfüllte Verteidiger, Burg, Turm auf Hügel, zweite Welle, zwei Reiche im Anmarsch auf dasselbe Feld; derselbe Sieger, Rest auf 0,05 Truppen gleich |
 | Eingabe | 16 Tests ohne Browser: zwei Tipps lösen aus, elf Arten von Abbruch oder Zwischenaktion entschärfen |
 | Menü, Besprechung, Partie, Sieg, Niederlage, nächste Mission, Freischaltung | im Browser, Missionen 1 bis 3 vom Testspieler-Programm durchgespielt, keine Fehlermeldung (Stand 0.3; mit Stand 0.3.1 erneut Mission 1 bis zum Sieg und der Übergang zu Mission 2) |
 | Ziehen mit Vorhersage, Sturmbefehl mit zwei Tipps, Abbruch mit Esc | im Browser mit echten Mausklicks: Tipp, Esc, Tipp schickt nichts; zwei Tipps schicken alle Nachbarn |
@@ -297,8 +297,8 @@ In Mission 1 hält der Gegner bis zum letzten Schritt still, in Mission 2 und 3 
 | 3 | Gegner setzt nach | **Erledigt für „Normal“.** Ziel war höchstens 3 von 60 Partien ohne Sieger; gemessen 0, 0 und 3 auf Mission 1 bis 3. Frisch eroberte Felder rücken weiter vor, eine Reserve besetzt das eroberte Feld. Dabei gefunden und behoben: Der Nachschub bevorzugte Reiche im oberen Teil der Karte. |
 | 4 | Zufallskarte anpassen | **Erledigt.** Die Insel ist jetzt links-rechts und oben-unten gespiegelt, alle Burgen stehen auf gleichem Land. Siege je Startplatz auf „Normal“: Duell 31 / 29, Vier Reiche 18 / 11 / 15 / 16. Das Duell dauert im Mittel 5:24 statt 2:34. Neu im Menü: Duell auf Zufallskarte. |
 | 5 | Weniger Zahlen im Bild | **Erledigt bis auf Einzelfälle.** Belagerer tragen eine Zahl je Reich und Feld, Kämpfe zwischen Rivalen und Nachschubkolonnen tragen keine, Zahlen weichen einander aus. Rest siehe Abschnitt 7. |
-| 6 | Kampf deutlicher zeigen | offen, gesondert |
-| 7 | PC-Bedienung (Zoom, Verschieben, Tastenkürzel) | offen, gesondert |
+| 6 | Kampf deutlicher zeigen | **Zum Teil erledigt** mit Stand 0.4 (Abschnitt 11). Offen: Mauerstücke an der Burg, Anzeige wie voll ein Feld ist, abgelehnte Befehle rückmelden. |
+| 7 | PC-Bedienung (Zoom, Verschieben, Tastenkürzel) | **Zum Teil erledigt** mit Stand 0.4: Pause mit Befehlen, Tempo. Offen: Zoom, Verschieben, Tastenkürzel für Sturm und Bauen. |
 | 8 | Ton, echtes Handy, Safari prüfen | offen, das kannst nur du |
 | 9 | Geführte Schritte für Mission 2 und 3 | **Erledigt**, siehe Abschnitt 8. |
 | 10 | Drei Fehler aus der Fremdprüfung | **Erledigt** mit Stand 0.3.1, siehe Abschnitt 10. |
@@ -438,3 +438,75 @@ wie in Stand 0.3. Geprüft wurde je eine Stellschraube mit 60 Partien, keine wur
 
 Das Messwerkzeug kann seit diesem Stand mit anderen Würfeln messen: `node tools/simulate.mjs 60 --shift=1`.
 Ohne die Angabe bleiben die Startwerte die, mit denen alle Zahlen in Abschnitt 7 gemessen sind.
+
+## 11 · Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, 19.11.2026)
+
+Anlass war dein Eindruck nach den ersten Partien: zu schnell, um zu lesen, zu planen und zu bauen; nicht zu
+sehen, wie weit ein Feld eingenommen ist; Gebirge wiederholen sich; erhöhte Felder wirken steil. Vier Blöcke,
+jeder mit Abnahmekriterium. Die Kriterien sind Fragen an dich; hier steht, was vorher schon geprüft ist.
+
+| Block | Was | Fertig, wenn | Stand |
+|---|---|---|---|
+| 1 | Tempo-Schalter und Pause mit Befehlen | du eine Mission auf „Ruhig“ spielst und sagst, du kommst mit | gebaut, im Browser geprüft; dein Urteil steht aus |
+| 2 | Kampfanzeige | du bei zwei Angreifern ohne Nachrechnen sagst, wer das Feld bekommt | gebaut, im Browser am PC und im Handy-Format geprüft; dein Urteil steht aus |
+| 3 | Kampfanimation | ein Zuschauer ohne Erklärung erkennt, wer wo angreift | gebaut, nur als Standbilder geprüft |
+| 4 | Gebirge und Böschungen | keine zwei Bergfelder gleich aussehen und jedes Feld antippbar bleibt | gebaut, im Browser angesehen; Antippen läuft über die unveränderte Oberseite der Felder |
+
+### Block 1 · Tempo und Pause
+
+- **Tempo:** Ruhig (75 %), Normal (100 %), Schnell (130 %), im Menü und im Hilfe-Fenster. Beim ersten Start
+  gilt „Ruhig“. Das Tempo dehnt nur die Zeit: Die Regeln rechnen dieselben Schritte, die Gegner entscheiden in
+  Spielzeit. Die Balance aus Abschnitt 7 gilt deshalb für jedes Tempo. Auf „Ruhig“ dauert eine Mission in
+  echter Zeit ein Drittel länger (Mission 2 etwa 5:30 statt 4:06). Uhr und Zeit-Stern zählen Spielzeit.
+- **Pause mit Befehlen:** Pause-Knopf, Leertaste oder P halten das Spiel an. Die Karte bleibt sichtbar,
+  Schicken, Sturm und Bauen gehen weiter, die Vorhersage am Pfeil auch. Das alte Pausenfenster (Kurzanleitung,
+  Neustart, Menü) liegt hinter dem Knopf „Hilfe“. Die Kurzanleitung sagt jetzt, was Turm und Hof bringen.
+- **Nicht gebaut:** automatische Pause beim Bauen. Bauen ist ein Klick; die Pause mit Befehlen deckt das ab.
+- **Nicht geändert:** die Dauer der Kämpfe selbst. Das würde die Balance ändern und müsste neu gemessen werden.
+- Geprüft im Browser: Auf „Ruhig“ rechnet das Spiel je Bild 0,075 statt 0,1 Sekunden. In der Pause steht die
+  Spielzeit, ein Befehl mit echten Klicks wird angenommen, die Leertaste setzt fort.
+
+### Block 2 · Kampfanzeige
+
+- Der Rand der Feldzahl färbt sich von oben im Uhrzeigersinn in den Farben der Angreifer, so weit die
+  Besatzung seit Kampfbeginn gefallen ist. Ist er einmal herum, fällt das Feld. Greifen zwei Reiche an,
+  teilen sie sich den gefärbten Teil nach ihrer Stärke an den Kanten.
+- Betrifft der Kampf den Spieler, sitzt auf dem Rand eine kleine Ansage: in wie vielen Sekunden das Feld
+  fällt und an wen (farbiger Punkt), oder „hält“. Die Sekunden sind echte Sekunden beim gewählten Tempo.
+- Die Ansage benutzt dieselbe Rechnung wie Kampf und Pfeil (Abschnitt 10) und zählt Armeen mit, die schon
+  unterwegs sind. Ein Test stellt das nach: Zwei Reiche marschieren auf dasselbe Feld, Sieger, Rest und
+  Zeitpunkt treffen ein. Der Computer plant unverändert nur mit dem, was an den Kanten steht.
+- Geprüft im Browser: Vorhergesagt war, dass EMBER ein Feld mit 11,9 Truppen nimmt, während AZUR mit angreift;
+  genau so kam es. Im Handy-Format verdeckt die Ansage keine Nachbarzahl mehr.
+
+### Block 3 · Kampfanimation
+
+- Die Besatzung verlässt ihre Reihe und stellt sich den Angreifern an der Kante, beide schlagen im Wechsel zu.
+- Staub an der Kante, Pfeile vom Turm auf die Belagerer, die letzte Figur schrumpft mit der sinkenden Zahl.
+- Alles läuft mit der Uhr der Regeln: In der Pause steht der Kampf, auf „Ruhig“ ist er langsamer.
+- Offen: Mauerstücke an der Burg, umfallende Figuren (die Figuren lassen sich bisher nur drehen und verkleinern).
+
+### Block 4 · Gebirge und Böschungen
+
+- **Gebirge:** Bisher hatte jedes Bergfeld dieselben drei Felsen an denselben Stellen. Jetzt hat jedes Feld
+  eine eigene Gruppe: ein Hauptgipfel, im Inneren eines Gebirges höher als am Rand, und ein bis drei kleinere.
+  Zahl der Seiten, Höhe und Farbton wechseln. Felsen auf gemeinsamen Kanten verdecken das Raster.
+- **Böschungen:** Wo ein Feld deutlich höher liegt als sein Nachbar, läuft ein Hang hinunter statt einer
+  senkrechten Wand: Sand zum Wasser, Geröll unter Bergen, Erde sonst. Die Oberseite bleibt ein klares
+  Sechseck. Angreifer eines höheren Feldes stehen auf dem Hang und stürmen sichtbar bergauf.
+
+### Balance
+
+Die Regeln sind unverändert. Neu sind nur zwei Dinge für die Anzeige: Das Spiel merkt sich die Besatzung zu
+Kampfbeginn, und die Vorhersage kann auf Wunsch Armeen im Anmarsch mitzählen. Gegenprobe mit 60 Partien:
+Mission 1 und Mission 3 auf „Normal“ liefern Zeile für Zeile dieselben Werte wie in Abschnitt 7. Die anderen
+Karten sind nicht erneut gemessen.
+
+### Nicht geprüft
+
+| Was | Folge |
+|---|---|
+| Ob „Ruhig“ sich richtig anfühlt | das zeigt nur dein Spieltest |
+| Die Kampfanimation in Bewegung | der Browser-Bereich hier zeigt etwa ein Bild pro Sekunde; geprüft sind Standbilder |
+| Flüssigkeit am echten Handy mit den zusätzlichen Hängen und Felsen | offen |
+| Zufallskarten mit Böschungen im Hochformat | angesehen sind Mission 1 bis 3 und die Vier-Reiche-Karte |
