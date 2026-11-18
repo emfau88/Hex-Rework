@@ -1,55 +1,68 @@
 // Computer kingdoms. They use the same commands as the human and get no hidden troops.
-
-import { RULES } from './rules.js';
+//
+// Under rule set 0.2 a kingdom thinks in edges: it joins several fields into one attack, because
+// an attack from three sides costs a fraction of one from a single side. It also answers sieges
+// and looks for rival fields whose loss would cut others off from their castle.
 
 export function aiThink(game, f) {
   const tiles = game.tiles;
   const me = f.id;
   const P = f.ai;
   // The longer a match lasts, the more risk a kingdom accepts.
-  const margin = 1 + (P.margin - 1) * Math.max(0.2, 1 - game.time / 300);
+  const margin = 1 + (P.margin - 1) * Math.max(0.3, 1 - game.time / 360);
+  const castle = tiles[f.castle];
+  const ring = new Set(castle.neighbors);
+  const holdGoal = game.objective.type === 'hold';
+  const prize = holdGoal ? game.objective.tile : -1;
 
-  // Own troops already marching on a target count towards what is needed there.
-  const incoming = new Map();
-  for (const a of game.armies) {
-    if (a.owner !== me || a.done) continue;
-    const dst = a.path[a.path.length - 1];
-    incoming.set(dst, (incoming.get(dst) || 0) + a.units);
-  }
+  const prizeRing = new Set(holdGoal ? tiles[prize].neighbors : []);
+  // Someone else is running down the clock on the citadel: breaking their ring comes first.
+  const clock = holdGoal && game.hold.owner >= 0 && game.hold.owner !== me ? game.hold.time / game.objective.seconds : -1;
 
-  const threat = (t) => {
-    let m = 0;
-    for (const n of t.neighbors) {
-      const o = tiles[n];
-      if (o.owner >= 0 && o.owner !== me) m = Math.max(m, o.units);
-    }
-    return m;
-  };
+  const hostile = (o) => o.owner >= 0 && o.owner !== me;
+  const facesRival = (t) => t.neighbors.some((n) => hostile(tiles[n]));
+
+  /** Troops a field must not give away. */
   const keep = (t) => {
-    if (t.castle === me) return Math.max(P.castleKeep, threat(t) * 0.7 + 4);
-    return t.building ? 2 + threat(t) * 0.25 : 1;
+    if (t.pools.length || t.order) return Infinity;
+    if (t.castle === me) return P.castleKeep;
+    let k = 1;
+    if (facesRival(t)) k = ring.has(t.id) ? P.frontKeep + 3 : P.frontKeep;
+    if (t.building) k = Math.max(k, 4);
+    if (t.id === prize) k = Math.max(k, 16);
+    else if (t.terrain === 'citadel') k = Math.max(k, 8);
+    else if (prizeRing.has(t.id) && tiles[prize].owner === me) k = Math.max(k, 9);
+    return k;
   };
   const spare = (t) => Math.max(0, Math.floor(t.units) - Math.ceil(keep(t)));
 
-  // 1. Hold the castle: losing it loses everything.
-  const castle = tiles[f.castle];
-  let pressure = 0;
-  for (const n of castle.neighbors) {
-    const o = tiles[n];
-    if (o.owner >= 0 && o.owner !== me) pressure += o.units;
-  }
-  for (const a of game.armies) {
-    if (a.owner !== me && !a.done && a.path[a.path.length - 1] === castle.id) pressure += a.units;
-  }
-  if (pressure > castle.units * game.defense(castle) * 0.75) {
-    for (const n of castle.neighbors) {
-      const o = tiles[n];
-      if (o.owner === me && o.units >= 4) game.dispatch(me, o.id, castle.id, Math.floor(o.units * 0.6), 'move');
+  // 1. Answer sieges: reinforce a field that would fall, if neighbours can still save it.
+  if (P.reinforce > 0) {
+    const rank = (t) => (t.castle === me ? 1 : ring.has(t.id) || t.building || t.terrain === 'citadel' ? 2 : 3);
+    const inDanger = tiles.filter((t) => t.owner === me && t.pools.length && rank(t) <= P.reinforce).sort((a, b) => rank(a) - rank(b));
+    for (const t of inDanger) {
+      if (game.forecast(t.id).holds) continue;
+      const all = t.castle === me;
+      const give = (o) => (o.pools.length ? 0 : all ? Math.floor(o.units) - 1 : spare(o));
+      const donors = t.neighbors.map((n) => tiles[n]).filter((o) => o.owner === me && give(o) >= 2).sort((a, b) => give(b) - give(a));
+      let room = game.room(t.id, me);
+      const extra = [];
+      let saved = false;
+      for (const d of donors) {
+        const amount = Math.min(give(d), room);
+        if (amount < 2) break;
+        room -= amount;
+        extra.push({ owner: me, from: d.id, units: amount });
+        if (game.forecast(t.id, extra).holds) {
+          saved = true;
+          break;
+        }
+      }
+      if (saved || all) for (const e of extra) game.dispatch(me, e.from, t.id, e.units, 'move');
     }
   }
 
-  // 2. Pick the most rewarding field that can be taken with what stands next to it.
-  //    Fields on the way to a rival castle are worth more: taking a castle wins a whole kingdom.
+  // 2. Attack. Distance to the nearest rival castle makes fields on the way there worth more.
   const toCastle = new Int16Array(tiles.length).fill(-1);
   const frontier = [];
   for (const o of game.factions) {
@@ -67,21 +80,9 @@ export function aiThink(game, f) {
     }
   }
 
-  // Spearhead: the own border field closest to a rival castle. Automatic supply favours it,
-  // which concentrates troops on one axis instead of spreading them along the whole border.
-  let spear = -1;
-  let spearTies = 0;
   const targets = new Map();
   for (const t of tiles) {
     if (t.owner !== me) continue;
-    if (toCastle[t.id] > 0 && t.neighbors.some((n) => tiles[n].owner >= 0 && tiles[n].owner !== me)) {
-      if (spear < 0 || toCastle[t.id] < toCastle[spear]) {
-        spear = t.id;
-        spearTies = 1;
-      } else if (toCastle[t.id] === toCastle[spear] && game.rng.next() * ++spearTies < 1) {
-        spear = t.id; // equal distance: draw at random so no map side is favoured
-      }
-    }
     for (const n of t.neighbors) {
       const o = tiles[n];
       if (!o.passable || o.owner === me) continue;
@@ -91,73 +92,135 @@ export function aiThink(game, f) {
     }
   }
 
-  f.spear = spear;
+  /** How many fields of the same kingdom would lose their link to the castle if `o` fell. */
+  const cutOff = (o) => {
+    const rival = game.factions[o.owner];
+    if (!rival || !rival.alive || o.castle >= 0) return 0;
+    const seen = new Uint8Array(tiles.length);
+    const queue = [rival.castle];
+    seen[rival.castle] = 1;
+    seen[o.id] = 1;
+    let reached = 0;
+    for (let i = 0; i < queue.length; i++) {
+      reached++;
+      for (const n of tiles[queue[i]].neighbors) {
+        if (!seen[n] && tiles[n].owner === rival.id) {
+          seen[n] = 1;
+          queue.push(n);
+        }
+      }
+    }
+    let total = 0;
+    for (const t of tiles) if (t.owner === rival.id && t.supplied) total++;
+    return Math.max(0, total - 1 - reached);
+  };
 
-  let best = null;
-  let bestScore = 0;
+  const plans = [];
   for (const e of targets.values()) {
     const o = e.tile;
     if (o.castle >= 0 && game.time < P.rushAfter) continue; // the opening belongs to expansion, not to castle rushes
-    const def = game.defense(o);
-    const growth = o.owner >= 0 ? game.income(o) * RULES.march * def : 0;
-    const need = o.units * def + 1 + growth - (incoming.get(o.id) || 0);
-    if (need <= 0) continue;
-    let avail = 0;
-    for (const s of e.sources) avail += spare(s);
-    if (avail < need * margin) continue;
+    const sources = e.sources
+      .map((s) => ({ s, n: spare(s) }))
+      .filter((x) => x.n >= 2)
+      .sort((a, b) => b.n - a.n || a.s.id - b.s.id)
+      .slice(0, o.castle >= 0 ? 6 : P.sides); // a castle is stormed from every edge that is ready
+    if (!sources.length) continue;
 
-    let value = o.owner < 0 ? 6 : 9;
-    value += game.income(o, true) * 14;
-    if (o.building) value += 7;
-    if (o.terrain === 'citadel') value += 30;
-    if (o.castle >= 0) value += 400;
-    else if (toCastle[o.id] > 0) value += 30 / (toCastle[o.id] + 1);
-    if (game.human >= 0 && o.owner === game.human) value *= P.humanBias;
-    const score = (value / (need + 5)) * (0.8 + game.rng.next() * 0.4);
-    if (score > bestScore) {
-      bestScore = score;
-      best = { e, need };
+    // Add one edge after the other until the forecast says the field falls.
+    let extra = [];
+    let fc = null;
+    // Storming a castle is all or nothing, so it is planned with a thin margin.
+    const need = o.castle >= 0 ? Math.min(margin, 1.05) : margin;
+    const wins = () => {
+      const test = game.forecast(o.id, extra, { defMul: need });
+      if (test.holds || test.winner !== me) return false;
+      fc = test;
+      return true;
+    };
+    for (const x of sources) {
+      extra.push({ owner: me, from: x.s.id, origin: x.s.id, units: x.n });
+      if (wins()) break;
     }
-  }
-
-  if (best) {
-    let remaining = best.need * margin + 1;
-    const sources = best.e.sources.slice().sort((a, b) => spare(b) - spare(a) || a.id - b.id);
-    for (const s of sources) {
-      if (remaining <= 0) break;
-      const amount = Math.min(spare(s), Math.ceil(remaining));
-      if (amount >= 1 && game.dispatch(me, s.id, best.e.tile.id, amount, 'attack')) remaining -= amount;
-    }
-  }
-
-  // 3. The castle is the kingdom's bank: whatever its defence does not need marches to the front.
-  const surplus = spare(castle);
-  if (surplus >= 8 && pressure < castle.units * 0.5) {
-    let dst = spear;
-    if (dst < 0 || dst === castle.id) {
-      dst = -1;
-      for (const t of tiles) {
-        if (t.owner !== me || t.castle === me) continue;
-        if (!t.neighbors.some((n) => tiles[n].passable && tiles[n].owner !== me)) continue;
-        if (dst < 0 || t.units < tiles[dst].units) dst = t.id;
+    // Second wave: reserves from the fields behind march up and fight on at the same edges.
+    // This is how a kingdom brings its numbers to bear where the front is narrow.
+    if (!fc && P.waves > 0) {
+      const rear = [];
+      const seen = new Set(sources.map((x) => x.s.id));
+      for (const x of sources) {
+        for (const n of x.s.neighbors) {
+          const r = tiles[n];
+          if (r.owner !== me || seen.has(n) || r.castle === me) continue;
+          seen.add(n);
+          const units = spare(r);
+          if (units >= 6) rear.push({ owner: me, from: x.s.id, origin: n, units });
+        }
+      }
+      rear.sort((a, b) => b.units - a.units || a.origin - b.origin);
+      for (const r of rear.slice(0, P.waves * sources.length)) {
+        extra.push(r);
+        if (wins()) break;
       }
     }
-    if (dst >= 0 && dst !== castle.id) game.dispatch(me, castle.id, dst, surplus, 'move');
+    if (!fc) continue;
+    // Then send no more than needed: what stays behind keeps the own border standing.
+    for (const share of [0.55, 0.7, 0.85]) {
+      const lean = extra.map((x) => ({ ...x, units: Math.max(2, Math.ceil(x.units * share)) }));
+      const test = game.forecast(o.id, lean, { defMul: need });
+      if (!test.holds && test.winner === me) {
+        extra = lean;
+        fc = test;
+        break;
+      }
+    }
+
+    let value = o.owner < 0 ? 6 : 9;
+    value += game.income(o, true) * 16;
+    if (o.building) value += 7;
+    if (o.terrain === 'citadel') value += holdGoal ? 60 : 30;
+    if (o.castle >= 0) value += 400;
+    else if (toCastle[o.id] > 0) value += 30 / (toCastle[o.id] + 1);
+    if (holdGoal && (o.id === prize || prizeRing.has(o.id))) {
+      value += 20;
+      if (clock >= 0 && o.owner === game.hold.owner) value += 40 + 260 * clock;
+    }
+    if (o.owner >= 0 && P.reinforce >= 2) value += Math.min(40, cutOff(o) * 5);
+    if (o.owner >= 0 && !o.supplied) value *= 0.6; // withers on its own
+    if (game.human >= 0 && o.owner === game.human) value *= P.humanBias;
+    const loss = (fc.sent.get(me) || 0) - fc.left;
+    const score = (value / (loss + 4 + fc.time * 0.6)) * (0.8 + game.rng.next() * 0.4);
+    plans.push({ o, extra, score });
   }
 
-  // 4. Spend troops on a tower at a threatened border or order a farm in the hinterland.
+  plans.sort((a, b) => b.score - a.score);
+  const used = new Set();
+  let actions = 0;
+  for (const plan of plans) {
+    if (actions >= P.actions) break;
+    if (plan.extra.some((x) => used.has(x.origin))) continue;
+    for (const x of plan.extra) {
+      used.add(x.origin);
+      game.dispatch(me, x.origin, plan.o.id, x.units, 'attack');
+    }
+    actions++;
+  }
+
+  // 3. Spend troops on a tower at a threatened border or order a farm in the hinterland.
   if (game.rng.next() < P.build) {
     let tower = null;
     let farm = null;
     let saving = 0;
+    const threat = (t) => {
+      let m = 0;
+      for (const n of t.neighbors) if (hostile(tiles[n])) m = Math.max(m, tiles[n].units);
+      return m;
+    };
     for (const t of tiles) {
       if (t.owner !== me) continue;
       if (t.order) saving++;
-      if (t.building || t.order || t.castle >= 0 || t.ruin || t.terrain === 'citadel') continue;
+      if (t.building || t.order || t.castle >= 0 || t.ruin || t.terrain === 'citadel' || t.pools.length) continue;
       const th = threat(t);
-      const nearCastle = t.neighbors.includes(f.castle);
-      if (th > 0 && (nearCastle || game.rng.next() < 0.1) && t.units >= game.buildCost('tower', me) + 8 && (!tower || th > threat(tower))) tower = t;
-      if (th === 0 && t.terrain === 'plain' && t.supplied && (!farm || t.units > farm.units)) farm = t;
+      if (th > 0 && (ring.has(t.id) || game.rng.next() < 0.12) && t.units >= game.buildCost('tower', me) + 6 && (!tower || th > threat(tower))) tower = t;
+      if (th === 0 && t.terrain === 'plain' && t.supplied && !t.front && (!farm || t.units > farm.units)) farm = t;
     }
     if (tower) game.build(me, tower.id, 'tower');
     else if (farm && saving === 0) game.build(me, farm.id, 'farm');

@@ -9,30 +9,32 @@ export const MAP_ANGLE = 0.16;
 
 export const HEIGHT = Object.freeze({ plain: 0.28, forest: 0.28, hill: 0.5, mountain: 0.57, water: 0.1, citadel: 0.34 });
 
-export const MISSIONS = [
+// Generated islands for free play and for the match behind the menu.
+// Hand-built campaign maps live in missions.js and use buildAuthored() below.
+export const SKIRMISH = [
   {
     id: 'duel',
     name: { de: 'Erste Krone', en: 'First Crown' },
     blurb: { de: '2 Reiche · Einführung', en: '2 kingdoms · tutorial' },
-    factions: 2, halfU: 4.4, halfV: 9.0, citadel: false, par: 120, seed: 11, tutorial: true, aiSlow: 1.7,
+    factions: 2, halfU: 4.4, halfV: 9.0, citadel: false, par: 300, seed: 11,
   },
   {
     id: 'three',
     name: { de: 'Drei Reiche', en: 'Three Kingdoms' },
     blurb: { de: '3 Reiche · Zitadelle', en: '3 kingdoms · citadel' },
-    factions: 3, halfU: 5.5, halfV: 9.6, citadel: true, par: 210, seed: 7,
+    factions: 3, halfU: 5.5, halfV: 9.6, citadel: true, par: 330, seed: 7,
   },
   {
     id: 'four',
     name: { de: 'Die letzte Krone', en: 'The Last Crown' },
     blurb: { de: '4 Reiche · Zitadelle', en: '4 kingdoms · citadel' },
-    factions: 4, halfU: 5.5, halfV: 11.6, citadel: true, par: 270, seed: 42,
+    factions: 4, halfU: 5.5, halfV: 11.6, citadel: true, par: 390, seed: 42,
   },
   {
     id: 'random',
     name: { de: 'Zufallskarte', en: 'Random Map' },
     blurb: { de: '4 Reiche · jedes Mal neu', en: '4 kingdoms · new every time' },
-    factions: 4, halfU: 5.5, halfV: 11.6, citadel: true, par: 270, random: true,
+    factions: 4, halfU: 5.5, halfV: 11.6, citadel: true, par: 390, random: true,
   },
 ];
 
@@ -51,6 +53,7 @@ const RIDGE = 1.7; // depth of the scenery mountains at the top and bottom edge
  * @param {boolean} wide  build the island in landscape format (for wide screens) instead of portrait
  */
 export function buildMap(mission, seed, wide = false) {
+  if (mission.layout) return buildAuthored(mission, seed, wide);
   for (let attempt = 0; attempt < 60; attempt++) {
     const map = generate(mission, (seed + attempt * 7919) >>> 0, false, wide);
     if (map) return map;
@@ -170,22 +173,129 @@ function generate(mission, seed, plainOnly, wide) {
   for (const t of tiles) if (passable(t) && !seen[t.id]) t.terrain = 'mountain';
 
   for (const t of tiles) {
-    t.passable = passable(t);
-    t.height = HEIGHT[t.terrain];
-    t.owner = -1;
-    t.building = null;
-    t.order = null;
-    t.ruin = false;
-    t.supplied = false;
-    t.lastCapture = -100;
-    t.lastBattle = -100;
-    t.lastAttacker = -1;
+    initTile(t);
     if (!t.passable) t.units = 0;
-    else if (t.terrain === 'citadel') t.units = 14;
-    else if (t.terrain === 'hill') t.units = 4 + Math.floor(t.n2 * 3);
-    else if (t.terrain === 'forest') t.units = 3 + Math.floor(t.n2 * 3);
-    else t.units = 2 + Math.floor(t.n2 * 3);
+    else if (t.terrain === 'citadel') t.units = 30;
+    else if (t.terrain === 'hill') t.units = 10 + Math.floor(t.n2 * 4);
+    else if (t.terrain === 'forest') t.units = 8 + Math.floor(t.n2 * 4);
+    else t.units = 6 + Math.floor(t.n2 * 4);
   }
 
-  return { tiles, castles, citadel: mission.citadel ? centre.id : -1, halfU, halfV, seed };
+  return { tiles, castles, citadel: mission.citadel ? centre.id : -1, halfU, halfV, seed, rot: 0 };
+}
+
+const isPassable = (t) => t.terrain !== 'mountain' && t.terrain !== 'water';
+
+/** Game state every field starts with, whichever builder made it. */
+function initTile(t) {
+  t.passable = isPassable(t);
+  t.height = HEIGHT[t.terrain];
+  t.owner = -1;
+  t.building = null;
+  t.order = null;
+  t.ruin = false;
+  t.supplied = false;
+  t.fixed = false; // true: the map set the garrison, the start-up must not overwrite it
+  t.pools = []; // attackers lined up at the edges: { owner, from, units }
+  t.lastCapture = -100;
+  t.lastBattle = -100;
+  t.lastAttacker = -1;
+}
+
+// ------------------------------------------------------------------ hand-built maps
+//
+// A campaign map is a list of text rows, drawn the way it appears on a wide screen. Odd rows sit half a
+// field to the right (indent them for readability). Fields are separated by blanks:
+//
+//   .  plain      f  forest     h  hill      m  mountain    w  water     c  citadel
+//   K0 castle of kingdom 0 (the player), K1, K2 … rivals            -  no field
+//   a digit after the letter gives the field to that kingdom:  .1  h2
+//   +  tower, *  farm (after the owner):  .1+   .0*
+//   :n sets the garrison:  h:12   .1+:15   K1:30
+//
+// On a tall screen the same map is turned by a quarter so the player still starts at the bottom.
+
+const TERRAIN = { '.': 'plain', p: 'plain', f: 'forest', h: 'hill', m: 'mountain', w: 'water', c: 'citadel', K: 'plain' };
+// Free land is not free: a neutral field costs a real attack, so the opening is a choice of where to grow.
+const NEUTRAL_UNITS = { plain: 8, forest: 9, hill: 12, citadel: 30 };
+const TOKEN = /^([.pfhmwcK])(\d)?([+*])?(?::(\d+))?$/;
+
+export function buildAuthored(mission, seed, wide = true) {
+  const tiles = [];
+  const lookup = new Map();
+  const castles = [];
+  let citadel = -1;
+
+  mission.layout.forEach((line, row) => {
+    line.trim().split(/\s+/).forEach((token, col) => {
+      if (token === '-') return;
+      const m = TOKEN.exec(token);
+      if (!m) throw new Error(`Karte ${mission.id}: unbekanntes Feld "${token}" in Zeile ${row + 1}`);
+      const q = col - ((row - (row & 1)) >> 1);
+      const id = tiles.length;
+      const t = { id, q, r: row, x: SQ3 * (q + row / 2), z: 1.5 * row, n2: 0, terrain: TERRAIN[m[1]], scenery: false, castle: -1 };
+      initTile(t);
+      const owner = m[2] === undefined ? -1 : Number(m[2]);
+      if (m[1] === 'K') {
+        if (owner < 0) throw new Error(`Karte ${mission.id}: Burg ohne Reich in Zeile ${row + 1}`);
+        t.castle = owner;
+        castles[owner] = id;
+      } else if (t.passable) {
+        t.owner = owner;
+      }
+      if (t.terrain === 'citadel') citadel = id;
+      if (t.passable && m[1] !== 'K') {
+        if (m[3] === '+') t.building = 'tower';
+        else if (m[3] === '*') t.building = 'farm';
+      }
+      t.units = t.passable ? NEUTRAL_UNITS[t.terrain] ?? 3 : 0;
+      if (m[4] !== undefined && t.passable) {
+        t.units = Number(m[4]);
+        t.fixed = true;
+      } else if (owner >= 0 && m[1] !== 'K') {
+        t.units = 6;
+        t.fixed = true;
+      }
+      tiles.push(t);
+      lookup.set(hexKey(q, row), id);
+    });
+  });
+  for (let i = 0; i < castles.length; i++) if (castles[i] === undefined) throw new Error(`Karte ${mission.id}: Burg ${i} fehlt`);
+
+  for (const t of tiles) {
+    t.nb = EDGE_DIRS.map(([dq, dr]) => lookup.get(hexKey(t.q + dq, t.r + dr)) ?? -1);
+    t.neighbors = t.nb.filter((id) => id >= 0);
+  }
+
+  // Centre the island under the camera and, on tall screens, turn it by a quarter.
+  const ca = Math.cos(MAP_ANGLE);
+  const sa = Math.sin(MAP_ANGLE);
+  const uv = (t) => [t.x * ca - t.z * sa, t.x * sa + t.z * ca];
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const t of tiles) {
+    const [u, v] = uv(t);
+    u0 = Math.min(u0, u); u1 = Math.max(u1, u);
+    v0 = Math.min(v0, v); v1 = Math.max(v1, v);
+  }
+  const cu = (u0 + u1) / 2;
+  const cv = (v0 + v1) / 2;
+  const cx = cu * ca + cv * sa;
+  const cz = -cu * sa + cv * ca;
+  let halfU = (u1 - u0) / 2 + 1;
+  let halfV = (v1 - v0) / 2 + 1;
+  for (const t of tiles) {
+    const x = t.x - cx;
+    const z = t.z - cz;
+    if (wide) {
+      t.x = x;
+      t.z = z;
+    } else {
+      t.x = z;
+      t.z = -x;
+    }
+    [t.u, t.v] = uv(t);
+  }
+  if (!wide) [halfU, halfV] = [halfV, halfU];
+
+  return { tiles, castles, citadel, halfU, halfV, seed, rot: wide ? 0 : -Math.PI / 2 };
 }
