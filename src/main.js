@@ -15,6 +15,10 @@ const $ = (sel) => document.querySelector(sel);
 const NAMES = ['AZUR', 'EMBER', 'JADE', 'SOLAR'];
 const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const star = '<svg><use href="#i-star"/></svg>';
+// Pace of a match: how many seconds of the rules pass per second on the wall clock. The rules and
+// the rivals know nothing of it, so the balance is the same at every pace; only the player gets
+// more or less time to read the board.
+const SPEEDS = { calm: 0.75, normal: 1, fast: 1.3 };
 const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
 const FREE_PLAY = SKIRMISH.filter((m) => m.random);
 
@@ -37,6 +41,7 @@ class App {
       assault: null,
       human: -1,
       sendFraction: this.store.sendFraction,
+      pace: 1,
       showNumbers: false,
       tutorialPath: null,
       tutorialMark: null,
@@ -63,15 +68,25 @@ class App {
 
   // ---------------------------------------------------------------- screens
 
+  /**
+   *   menu, brief   sheets over the computer-only match behind the menu
+   *   play          the match runs
+   *   pause         planning pause: the match stands still, the board stays in view and takes orders
+   *   options       sheet with help, pace, restart and quit; the match stands still
+   *   result        the match is over
+   */
   setMode(mode) {
     this.mode = mode;
     this.input?.disarm(); // a combined attack armed before a pause or a new match is void
     const behindSheet = mode === 'menu' || mode === 'brief';
     this.el.dataset.mode = behindSheet ? 'menu' : 'play';
+    this.el.toggleAttribute('data-paused', mode === 'pause');
     $('#menu').hidden = mode !== 'menu';
     $('#brief').hidden = mode !== 'brief';
-    $('#pause').hidden = mode !== 'pause';
+    $('#pausebar').hidden = mode !== 'pause';
+    $('#pause').hidden = mode !== 'options';
     $('#result').hidden = mode !== 'result';
+    $('#btn-pause use').setAttribute('href', mode === 'pause' ? '#i-play' : '#i-pause');
     this.ui.showNumbers = !behindSheet;
     this.resize();
   }
@@ -172,11 +187,20 @@ class App {
   buildMenu() {
     $('#colors').innerHTML = NAMES.map((n, i) => `<button data-color="${i}" style="color:${PALETTE_HEX[i]}"><i style="background:${PALETTE_HEX[i]}"></i>${n}</button>`).join('');
     $('#difficulty').innerHTML = ['easy', 'normal', 'hard'].map((d) => `<button data-diff="${d}" data-t="${d}"></button>`).join('');
+    // The pace can be set in the menu and, during a match, on the options sheet.
+    for (const el of document.querySelectorAll('.speed')) el.innerHTML = Object.keys(SPEEDS).map((s) => `<button data-speed="${s}" data-t="${s}"></button>`).join('');
+  }
+
+  /** Seconds of the rules per second on the wall clock in the player's matches. */
+  pace() {
+    return SPEEDS[this.store.speed] ?? SPEEDS.calm;
   }
 
   refreshMenu() {
     for (const b of document.querySelectorAll('#colors button')) b.classList.toggle('on', Number(b.dataset.color) === this.store.color);
     for (const b of document.querySelectorAll('#difficulty button')) b.classList.toggle('on', b.dataset.diff === this.store.difficulty);
+    const speed = this.store.speed in SPEEDS ? this.store.speed : 'calm';
+    for (const b of document.querySelectorAll('.speed button')) b.classList.toggle('on', b.dataset.speed === speed);
     $('#missions').innerHTML = CAMPAIGN.map((m) => {
       const open = this.unlocked(m);
       const got = this.store.stars[m.id] || 0;
@@ -214,6 +238,15 @@ class App {
       save();
       this.refreshMenu();
     });
+    for (const el of document.querySelectorAll('.speed')) {
+      el.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        this.store.speed = b.dataset.speed;
+        save();
+        this.refreshMenu();
+      });
+    }
     const pick = (e) => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -243,7 +276,9 @@ class App {
     });
 
     const again = () => this.startMission(this.mission, this.mission.random ? this.seed : undefined);
-    $('#btn-pause').addEventListener('click', () => this.mode === 'play' && this.setMode('pause'));
+    $('#btn-pause').addEventListener('click', () => this.togglePause());
+    $('#btn-continue').addEventListener('click', () => this.setMode('play'));
+    $('#btn-options').addEventListener('click', () => this.setMode('options'));
     $('#btn-resume').addEventListener('click', () => this.setMode('play'));
     $('#btn-restart').addEventListener('click', again);
     $('#btn-quit').addEventListener('click', () => this.startAttract());
@@ -288,9 +323,9 @@ class App {
       if (e.key === 'Escape') {
         // Drops the selection, the preview and a combined attack that was armed by a first tap.
         this.input.cancel();
-      } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause')) {
+      } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause' || this.mode === 'options')) {
         e.preventDefault();
-        this.setMode(this.mode === 'play' ? 'pause' : 'play');
+        this.togglePause();
       } else if (e.key === '1' || e.key === '2') {
         this.input.disarm();
         this.ui.sendFraction = this.store.sendFraction = e.key === '1' ? 0.5 : 1;
@@ -312,8 +347,15 @@ class App {
 
   // --------------------------------------------------------------- commands
 
+  /** Orders are taken while the match runs and during the planning pause. */
   canCommand() {
-    return this.mode === 'play' && this.game.phase === 'running' && this.ui.human >= 0;
+    return (this.mode === 'play' || this.mode === 'pause') && this.game.phase === 'running' && this.ui.human >= 0;
+  }
+
+  /** Pause button, space bar and P: into the planning pause and back into the match. */
+  togglePause() {
+    if (this.mode === 'play') this.setMode('pause');
+    else if (this.mode === 'pause' || this.mode === 'options') this.setMode('play');
   }
 
   select(id) {
@@ -352,7 +394,9 @@ class App {
     try {
       // The renderer must know the current match before any of its events arrive.
       if (this.renderer.game !== game) this.renderer.setGame(game);
-      if (this.mode === 'play' || this.mode === 'menu' || this.mode === 'brief') game.step(dt);
+      // The player's matches run at the chosen pace; the match behind the menu always at full speed.
+      this.ui.pace = this.ui.human >= 0 ? this.pace() : 1;
+      if (this.mode === 'play' || this.mode === 'menu' || this.mode === 'brief') game.step(dt * this.ui.pace);
       for (const e of game.drainEvents()) this.onEvent(e, now);
 
       const ui = this.ui;
@@ -640,7 +684,8 @@ class App {
     const ui = this.ui;
     ui.tutorialPath = null;
     ui.tutorialMark = null;
-    if (this.mode !== 'play' || game.phase !== 'running') return;
+    // The guide stays on the board during the planning pause: that is when there is time to read it.
+    if ((this.mode !== 'play' && this.mode !== 'pause') || game.phase !== 'running') return;
     if (now < tut.flashUntil) return; // the "done" tick stays for a moment
     const stats = game.humanStats;
     const rival = game.factions[1].name;

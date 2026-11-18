@@ -13,6 +13,7 @@
     <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 18.5h18l1.2-10.2-5.4 4.1L12 4.5 7.2 12.4 1.8 8.3z" fill="currentColor"/><rect x="3" y="19.6" width="18" height="2" rx="1" fill="currentColor"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5 6.1 20.6l1.2-6.5L2.5 9.5l6.6-.9z" fill="currentColor"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7.5 4.8v14.4a1 1 0 001.5.86l12-7.2a1 1 0 000-1.72l-12-7.2a1 1 0 00-1.5.86z" fill="currentColor"/></symbol>
     <symbol id="i-tower" viewBox="0 0 24 24"><path d="M6 21V10.5L4.8 9V4h2.6v2h2.2V4h4.8v2h2.2V4h2.6v5L18 10.5V21z" fill="currentColor"/></symbol>
     <symbol id="i-farm" viewBox="0 0 24 24"><path d="M2.5 11.5L12 4l9.5 7.5-1.3 1.6L19 12.2V20H5v-7.8l-1.2.9z" fill="currentColor"/><rect x="10" y="14" width="4" height="6" fill="#071b24"/></symbol>
     <symbol id="i-supply" viewBox="0 0 24 24"><path d="M4 8.5h11.5l-3-3M20 15.5H8.5l3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -36,6 +37,13 @@
     </div>
     <div id="clock">0:00</div>
   </header>
+
+  <!-- Planning pause: the match stands still, the board stays in view and takes orders. -->
+  <div id="pausebar" hidden>
+    <div class="txt"><b data-t="pause"></b><span data-t="pauseHint"></span></div>
+    <button id="btn-continue" class="primary" data-t="resume"></button>
+    <button id="btn-options" data-t="options"></button>
+  </div>
 
   <div id="banner" aria-live="polite"></div>
   <div id="hint"></div>
@@ -79,6 +87,8 @@
       <div id="skirmish" class="missions"></div>
       <h2 data-t="difficulty"></h2>
       <div id="difficulty" class="seg"></div>
+      <h2 data-t="tempo"></h2>
+      <div class="seg speed"></div>
       <div class="foot">
         <button id="btn-sound" class="icon-btn" aria-label="Sound"><svg><use href="#i-sound"/></svg></button>
         <button id="btn-lang" class="icon-btn text">DE</button>
@@ -112,7 +122,10 @@
         <li data-t="how3"></li>
         <li data-t="how4"></li>
         <li data-t="how5"></li>
+        <li data-t="how6"></li>
       </ul>
+      <h2 data-t="tempo"></h2>
+      <div class="seg speed"></div>
       <div class="actions">
         <button id="btn-resume" class="primary" data-t="resume"></button>
         <button id="btn-restart" data-t="restart"></button>

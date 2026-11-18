@@ -324,6 +324,77 @@ canvas {
   color: #0b2410;
 }
 
+/* ------------------------------------------------------- planning pause */
+
+#pausebar {
+  position: absolute;
+  z-index: 4;
+  top: calc(70px + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  padding: 7px 8px 7px 14px;
+  border-radius: 14px;
+  background: rgba(6, 20, 27, 0.95);
+  border: 1px solid var(--gold);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#pausebar .txt {
+  display: grid;
+  line-height: 1.15;
+  margin-right: 4px;
+}
+
+#pausebar .txt b {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#pausebar .txt span {
+  color: #c5d6d6;
+  font-size: 12px;
+}
+
+#pausebar button {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+#pausebar button.primary {
+  background: linear-gradient(180deg, #f7d089, #e9b558);
+  border-color: transparent;
+  color: var(--gold-ink);
+}
+
+#app[data-paused] #clock {
+  color: var(--gold);
+}
+
+#app[data-paused] #btn-pause {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.card .seg.speed {
+  margin-bottom: 14px;
+}
+
+#menu .seg.speed {
+  margin-bottom: 0;
+}
+
 /* ------------------------------------------------------ banner and hint */
 
 #banner {
