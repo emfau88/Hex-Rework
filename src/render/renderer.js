@@ -462,8 +462,8 @@ export class DioramaRenderer {
     dz /= len;
     return {
       x: (S.x + tile.x) / 2 - dx * 0.2,
-      // Attackers of a higher field stand on its bank: they storm uphill.
-      y: S.height + this.lift(S.id) + models.bankHeight(tile, S, 0.2),
+      // Attackers who come down from a higher field stand on its own bank.
+      y: S.height + this.lift(S.id) - models.bankDrop(S, tile, 0.666),
       z: (S.z + tile.z) / 2 - dz * 0.2,
       dx,
       dz,
@@ -575,10 +575,12 @@ export class DioramaRenderer {
           if (nb >= 0 && this.anim[nb].owner === a.owner) continue;
           const a0 = HEX0 + (i * Math.PI) / 3;
           const a1 = a0 + Math.PI / 3;
-          const A = [t.x + Math.cos(a0) * 0.948, y + 0.024, t.z + Math.sin(a0) * 0.948];
-          const B = [t.x + Math.cos(a1) * 0.948, y + 0.024, t.z + Math.sin(a1) * 0.948];
+          // On a bank the border runs along its foot, where the field really ends.
+          const by = y - (nb >= 0 ? models.bankDrop(t, tiles[nb], 0.821) : 0);
+          const A = [t.x + Math.cos(a0) * 0.948, by + 0.024, t.z + Math.sin(a0) * 0.948];
+          const B = [t.x + Math.cos(a1) * 0.948, by + 0.024, t.z + Math.sin(a1) * 0.948];
           m.beam(A, B, 0.04, line, 1.3);
-          g.beam([A[0], y + 0.03, A[2]], [B[0], y + 0.03, B[2]], 0.2, a.cur, 0);
+          g.beam([A[0], by + 0.03, A[2]], [B[0], by + 0.03, B[2]], 0.2, a.cur, 0);
         }
       }
 
@@ -614,8 +616,9 @@ export class DioramaRenderer {
       for (let i = 0; i < 6; i++) {
         const a0 = HEX0 + (i * Math.PI) / 3;
         const a1 = a0 + Math.PI / 3;
-        const A = [t.x + Math.cos(a0) * 0.87, y, t.z + Math.sin(a0) * 0.87];
-        const B = [t.x + Math.cos(a1) * 0.87, y, t.z + Math.sin(a1) * 0.87];
+        const sy = y - (t.nb[i] >= 0 ? models.bankDrop(t, tiles[t.nb[i]], 0.753) : 0);
+        const A = [t.x + Math.cos(a0) * 0.87, sy, t.z + Math.sin(a0) * 0.87];
+        const B = [t.x + Math.cos(a1) * 0.87, sy, t.z + Math.sin(a1) * 0.87];
         m.beam(A, B, bright ? 0.06 : 0.045, c, 0.8);
         g.beam(A, B, 0.2, c, 0);
       }
@@ -633,7 +636,8 @@ export class DioramaRenderer {
         // The line where they clash: the shared edge of the two fields.
         const ex = pos.x + pos.dx * 0.2;
         const ez = pos.z + pos.dz * 0.2;
-        const ey = Math.max(y, pos.y);
+        // Fields meet at the level of the lower one.
+        const ey = Math.min(y, tiles[p.from].height + this.anim[p.from].lift);
         for (let i = 0; i < 3; i++) {
           const k = (bt * 2.6 + i / 3 + p.from * 0.37) % 1;
           const side = (hash(p.from * 7 + i + Math.floor(bt * 2.6 + i / 3)) - 0.5) * 0.5;
@@ -738,7 +742,8 @@ export class DioramaRenderer {
           x = mix(x, pos.x + pos.dx * (0.42 - strike) - pos.dz * lane, k);
           z = mix(z, pos.z + pos.dz * (0.42 - strike) + pos.dx * lane, k);
           rot = mix(rot, pos.angle + Math.PI, k);
-          hop = Math.abs(Math.sin(time * 14 + i * 1.7 + p.from)) * 0.03 * k;
+          // Defenders of a higher field step down onto its bank as they strike.
+          hop = (Math.abs(Math.sin(time * 14 + i * 1.7 + p.from)) * 0.03 - models.bankDrop(t, game.tiles[p.from], 0.646 + strike)) * k;
         }
         put(x, y + hop, z, rot, c, size);
       }
@@ -748,6 +753,8 @@ export class DioramaRenderer {
     for (const t of game.tiles) {
       for (const p of t.pools) {
         const pos = this.poolPosition(game, t, p);
+        const S = game.tiles[p.from];
+        const ground = S.height + this.anim[S.id].lift;
         const c = scale3(PALETTE[game.factions[p.owner].color], 1.15);
         const count = Math.max(1, Math.min(4, Math.ceil(p.units / 6)));
         for (let i = 0; i < count; i++) {
@@ -756,7 +763,9 @@ export class DioramaRenderer {
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
           // The last figure of a pool shrinks as the pool is worn down.
           const size = i === count - 1 ? 1.08 * clamp(0.55 + (p.units - (count - 1) * 6) / 6, 0.55, 1) : 1.08;
-          put(pos.x - pos.dz * lane + pos.dx * push, pos.y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, size);
+          // Attackers who come down from a higher field stand on its bank.
+          const y = ground - models.bankDrop(S, t, 0.666 + push);
+          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, size);
         }
       }
     }

@@ -1,7 +1,7 @@
 // Procedural low-poly models. No image or model files: everything is built from boxes and columns.
 // Proportions, palette and lighting follow the Territory Wars diorama of the Endless Battle Simulator.
 
-import { TAU, lin, scale3 } from './glutil.js';
+import { TAU, lin, scale3, normalize } from './glutil.js';
 import { hash } from '../sim/rng.js';
 import { MAP_ANGLE } from '../sim/maps.js';
 
@@ -30,86 +30,106 @@ const GOLD = lin('#d9b566');
 const GREENS = ['#456f3e', '#4c803e', '#5a9145', '#3f743b'].map(lin);
 const HEX = Math.PI / 6;
 
-// Banks: where a field stands higher than its neighbour, a slope runs down onto the neighbour
-// instead of a bare wall. Towards water it is a beach, below mountains scree, elsewhere earth.
+// Banks: where a field stands higher than its neighbour, its own edge slopes down to the neighbour's
+// level instead of ending in a bare wall. The slope is cut out of the higher field: its flat top
+// becomes smaller on that side, and every neighbour keeps its full hexagon. The slope carries the
+// field's colour; towards water it is a beach.
 const BANK_MIN = 0.1; // smaller steps keep their plain edge
-const BANK_TOP = 0.075; // the bank starts below the bevel of the upper field
+const RIM = 0.985; // corner radius of the rim, where the fields meet
+const RIM_DROP = 0.075; // the rim lies this far below the top (bevel)
+const RIM_IN = RIM * Math.cos(Math.PI / 6); // distance of the rim line from the centre
+const BEVEL = (RIM - 0.915) * Math.cos(Math.PI / 6); // how far the top is set back at a plain edge
 const BANK_SAND = lin('#c9b98c');
 const BANK_SCREE = lin('#76857b');
 const BANK_EARTH = lin('#6f8561');
 
-/** How far a bank reaches out for a step of this height. */
+/** How far into the higher field a bank reaches for a step of this height. */
 export function bankRun(rise) {
-  return Math.min(0.34, Math.max(0.2, rise * 1.3));
+  return Math.min(0.26, Math.max(0.16, rise));
 }
 
 /**
- * Height of the ground above the lower field `low`, `d` field radii out from the shared edge towards
- * `low`'s centre. Zero where the fields are level or the bank has ended. Attackers stand on it.
+ * How far the ground of field `t` lies below its top, `dist` field radii from its centre towards
+ * the neighbour `o`. Zero on the flat top and wherever `o` is not lower. Figures and border lines
+ * use it to stand on the slope instead of floating above it.
  */
-export function bankHeight(high, low, d) {
-  const rise = high.height - low.height;
+export function bankDrop(t, o, dist) {
+  if (!o) return 0;
+  const rise = t.height - o.height;
   if (rise < BANK_MIN) return 0;
-  const drop = rise - BANK_TOP;
-  // The bank starts at the cliff line, a hair inside the true edge.
-  return Math.max(0, drop * (1 - (d + 0.013) / bankRun(rise)));
+  const run = bankRun(rise);
+  const k = (dist - (RIM_IN - run)) / run;
+  return k <= 0 ? 0 : Math.min(1, k) * (rise + RIM_DROP);
 }
 
-function banks(m, t, tiles, HEX0) {
-  const { x, z } = t;
-  const top = t.height - BANK_TOP;
-  const R = 0.985;
-  const sloped = [];
-  for (let i = 0; i < 6; i++) {
-    const o = t.nb[i] >= 0 ? tiles[t.nb[i]] : null;
-    sloped.push(o && t.height - o.height >= BANK_MIN ? o : null);
-  }
-  for (let i = 0; i < 6; i++) {
-    const o = sloped[i];
-    if (!o) continue;
-    const run = bankRun(t.height - o.height);
-    const a0 = HEX0 + (i * Math.PI) / 3;
-    const a1 = a0 + Math.PI / 3;
-    const nx = Math.cos(a0 + Math.PI / 6);
-    const nz = Math.sin(a0 + Math.PI / 6);
-    const foot = o.height + 0.006;
-    const A = [x + Math.cos(a0) * R, top, z + Math.sin(a0) * R];
-    const B = [x + Math.cos(a1) * R, top, z + Math.sin(a1) * R];
-    const A2 = [A[0] + nx * run, foot, A[2] + nz * run];
-    const B2 = [B[0] + nx * run, foot, B[2] + nz * run];
-    const base = o.terrain === 'water' && t.terrain !== 'mountain' ? BANK_SAND : t.terrain === 'mountain' ? BANK_SCREE : BANK_EARTH;
-    const c = scale3(base, 0.9 + hash(t.id * 11 + i) * 0.2);
-    m.quad(A, B, B2, A2, c);
-    // Ends: join the bank of the next edge round the corner, or close the side.
-    const next = sloped[(i + 1) % 6];
-    if (next) {
-      const run2 = bankRun(t.height - next.height);
-      const n2x = Math.cos(a1 + Math.PI / 6);
-      const n2z = Math.sin(a1 + Math.PI / 6);
-      m.tri(B, [B[0] + n2x * run2, next.height + 0.006, B[2] + n2z * run2], B2, scale3(c, 0.94));
-    } else m.tri(B, [B[0], foot, B[2]], B2, scale3(c, 0.8));
-    if (!sloped[(i + 5) % 6]) m.tri(A, A2, [A[0], foot, A[2]], scale3(c, 0.8));
-  }
-}
-
-/** The field itself: cliff, bevel and top. Top and bevel take the field's colour through `tint`. */
+/** The field itself: cliff, bevel or bank, and top. Top and bevel take the field's colour through `tint`. */
 export function tileBase(m, t, seed, rot = 0, tiles = null) {
   const HEX0 = HEX + rot;
-  if (tiles) banks(m, t, tiles, HEX0);
   const { x, z, height: h } = t;
   const bottom = -0.88 - hash(t.id * 3 + seed) * 0.22;
   const water = t.terrain === 'water';
-  m.cyl(x, bottom, z, 0.9, 0.985, h - 0.075 - bottom, 6, WALL, 0, HEX0, false, 0.16);
-  m.cyl(x, h - 0.075, z, 0.985, 0.915, 0.075, 6, BLACK, 0, HEX0, false, 0.88);
+  const angle = (i) => HEX0 + (i * Math.PI) / 3;
+
+  // Per edge: how far the top is set back from the rim, and how high the rim lies there.
+  const inset = [];
+  const rimY = [];
+  const lower = [];
   for (let i = 0; i < 6; i++) {
-    const a = HEX0 + (i * Math.PI) / 3;
-    const b = a + Math.PI / 3;
-    m.tri(
-      [x, h + 0.001, z],
-      [x + Math.cos(b) * 0.915, h + 0.001, z + Math.sin(b) * 0.915],
-      [x + Math.cos(a) * 0.915, h + 0.001, z + Math.sin(a) * 0.915],
-      BLACK, water ? 5 : 0, UP, 0.98 + hash(t.id * 7 + i) * 0.05,
+    const o = tiles && t.nb[i] >= 0 ? tiles[t.nb[i]] : null;
+    const rise = o ? h - o.height : 0;
+    const bank = rise >= BANK_MIN;
+    lower.push(bank ? o : null);
+    inset.push(bank ? bankRun(rise) : BEVEL);
+    rimY.push(bank ? o.height - RIM_DROP : h - RIM_DROP);
+  }
+  // Corners of the flat top: where the set-back lines of the two edges at a corner cross.
+  const top = [];
+  for (let i = 0; i < 6; i++) {
+    const before = (i + 5) % 6;
+    const na = angle(before) + Math.PI / 6;
+    const nb = angle(i) + Math.PI / 6;
+    const alpha = (inset[before] - 0.5 * inset[i]) / 0.75;
+    const beta = (inset[i] - 0.5 * inset[before]) / 0.75;
+    top.push([
+      x + Math.cos(angle(i)) * RIM - alpha * Math.cos(na) - beta * Math.cos(nb),
+      h,
+      z + Math.sin(angle(i)) * RIM - alpha * Math.sin(na) - beta * Math.sin(nb),
+    ]);
+  }
+
+  for (let i = 0; i < 6; i++) {
+    const j = (i + 1) % 6;
+    const a0 = angle(i);
+    const a1 = angle(i + 1);
+    const mid = a0 + Math.PI / 6;
+    const y = rimY[i];
+    const R0 = [x + Math.cos(a0) * RIM, y, z + Math.sin(a0) * RIM];
+    const R1 = [x + Math.cos(a1) * RIM, y, z + Math.sin(a1) * RIM];
+    // Cliff below the rim.
+    m.quad(
+      [x + Math.cos(a0) * 0.9, bottom, z + Math.sin(a0) * 0.9],
+      [x + Math.cos(a1) * 0.9, bottom, z + Math.sin(a1) * 0.9],
+      R1, R0, WALL, 0, normalize([Math.cos(mid), (0.9 - RIM) / (y - bottom), Math.sin(mid)]), 0.16,
     );
+    const o = lower[i];
+    if (!o) {
+      // Plain edge: the narrow bevel between rim and top.
+      m.quad(R0, R1, top[j], top[i], BLACK, 0, normalize([Math.cos(mid), (RIM - 0.915) / RIM_DROP, Math.sin(mid)]), 0.88);
+    } else {
+      // Bank: the field's own ground slopes down to the level of the lower neighbour.
+      const sand = o.terrain === 'water' && t.terrain !== 'mountain';
+      const shade = 0.9 + hash(t.id * 11 + i) * 0.2;
+      const c = sand ? scale3(BANK_SAND, 0.8 * shade) : scale3(t.terrain === 'mountain' ? BANK_SCREE : BANK_EARTH, 0.2 * shade);
+      const tint = sand ? 0.14 : 0.66;
+      m.quad(R0, R1, top[j], top[i], c, 0, normalize([Math.cos(mid) * (h - y), inset[i], Math.sin(mid) * (h - y)]), tint);
+    }
+    // Where two edges with rims at different heights meet, a small face closes the corner.
+    if (rimY[j] !== y) {
+      const cx = x + Math.cos(a1) * RIM;
+      const cz = z + Math.sin(a1) * RIM;
+      m.tri([cx, y, cz], [cx, rimY[j], cz], top[j], scale3(BANK_EARTH, 0.16), 0, normalize([Math.cos(a1), 0.5, Math.sin(a1)]), 0.6);
+    }
+    m.tri([x, h + 0.001, z], [top[j][0], h + 0.001, top[j][2]], [top[i][0], h + 0.001, top[i][2]], BLACK, water ? 5 : 0, UP, 0.98 + hash(t.id * 7 + i) * 0.05);
   }
   if (t.neighbors.length < 6) m.cyl(x, bottom + 0.15, z, 0.905, 0.925, 0.1, 6, STRATA, 0, HEX0, false, 0.11);
 }
@@ -134,7 +154,8 @@ export function rock(m, x, y, z, s, seed, snow = false) {
   const rings = [];
   for (let ring = 0; ring < 3; ring++) {
     const r = ring === 0 ? s : ring === 1 ? s * 0.48 : s * 0.08;
-    const yy = y + (ring === 0 ? 0 : ring === 1 ? s * 0.91 * tall : s * 1.64 * tall);
+    // Rocks of some size reach below the ground, so they sit firmly where it slopes away under them.
+    const yy = y + (ring === 0 ? (s > 0.2 ? -Math.min(0.32, s * 0.6) : 0) : ring === 1 ? s * 0.91 * tall : s * 1.64 * tall);
     const pts = [];
     for (let i = 0; i < n; i++) {
       const a = phase + (i * TAU) / n;
@@ -229,6 +250,7 @@ export function tower(m, t) {
   const x = t.x + BUILD_AT.tower[0];
   const z = t.z + BUILD_AT.tower[1];
   const y = t.height;
+  m.cyl(x, y - 0.24, z, 0.3, 0.3, 0.24, 8, STONE_DARK, 0, 0, false); // footing, in case the ground slopes away
   m.cyl(x, y, z, 0.3, 0.27, 0.09, 8, STONE_DARK);
   m.cyl(x, y + 0.09, z, 0.215, 0.195, 0.55, 8, STONE);
   m.cyl(x, y + 0.64, z, 0.25, 0.25, 0.075, 8, STONE_MID);

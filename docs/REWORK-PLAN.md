@@ -491,9 +491,14 @@ jeder mit Abnahmekriterium. Die Kriterien sind Fragen an dich; hier steht, was v
 - **Gebirge:** Bisher hatte jedes Bergfeld dieselben drei Felsen an denselben Stellen. Jetzt hat jedes Feld
   eine eigene Gruppe: ein Hauptgipfel, im Inneren eines Gebirges höher als am Rand, und ein bis drei kleinere.
   Zahl der Seiten, Höhe und Farbton wechseln. Felsen auf gemeinsamen Kanten verdecken das Raster.
-- **Böschungen:** Wo ein Feld deutlich höher liegt als sein Nachbar, läuft ein Hang hinunter statt einer
-  senkrechten Wand: Sand zum Wasser, Geröll unter Bergen, Erde sonst. Die Oberseite bleibt ein klares
-  Sechseck. Angreifer eines höheren Feldes stehen auf dem Hang und stürmen sichtbar bergauf.
+- **Böschungen:** Wo ein Feld deutlich höher liegt als sein Nachbar, fällt sein eigener Rand als Hang auf
+  die Höhe des Nachbarn ab, statt in einer senkrechten Wand zu enden. Der Hang geht auf Kosten des höheren
+  Feldes: Dessen ebene Oberseite wird auf dieser Seite kleiner, jedes Nachbarfeld behält sein volles
+  Sechseck. Der Hang trägt die Farbe seines Feldes, die Grenzlinie läuft an seinem Fuß; zum Wasser hin ist er
+  Strand. Verteidiger eines Hügels stehen oben an der Hangkante, Angreifer unten am Fuß. Felsen und Türme
+  reichen etwas in den Boden, damit sie am Hang nicht schweben.
+  (Im ersten Anlauf lag der Hang auf dem Nachbarfeld. Das ließ die Nachbarn kleiner aussehen und machte
+  unklar, zu wem der Hang gehört; auf deinen Hinweis hin umgebaut.)
 
 ### Balance
 
