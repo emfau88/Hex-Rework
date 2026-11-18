@@ -15,6 +15,7 @@
 import { Game } from '../src/sim/game.js';
 import { MISSIONS } from '../src/sim/missions.js';
 import { DIFFICULTY } from '../src/sim/rules.js';
+import { aiThink } from '../src/sim/ai.js';
 import { stackThink } from './bots.mjs';
 
 const args = process.argv.slice(2);
@@ -28,13 +29,13 @@ const STRONG = Object.freeze({ ...DIFFICULTY.hard, think: 1.5, actions: 1 });
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const median = (a) => (a.length ? a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);
 
-function play(game, think) {
+function play(game, think, every = 1) {
   let at = 1.5;
   while (game.phase === 'running' && game.time < LIMIT) {
     game.step(0.5);
     game.drainEvents();
     if (think && game.time >= at) {
-      at = game.time + 1;
+      at = game.time + every;
       think(game);
     }
   }
@@ -68,15 +69,14 @@ for (const mission of MISSIONS.filter((m) => !m.random && (!only || m.id === onl
     }
 
     // Slot 0 plans like the "hard" computer but gives one order at a time: a stand-in for a good player.
+    // It sits in the player's seat, so the rivals treat it exactly as they would treat a person.
     let strong = 0;
     const strongTimes = [];
     for (let i = 0; i < Math.min(runs, 60); i++) {
-      const game = new Game({ mission, seed: 9000 + i * 11, difficulty, human: -1, wide });
+      const game = new Game({ mission, seed: 9000 + i * 11, difficulty, human: 0, wide });
       const f = game.factions[0];
       f.ai = STRONG;
-      f.thinkEvery = STRONG.think;
-      f.incomeMul = 1;
-      play(game);
+      play(game, (g) => aiThink(g, f), STRONG.think);
       if (game.phase === 'finished' && game.winner === 0) {
         strong++;
         strongTimes.push(game.time);

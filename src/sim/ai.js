@@ -25,20 +25,25 @@ export function aiThink(game, f) {
   /** Troops a field must not give away. */
   const keep = (t) => {
     if (t.pools.length || t.order) return Infinity;
-    if (t.castle === me) return P.castleKeep;
+    // The castle garrison stays at home while a rival is near; it is not thrown at the besiegers.
+    if (t.castle === me) return f.alarm ? Infinity : P.castleKeep;
+    // Momentum: a field that was just taken pushes on with all it has. Behind a broken front the
+    // land is thinly held, and every further field cuts more of the rival off from its castle.
+    if (P.waves > 0 && game.time - t.stormedAt < 5) return 1;
     let k = 1;
     if (facesRival(t)) k = ring.has(t.id) ? P.frontKeep + 3 : P.frontKeep;
     if (t.building) k = Math.max(k, 4);
-    if (t.id === prize) k = Math.max(k, 16);
+    if (t.id === prize) k = Math.max(k, P.reinforce >= 2 ? 16 : 8);
     else if (t.terrain === 'citadel') k = Math.max(k, 8);
-    else if (prizeRing.has(t.id) && tiles[prize].owner === me) k = Math.max(k, 9);
+    else if (prizeRing.has(t.id) && tiles[prize].owner === me && P.reinforce >= 2) k = Math.max(k, 9);
     return k;
   };
   const spare = (t) => Math.max(0, Math.floor(t.units) - Math.ceil(keep(t)));
 
   // 1. Answer sieges: reinforce a field that would fall, if neighbours can still save it.
   if (P.reinforce > 0) {
-    const rank = (t) => (t.castle === me ? 1 : ring.has(t.id) || t.building || t.terrain === 'citadel' ? 2 : 3);
+    const holding = holdGoal && tiles[prize].owner === me;
+    const rank = (t) => (t.castle === me ? 1 : ring.has(t.id) || t.building || t.terrain === 'citadel' || (holding && prizeRing.has(t.id)) ? 2 : 3);
     const inDanger = tiles.filter((t) => t.owner === me && t.pools.length && rank(t) <= P.reinforce).sort((a, b) => rank(a) - rank(b));
     for (const t of inDanger) {
       if (game.forecast(t.id).holds) continue;
@@ -180,19 +185,37 @@ export function aiThink(game, f) {
     let value = o.owner < 0 ? 6 : 9;
     value += game.income(o, true) * 16;
     if (o.building) value += 7;
-    if (o.terrain === 'citadel') value += holdGoal ? 60 : 30;
+    if (o.terrain === 'citadel') value += holdGoal ? 140 : 30;
     if (o.castle >= 0) value += 400;
     else if (toCastle[o.id] > 0) value += 30 / (toCastle[o.id] + 1);
     if (holdGoal && (o.id === prize || prizeRing.has(o.id))) {
-      value += 20;
+      value += o.id === prize ? 20 : 45; // the ring is the way to the citadel
       if (clock >= 0 && o.owner === game.hold.owner) value += 40 + 260 * clock;
+      // Holding the citadel is worth nothing while a field of its ring is missing: close the ring.
+      // The easy rival does not play for the clock; it holds the citadel only by accident.
+      if (tiles[prize].owner === me && P.reinforce >= 2) value += 150;
     }
     if (o.owner >= 0 && P.reinforce >= 2) value += Math.min(40, cutOff(o) * 5);
     if (o.owner >= 0 && !o.supplied) value *= 0.6; // withers on its own
     if (game.human >= 0 && o.owner === game.human) value *= P.humanBias;
     const loss = (fc.sent.get(me) || 0) - fc.left;
     const score = (value / (loss + 4 + fc.time * 0.6)) * (0.8 + game.rng.next() * 0.4);
-    plans.push({ o, extra, score });
+
+    // Follow-up: a reserve from behind marches after the attackers and mans the field once it is
+    // taken. Without it the few survivors would be thrown out again at once.
+    let follow = null;
+    if (P.waves > 0 && o.owner >= 0 && o.castle < 0) {
+      const busy = new Set(extra.map((x) => x.origin));
+      for (const x of extra) {
+        for (const n of tiles[x.from].neighbors) {
+          const r = tiles[n];
+          if (r.owner !== me || busy.has(n) || r.castle === me || facesRival(r)) continue;
+          const units = Math.min(spare(r), game.cap(o));
+          if (units >= 8 && (!follow || units > follow.units)) follow = { origin: n, units };
+        }
+      }
+    }
+    plans.push({ o, extra, score, follow });
   }
 
   // A kingdom gives orders at a pace a person could keep up with: at most one grab of free land
@@ -208,6 +231,10 @@ export function aiThink(game, f) {
     for (const x of plan.extra) {
       used.add(x.origin);
       game.dispatch(me, x.origin, plan.o.id, x.units, 'attack');
+    }
+    if (plan.follow && !used.has(plan.follow.origin)) {
+      used.add(plan.follow.origin);
+      game.dispatch(me, plan.follow.origin, plan.o.id, plan.follow.units, 'attack');
     }
     actions++;
   }

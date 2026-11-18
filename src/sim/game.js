@@ -47,14 +47,16 @@ export class Game {
     // Mission goal. Taking every rival castle always wins; a mission may add a second way.
     const goal = mission.objective;
     this.objective = goal && goal.type === 'hold' && map.citadel >= 0 ? { type: 'hold', tile: map.citadel, seconds: goal.seconds } : { type: 'conquer' };
-    this.hold = { owner: -1, time: 0, secure: false };
+    // Seconds each kingdom has held the citadel securely so far; `time` is the current holder's total.
+    this.hold = { owner: -1, time: 0, secure: false, times: map.castles.map(() => 0) };
 
     const diff = DIFFICULTY[difficulty] || DIFFICULTY.normal;
     const first = human >= 0 ? playerColor : this.seed % 4;
     const colors = [first, ...[0, 1, 2, 3].filter((c) => c !== first)];
     this.factions = map.castles.map((tileId, id) => {
       const isHuman = id === human;
-      const ai = Object.freeze({ ...diff, ...(mission.ai || null), ...((mission.rivals && mission.rivals[id]) || null) });
+      // A mission may adjust its rivals for every strength (ai) or for one strength only (aiBy).
+      const ai = Object.freeze({ ...diff, ...(mission.ai || null), ...((mission.aiBy && mission.aiBy[difficulty]) || null) });
       const castle = this.tiles[tileId];
       castle.owner = id;
       if (!castle.fixed) castle.units = this.R.startCastle;
@@ -424,19 +426,20 @@ export class Game {
     }
     if (changed) this._supply();
 
-    // Second way to win a mission: hold the citadel. The clock only runs while the holder also owns
-    // every field around it and nobody stands at its edges; it starts over when the citadel is lost.
+    // Second way to win a mission: hold the citadel. A kingdom's clock only runs while it also owns
+    // every field around the citadel and nobody stands at its edges. Losing the citadel stops the
+    // clock but does not wind it back: the first kingdom to reach the full time in total wins.
     if (this.objective.type === 'hold') {
       const c = tiles[this.objective.tile];
       const hold = this.hold;
       if (c.owner !== hold.owner) {
         if (hold.owner >= 0 && hold.time > 0) this.events.push({ type: 'holdlost', owner: hold.owner });
         hold.owner = c.owner;
-        hold.time = 0;
+        hold.time = c.owner >= 0 ? hold.times[c.owner] : 0;
       }
       hold.secure = c.owner >= 0 && !c.pools.length && c.neighbors.every((n) => !tiles[n].passable || tiles[n].owner === c.owner);
       if (hold.secure) {
-        hold.time += dt;
+        hold.time = hold.times[c.owner] += dt;
         if (hold.time >= this.objective.seconds) {
           this._finish(c.owner, 'hold');
           return;
@@ -526,6 +529,7 @@ export class Game {
     t.owner = winner;
     t.units = Math.min(this.cap(t) + this.R.overfill, Math.max(1, total.get(winner)));
     t.lastCapture = this.time;
+    t.stormedAt = this.time; // taken in battle, as opposed to inherited with a fallen castle
     if (t.order) {
       t.order = null;
       this.sceneVersion++;
@@ -639,6 +643,27 @@ export class Game {
       const dst = a.path[a.path.length - 1];
       if (tiles[dst].owner === me) want[dst] -= a.units;
     }
+
+    // The rearmost fields ship first. That way reserves gather right behind the front for every
+    // kingdom alike, whatever its place on the map; equal distances are drawn at random.
+    const far = this._far || (this._far = new Int16Array(tiles.length));
+    far.fill(-1);
+    const wave = [];
+    for (const t of own) {
+      if (t.front) {
+        far[t.id] = 0;
+        wave.push(t.id);
+      }
+    }
+    for (let i = 0; i < wave.length; i++) {
+      for (const k of tiles[wave[i]].neighbors) {
+        if (tiles[k].owner !== me || far[k] >= 0) continue;
+        far[k] = far[wave[i]] + 1;
+        wave.push(k);
+      }
+    }
+    for (const t of own) t.draw = this.rng.next();
+    own.sort((a, b) => far[b.id] - far[a.id] || a.draw - b.draw);
 
     const prev = this._prev || (this._prev = new Int16Array(tiles.length));
     const depth = this._depth || (this._depth = new Int16Array(tiles.length));

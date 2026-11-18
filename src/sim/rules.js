@@ -74,7 +74,7 @@ export const RULES = Object.freeze({
 // castleKeep garrison the castle never gives away
 // rushAfter  no attack on any castle before this second
 export const DIFFICULTY = Object.freeze({
-  easy: Object.freeze({ think: 2.6, margin: 1.4, sides: 2, waves: 0, actions: 1, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.85, humanBias: 0.8, rushAfter: 180 }),
+  easy: Object.freeze({ think: 2.6, margin: 1.4, sides: 2, waves: 0, actions: 1, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.85, humanBias: 0.6, rushAfter: 180 }),
   normal: Object.freeze({ think: 1.6, margin: 1.18, sides: 4, waves: 1, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, incomeMul: 1, humanBias: 1, rushAfter: 100 }),
   hard: Object.freeze({ think: 1.3, margin: 1.1, sides: 6, waves: 2, actions: 2, reinforce: 3, frontKeep: 6, castleKeep: 26, build: 0.65, incomeMul: 1, humanBias: 1.1, rushAfter: 60 }),
 });
