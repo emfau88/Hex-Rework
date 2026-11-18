@@ -2,7 +2,9 @@
 //   node tools/simulate.mjs              40 matches per map and strength
 //   node tools/simulate.mjs 200          200 matches each
 //   node tools/simulate.mjs 60 --tall    islands turned for tall (phone) screens
-//   node tools/simulate.mjs 60 --only=m3 one map only (m1, m2, m3, duel, three, four)
+//   node tools/simulate.mjs 60 --only=m3 one map only (m1, m2, m3, duel, random)
+//   node tools/simulate.mjs 60 --level=hard  one strength only (easy, normal, hard; several with commas)
+//   node tools/simulate.mjs 60 --shift=1 other dice: the same matches with a second set of seeds (2, 3, ...)
 //
 // Per map and strength it reports:
 //   Dauer      shortest / median / longest match between computer kingdoms
@@ -23,6 +25,8 @@ const runs = Number(args.find((a) => /^\d+$/.test(a))) || 40;
 const wide = !args.includes('--tall');
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7);
 const levels = (args.find((a) => a.startsWith('--level=')) || '--level=easy,normal,hard').slice(8).split(',');
+// Without --shift the seeds are the ones every documented result was measured with.
+const shift = (Number((args.find((a) => a.startsWith('--shift=')) || '').slice(8)) || 0) * 100003;
 const LIMIT = 900;
 const STRONG = Object.freeze({ ...DIFFICULTY.hard, think: 1.5, actions: 1 });
 
@@ -54,7 +58,7 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
     const wins = new Array(sample.factions.length).fill(0);
     let stale = 0;
     for (let i = 0; i < runs; i++) {
-      const game = play(new Game({ mission, seed: 1000 + i * 17, difficulty, human: -1, wide }));
+      const game = play(new Game({ mission, seed: 1000 + i * 17 + shift, difficulty, human: -1, wide }));
       if (game.phase !== 'finished') stale++;
       else {
         times.push(game.time);
@@ -64,7 +68,7 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
 
     const idle = [];
     for (let i = 0; i < Math.min(runs, 40); i++) {
-      const game = play(new Game({ mission, seed: 5000 + i * 13, difficulty, human: 0, wide }));
+      const game = play(new Game({ mission, seed: 5000 + i * 13 + shift, difficulty, human: 0, wide }));
       idle.push(game.phase === 'finished' && game.winner !== 0 ? game.time : LIMIT);
     }
 
@@ -73,7 +77,7 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
     let strong = 0;
     const strongTimes = [];
     for (let i = 0; i < Math.min(runs, 60); i++) {
-      const game = new Game({ mission, seed: 9000 + i * 11, difficulty, human: 0, wide });
+      const game = new Game({ mission, seed: 9000 + i * 11 + shift, difficulty, human: 0, wide });
       const f = game.factions[0];
       f.ai = STRONG;
       play(game, (g) => aiThink(g, f), STRONG.think);
@@ -86,7 +90,7 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
     let stack = 0;
     const stackTimes = [];
     for (let i = 0; i < Math.min(runs, 60); i++) {
-      const game = play(new Game({ mission, seed: 3000 + i * 19, difficulty, human: 0, wide }), (g) => stackThink(g, 0));
+      const game = play(new Game({ mission, seed: 3000 + i * 19 + shift, difficulty, human: 0, wide }), (g) => stackThink(g, 0));
       if (game.phase === 'finished' && game.winner === 0) {
         stack++;
         stackTimes.push(game.time);
