@@ -1,32 +1,16 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.4 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.5 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
-geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest von Stand 0.4; er steht deshalb vorn.
+geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
+Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut und stehen unter „Erledigt“.
 
 ## Vorab
 
-- [ ] **Dein Spieltest von Stand 0.4.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
+- [ ] **Dein Spieltest von Stand 0.5.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
 
 ## Als Nächstes
-
-### Zuerst machen
-
-- [ ] **1 · Abgelehnte Befehle rückmelden** · Aufwand klein
-  - Wer einen Befehl gibt, der nicht ausgeführt wird (zu wenig Truppen, Ziel voll, kein Weg), sieht kurz
-    warum. Heute verschwindet nur die Auswahl. Das erklärt vermutlich das Gefühl, blockiert zu sein.
-  - Fertig, wenn ein Spieler bei jedem abgelehnten Befehl den Grund sieht.
-- [ ] **2 · Zoom und Verschieben** · Aufwand mittel
-  - Zwei Finger am Handy, Mausrad und Ziehen am PC. Am Handy sind die Felder klein, dort hilft es am meisten.
-  - Fertig, wenn sich am Handy jedes Feld sicher antippen lässt und man mit einem Griff zur Übersicht zurückkommt.
-- [ ] **3 · Meer statt Leere um die Karte** · Aufwand klein
-  - Eine Wasserfläche rund um die Insel, die zum Rand hin im Dunst verschwindet, dazu ein paar Klippen vor
-    der Küste. Passt zu den Stränden aus Stand 0.4.
-  - Fertig, wenn am PC und am Handy kein leerer dunkler Rand mehr zu sehen ist.
-- [ ] **4 · Bröckelnde Burgmauern** · Aufwand mittel
-  - Ein Mauerstück für jedes Nachbarfeld, das der Verteidiger noch hält. Zeigt die Umzingeln-Regel im Bild.
-  - Fertig, wenn ein Zuschauer an der Burg erkennt, von wie vielen Seiten sie schon offen ist.
 
 ### Danach
 
@@ -66,6 +50,10 @@ geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest von Stand
 - [ ] Kampfanimation in Bewegung ansehen (bisher nur als Standbilder geprüft): Erkennt man, wer wo angreift?
       Wirkt sie zappelig?
 - [ ] Gebirge und Böschungen: Gefällt es dir, bleiben die Felder gut antippbar?
+- [ ] Am echten Handy mit zwei Fingern vergrößern und verschieben: Geht es flüssig, löst es nie einen Befehl aus?
+- [ ] Meer und Schären: Gefällt dir das besser als der leere Rand?
+- [ ] Burgmauern: Erkennst du an der Burg, von wie vielen Seiten sie offen ist, auch am Handy?
+- [ ] Abgelehnte Befehle: Reicht die kurze Meldung am Feld, oder ist sie zu schnell weg?
 - [ ] Ton anhören
 - [ ] Am echten Handy spielen: Sind die Zahlen lesbar, trifft der Finger das richtige Feld, läuft es flüssig?
 - [ ] Am echten Handy ein fremdes Feld einmal antippen: Bleibt die Vorschau stehen, und schickt erst der
@@ -121,3 +109,7 @@ erst nach dem Spieltest und eine nach der anderen.
 - [x] Kampfanimation: Soldaten treffen an der Kante aufeinander, Staub, Pfeile vom Turm, Figuren schrumpfen
       mit der Zahl (Stand 0.4)
 - [x] Abwechslungsreiche Gebirge, Böschungen im höheren Feld statt Steilwände, Strand am Wasser (Stand 0.4)
+- [x] Abgelehnte Befehle werden am Feld rückgemeldet (Stand 0.5)
+- [x] Zoom und Verschieben mit Mausrad, Ziehen und zwei Fingern (Stand 0.5)
+- [x] Meer mit Schären statt leerem Rand, Strand rund um die Insel (Stand 0.5)
+- [x] Burgmauern, die fallen, wenn ein Gegner das Nachbarfeld hält (Stand 0.5)

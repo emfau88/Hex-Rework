@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) sowie Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, Abschnitt 12) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -76,8 +76,8 @@ Versionsverwaltung. Bulk 0 bis 5 gehören zu dieser Arbeitsrunde, Bulk 6 bis 11 
 **Fertig, wenn** die Regeltests grün sind: ein Angriff von drei Seiten kostet höchstens halb so viel wie von
 einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mit ihrem Reich.
 
-**Stand: erledigt.** Inzwischen 46 Tests grün (`node --test`): 12 für die Regeln, 9 fürs Bauen, 9 für die
-Vorhersage, 16 für die Eingabe.
+**Stand: erledigt.** Inzwischen 51 Tests grün (`node --test`): 13 für die Regeln, 9 fürs Bauen, 9 für die
+Vorhersage, 20 für die Eingabe.
 
 ### Bulk 2 · Gegner und Messwerkzeug
 
@@ -515,3 +515,32 @@ Karten sind nicht erneut gemessen.
 | Die Kampfanimation in Bewegung | der Browser-Bereich hier zeigt etwa ein Bild pro Sekunde; geprüft sind Standbilder |
 | Flüssigkeit am echten Handy mit den zusätzlichen Hängen und Felsen | offen |
 | Zufallskarten mit Böschungen im Hochformat | angesehen sind Mission 1 bis 3 und die Vier-Reiche-Karte |
+
+## 12 · Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, 19.11.2026)
+
+Die vier Punkte „Zuerst machen“ aus der Roadmap. Die Regeln sind unverändert; neu ist nur eine Abfrage, warum
+ein Befehl nicht ausgeführt würde. Die Balance ist deshalb nicht neu gemessen.
+
+| Nr. | Was | Fertig, wenn | Stand |
+|---|---|---|---|
+| 1 | Abgelehnte Befehle rückmelden | ein Spieler bei jedem abgelehnten Befehl den Grund sieht | gebaut, ein Regeltest, im Browser gesehen („Zu wenig Truppen“) |
+| 2 | Zoom und Verschieben | sich am Handy jedes Feld sicher antippen lässt und man mit einem Griff zur Übersicht zurückkommt | gebaut, vier Tests; im Browser Mausrad, Ziehen und Taste 0 geprüft. **Zwei Finger nur im Test, nicht am echten Handy** |
+| 3 | Meer statt Leere | am PC und am Handy kein leerer dunkler Rand mehr zu sehen ist | gebaut, im Browser am PC und im Handy-Format angesehen |
+| 4 | Bröckelnde Burgmauern | ein Zuschauer an der Burg erkennt, von wie vielen Seiten sie schon offen ist | gebaut, im Browser gesehen: Mauer fällt, wenn ein Gegner das Nachbarfeld hält |
+
+- **Rückmeldung:** Wird ein Befehl nicht ausgeführt, schwebt am Feld kurz der Grund auf: „Zu wenig Truppen“
+  (eine bleibt immer stehen), „Ziel ist voll“ oder „Kein Weg dorthin“. Beim Sturm erscheint „Zu wenig
+  Truppen“, wenn kein einziges Nachbarfeld etwas abgeben kann.
+- **Zoom und Verschieben:** Mausrad oder zwei Finger vergrößern bis 2,6-fach, immer um die Stelle unter dem
+  Zeiger. Ziehen auf fremdem oder leerem Gebiet verschiebt die Karte; Ziehen von einem eigenen Feld bleibt
+  ein Befehl. Zwei Finger brechen jede begonnene Geste ab und können nie Truppen schicken. Der Knopf neben der
+  Uhr und die Taste 0 zeigen wieder die ganze Insel; jede neue Partie beginnt so.
+- **Meer:** Der Tisch unter der Insel ist einer Wasserfläche gewichen, die im Dunst verschwindet, mit ein paar
+  Schären vor der Küste. Felder am Rand der Insel fallen jetzt wie an jedem Wasserfeld mit einem Strand ab.
+  Weil die Klippen im Wasser stehen, füllt die Insel den Bildschirm etwas besser aus.
+- **Burgmauern:** Eine stehende Burg hat zu jedem begehbaren Nachbarfeld ein Mauerstück. Es steht, solange das
+  Feld dem Verteidiger gehört oder frei ist, und fällt zu Schutt, sobald ein Gegner es hält. Nimmt der
+  Verteidiger das Feld zurück, steht die Mauer wieder auf. Die Mauern sind nur Anzeige, sie ändern keine Regel.
+
+Nicht geprüft: zwei Finger auf einem echten Handy; ob die Mauern am Handy noch zu erkennen sind (die Burg ist
+dort klein); Zufallskarten mit dem Meer im Hochformat.
