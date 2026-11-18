@@ -9,7 +9,7 @@
 //   Plätze     wins per starting place (fairness)
 //   Patt       matches without a winner after 15 minutes
 //   untätig    how long a player survives who never touches the screen (shortest / median)
-//   stark      a good player at human speed (plans like the "hard" computer, one order every 1.2 s)
+//   stark      a good player at human speed (plans like the "hard" computer, one order every 1.5 s)
 //   Stapel     a player who piles everything onto one field and marches straight at the castle
 
 import { Game } from '../src/sim/game.js';
@@ -23,7 +23,7 @@ const wide = !args.includes('--tall');
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7);
 const levels = (args.find((a) => a.startsWith('--level=')) || '--level=easy,normal,hard').slice(8).split(',');
 const LIMIT = 900;
-const STRONG = Object.freeze({ ...DIFFICULTY.hard, think: 1.2, actions: 1 });
+const STRONG = Object.freeze({ ...DIFFICULTY.hard, think: 1.5, actions: 1 });
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const median = (a) => (a.length ? a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);

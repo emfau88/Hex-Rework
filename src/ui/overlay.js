@@ -2,6 +2,7 @@
 // Everything a player has to read sits here, crisp at any resolution.
 
 import { PALETTE_HEX } from '../render/models.js';
+import { i18n } from './i18n.js';
 
 const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
 
@@ -67,7 +68,9 @@ export class Overlay {
         ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.fillStyle = owned ? (t.supplied ? '#ffffff' : '#c3cfd0') : '#b9c9c6';
+      // Amber: the field is full and feeds no more troops. Grey: cut off and withering.
+      const full = owned && t.units >= game.cap(t) - 0.01;
+      ctx.fillStyle = owned ? (!t.supplied ? '#c3cfd0' : full ? '#ffd27a' : '#ffffff') : '#b9c9c6';
       ctx.fillText(text, p.x, p.y + 0.5);
       if (t.order) {
         // Small dot: this field is saving up for a building.
@@ -98,6 +101,26 @@ export class Overlay {
       ctx.fillText(text, p.x, p.y + 0.5);
     }
 
+    // Besiegers show their strength at the edge where they fight.
+    for (const t of game.tiles) {
+      for (const pool of t.pools) {
+        const pos = renderer.poolPosition(game, t, pool);
+        const p = renderer.project(pos.x, pos.y + 0.78, pos.z);
+        const text = String(Math.max(1, Math.round(pool.units)));
+        const w = Math.max(afs * 1.6, ctx.measureText(text).width + afs * 0.8);
+        const h = afs + 5;
+        pill(ctx, p.x, p.y, w, h);
+        ctx.fillStyle = PALETTE_HEX[game.factions[pool.owner].color];
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff3c4';
+        ctx.stroke();
+        ctx.fillStyle = '#06141b';
+        ctx.fillText(text, p.x, p.y + 0.5);
+      }
+    }
+
+    if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
     else if (ui.tutorialPath) this._tutorial(ctx, game, renderer, ui.tutorialPath, time);
@@ -141,15 +164,58 @@ export class Overlay {
     const pts = this._points(game, renderer, ui.dragPath);
     const from = ui.dragPath[0];
     const target = game.tiles[ui.dragPath[ui.dragPath.length - 1]];
-    const amount = game.sendAmount(from, ui.sendFraction);
+    let amount = Math.max(0, game.sendAmount(from, ui.sendFraction));
     const friendly = target.owner === ui.human;
-    const need = Math.floor(target.units * game.defense(target)) + 1;
-    const wins = friendly || amount >= need;
+    let wins = true;
+    let text;
+    if (friendly) {
+      // An own field only takes what it can feed.
+      amount = Math.min(amount, game.room(target.id, ui.human));
+      text = amount < 1 ? i18n.t('full') : `+${amount}`;
+    } else {
+      // The troops will stand at the edge of the last own field on their way.
+      const edge = ui.dragPath[ui.dragPath.length - 2];
+      const fc = game.forecast(target.id, amount >= 1 ? [{ owner: ui.human, from: edge, units: amount }] : []);
+      wins = !fc.holds && fc.winner === ui.human;
+      text = wins ? `✓ ${Math.max(1, Math.floor(fc.left))}` : `✗ ${Math.ceil(fc.left)}`;
+    }
     const color = amount < 1 ? '#9fb0b3' : wins ? '#fff3c4' : '#ff9a8c';
     this._arrow(ctx, pts, color, 4.5);
 
     const end = pts[pts.length - 1];
-    const text = friendly ? `+${Math.max(0, amount)}` : `${Math.max(0, amount)} vs ${need}`;
+    ctx.font = `800 ${fs + 2}px ${FONT}`;
+    const w = ctx.measureText(text).width + 18;
+    const h = fs + 12;
+    const y = end.y - 34;
+    pill(ctx, end.x, y, w, h);
+    ctx.fillStyle = 'rgba(6, 20, 27, 0.92)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.fillText(text, end.x, y + 0.5);
+  }
+
+  /** Combined attack: thin arrows from every own neighbour and the forecast for all of them together. */
+  _assault(ctx, game, renderer, ui, fs) {
+    const a = ui.assault;
+    const target = game.tiles[a.target];
+    if (target.owner === ui.human) return;
+    const extra = [];
+    for (const id of a.sources) {
+      const units = game.sendAmount(id, ui.sendFraction);
+      if (units >= 1) extra.push({ owner: ui.human, from: id, units });
+    }
+    const fc = game.forecast(target.id, extra);
+    const wins = !fc.holds && fc.winner === ui.human;
+    const color = !extra.length ? '#9fb0b3' : wins ? '#fff3c4' : '#ff9a8c';
+    ctx.globalAlpha = 0.85;
+    for (const id of a.sources) this._arrow(ctx, this._points(game, renderer, [id, a.target]), color, 3);
+    ctx.globalAlpha = 1;
+
+    const end = renderer.project(target.x, target.height + renderer.lift(target.id) + 0.06, target.z);
+    const text = `${a.sources.length}× ${wins ? `✓ ${Math.max(1, Math.floor(fc.left))}` : `✗ ${Math.ceil(fc.left)}`}`;
     ctx.font = `800 ${fs + 2}px ${FONT}`;
     const w = ctx.measureText(text).width + 18;
     const h = fs + 12;

@@ -1,8 +1,8 @@
 // Settings and progress in localStorage. Every access is guarded: portals and private
 // windows may block storage, and the game must still run.
 
-const KEY = 'hexwars_diorama_proto_v1';
-const DEFAULTS = { color: 0, difficulty: 'normal', sendFraction: 0.5, supply: true, sound: true, lang: null, stars: {}, best: {} };
+const KEY = 'hexwars_diorama_v2';
+const DEFAULTS = { color: 0, difficulty: 'normal', sendFraction: 0.5, supply: true, sound: true, lang: null, stars: {}, best: {}, done: {} };
 
 export function loadStore() {
   try {

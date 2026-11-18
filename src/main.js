@@ -1,7 +1,8 @@
 // App shell: screens, HUD, game loop. The rules live in src/sim, the picture in src/render.
 
 import { Game } from './sim/game.js';
-import { MISSIONS } from './sim/maps.js';
+import { CAMPAIGN, MISSIONS } from './sim/missions.js';
+import { SKIRMISH } from './sim/maps.js';
 import { DioramaRenderer } from './render/renderer.js';
 import { PALETTE_HEX } from './render/models.js';
 import { Overlay } from './ui/overlay.js';
@@ -14,6 +15,8 @@ const $ = (sel) => document.querySelector(sel);
 const NAMES = ['AZUR', 'EMBER', 'JADE', 'SOLAR'];
 const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const star = '<svg><use href="#i-star"/></svg>';
+const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
+const FREE_PLAY = SKIRMISH.filter((m) => m.random);
 
 class App {
   constructor() {
@@ -24,14 +27,28 @@ class App {
     this.sfx.enabled = this.store.sound;
     this.renderer = new DioramaRenderer($('#world'));
     this.overlay = new Overlay($('#overlay'));
-    this.ui = { selected: -1, hover: -1, targets: null, dragPath: null, dragging: false, pointer: null, human: -1, sendFraction: this.store.sendFraction, showNumbers: false, tutorialPath: null };
+    this.ui = {
+      selected: -1,
+      hover: -1,
+      targets: null,
+      dragPath: null,
+      dragging: false,
+      pointer: null,
+      assault: null,
+      human: -1,
+      sendFraction: this.store.sendFraction,
+      showNumbers: false,
+      tutorialPath: null,
+    };
     this.mode = 'menu';
     this.mission = null;
+    this.pending = null;
     this.last = 0;
     this.timers = [];
     this.hudAt = 0;
     this.targetsAt = 0;
     this.alarmAt = -100;
+    this.holdWarnAt = -100;
     this.tutorial = null;
 
     this.buildMenu();
@@ -47,11 +64,13 @@ class App {
 
   setMode(mode) {
     this.mode = mode;
-    this.el.dataset.mode = mode === 'menu' ? 'menu' : 'play';
+    const behindSheet = mode === 'menu' || mode === 'brief';
+    this.el.dataset.mode = behindSheet ? 'menu' : 'play';
     $('#menu').hidden = mode !== 'menu';
+    $('#brief').hidden = mode !== 'brief';
     $('#pause').hidden = mode !== 'pause';
     $('#result').hidden = mode !== 'result';
-    this.ui.showNumbers = mode !== 'menu';
+    this.ui.showNumbers = !behindSheet;
     this.resize();
   }
 
@@ -71,11 +90,30 @@ class App {
     this.mission = null;
     this.tutorial = null;
     this.ui.human = -1;
+    this.ui.assault = null;
     this.ui.tutorialPath = null;
-    this.game = new Game({ mission: MISSIONS.find((m) => m.id === 'four'), seed: (Math.random() * 1e9) | 0, difficulty: 'hard', human: -1, wide: this.wide() });
+    this.game = new Game({ mission: ATTRACT, seed: (Math.random() * 1e9) | 0, difficulty: 'hard', human: -1, wide: this.wide() });
     this.setHint('');
     this.setMode('menu');
     this.refreshMenu();
+  }
+
+  /** Campaign missions open with a short briefing; free play starts right away. */
+  openMission(mission) {
+    if (!mission.brief) {
+      this.startMission(mission);
+      return;
+    }
+    this.pending = mission;
+    $('#brief-no').textContent = i18n.t('mission', { n: mission.no });
+    $('#brief-name').textContent = i18n.pick(mission.name);
+    $('#brief-text').textContent = i18n.pick(mission.brief);
+    $('#brief-lesson').textContent = i18n.pick(mission.lesson);
+    $('#brief-goal').textContent = mission.objective?.type === 'hold' ? i18n.t('goalCitadelLong', { s: mission.objective.seconds }) : i18n.t('goalConquerLong');
+    $('#brief-stars').innerHTML = this.goalLabels(mission)
+      .map((label) => `<div>${star}<span>${label}</span></div>`)
+      .join('');
+    this.setMode('brief');
   }
 
   startMission(mission, seed) {
@@ -87,25 +125,41 @@ class App {
     this.game = new Game({
       mission,
       seed: this.seed,
-      difficulty: mission.tutorial ? 'easy' : this.store.difficulty,
+      difficulty: this.store.difficulty,
       human: 0,
       playerColor: this.store.color,
       autoSupply: this.store.supply,
       wide: this.wide(),
     });
     this.ui.human = 0;
+    this.ui.assault = null;
     this.alarmAt = -100;
+    this.holdWarnAt = -100;
     this.tutorial = mission.tutorial ? { step: 0, at: 0 } : null;
     this.ui.tutorialPath = null;
     this.setMode('play');
     this.updateHud(true);
-    this.setHint(this.tutorial ? i18n.t('hint0') : '');
-    this.banner(i18n.t(`intro${mission.factions}`), '#f2c36b', 2600);
+    if (this.tutorial) this.setHint(i18n.t('hint0'));
+    else if (mission.lesson) {
+      // The new rule of the mission stays on screen for the opening.
+      this.setHint(i18n.pick(mission.lesson));
+      this.later(16000, () => this.setHint(''));
+    } else this.setHint('');
+    this.banner(i18n.t(`intro${this.game.factions.length}`), '#f2c36b', 2600);
   }
 
   /** Wide screens get a landscape island, phones in portrait a tall one. */
   wide() {
     return window.innerWidth > window.innerHeight * 1.15;
+  }
+
+  unlocked(mission) {
+    const i = CAMPAIGN.indexOf(mission);
+    return i <= 0 || Boolean(this.store.done[CAMPAIGN[i - 1].id]);
+  }
+
+  goalLabels(mission) {
+    return [i18n.t('goalWin'), i18n.t('goalTime', { t: clock(mission.par) }), i18n.t('goalHold', { n: mission.loseLimit ?? 3 })];
   }
 
   // ------------------------------------------------------------------- menu
@@ -118,11 +172,17 @@ class App {
   refreshMenu() {
     for (const b of document.querySelectorAll('#colors button')) b.classList.toggle('on', Number(b.dataset.color) === this.store.color);
     for (const b of document.querySelectorAll('#difficulty button')) b.classList.toggle('on', b.dataset.diff === this.store.difficulty);
-    $('#missions').innerHTML = MISSIONS.map((m, i) => {
+    $('#missions').innerHTML = CAMPAIGN.map((m) => {
+      const open = this.unlocked(m);
       const got = this.store.stars[m.id] || 0;
-      const stars = m.random ? '' : `<span class="mini-stars">${[0, 1, 2].map((k) => `<span class="${k < got ? 'got' : ''}">${star}</span>`).join('')}</span>`;
-      return `<button data-mission="${m.id}"><span class="no">${m.random ? '?' : i + 1}</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}</span></span>${stars}</button>`;
+      const stars = `<span class="mini-stars">${[0, 1, 2].map((k) => `<span class="${k < got ? 'got' : ''}">${star}</span>`).join('')}</span>`;
+      const no = open ? m.no : '<svg><use href="#i-lock"/></svg>';
+      const blurb = open ? i18n.pick(m.blurb) : i18n.t('locked');
+      return `<button data-mission="${m.id}" class="${open ? '' : 'locked'}"><span class="no">${no}</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${blurb}</span></span>${open ? stars : ''}</button>`;
     }).join('');
+    $('#skirmish').innerHTML = FREE_PLAY.map(
+      (m) => `<button data-mission="${m.id}"><span class="no">?</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}</span></span></button>`,
+    ).join('');
     $('#btn-sound use').setAttribute('href', this.store.sound ? '#i-sound' : '#i-mute');
     $('#btn-lang').textContent = i18n.lang.toUpperCase();
   }
@@ -149,10 +209,16 @@ class App {
       save();
       this.refreshMenu();
     });
-    $('#missions').addEventListener('click', (e) => {
+    const pick = (e) => {
       const b = e.target.closest('button');
-      if (b) this.startMission(MISSIONS.find((m) => m.id === b.dataset.mission));
-    });
+      if (!b) return;
+      const mission = MISSIONS.find((m) => m.id === b.dataset.mission);
+      if (mission && this.unlocked(mission)) this.openMission(mission);
+    };
+    $('#missions').addEventListener('click', pick);
+    $('#skirmish').addEventListener('click', pick);
+    $('#btn-start').addEventListener('click', () => this.pending && this.startMission(this.pending));
+    $('#btn-back').addEventListener('click', () => this.setMode('menu'));
     $('#btn-sound').addEventListener('click', () => {
       this.store.sound = this.sfx.enabled = !this.store.sound;
       save();
@@ -171,15 +237,19 @@ class App {
       else document.documentElement.requestFullscreen?.().catch(() => {});
     });
 
+    const again = () => this.startMission(this.mission, this.mission.random ? this.seed : undefined);
     $('#btn-pause').addEventListener('click', () => this.mode === 'play' && this.setMode('pause'));
     $('#btn-resume').addEventListener('click', () => this.setMode('play'));
-    $('#btn-restart').addEventListener('click', () => this.startMission(this.mission, this.mission.random ? this.seed : undefined));
+    $('#btn-restart').addEventListener('click', again);
     $('#btn-quit').addEventListener('click', () => this.startAttract());
-    $('#btn-retry').addEventListener('click', () => this.startMission(this.mission, this.mission.random ? this.seed : undefined));
+    $('#btn-retry').addEventListener('click', again);
     $('#btn-menu').addEventListener('click', () => this.startAttract());
     $('#btn-next').addEventListener('click', () => {
-      const next = MISSIONS[MISSIONS.indexOf(this.mission) + 1];
-      this.startMission(next || this.mission);
+      const next = CAMPAIGN[CAMPAIGN.indexOf(this.mission) + 1];
+      if (!next) return;
+      // The briefing of the next mission appears over the menu match.
+      this.startAttract();
+      this.openMission(next);
     });
 
     $('#btn-send').addEventListener('click', () => {
@@ -207,8 +277,10 @@ class App {
       if (document.hidden && this.mode === 'play') this.setMode('pause');
     });
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') this.select(-1);
-      else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause')) {
+      if (e.key === 'Escape') {
+        this.ui.assault = null;
+        this.select(-1);
+      } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause')) {
         e.preventDefault();
         this.setMode(this.mode === 'play' ? 'pause' : 'play');
       } else if (e.key === '1' || e.key === '2') {
@@ -225,7 +297,7 @@ class App {
     const dpr = window.devicePixelRatio || 1;
     this.renderer.resize(w, h, dpr);
     this.overlay.resize(w, h, dpr);
-    const playing = this.mode !== 'menu';
+    const playing = this.el.dataset.mode === 'play';
     this.renderer.setInsets(playing ? $('#top').offsetHeight - 6 : 0, playing ? $('#bottom').offsetHeight - 12 : 0);
   }
 
@@ -253,6 +325,13 @@ class App {
     this.select(-1);
   }
 
+  /** Combined attack: every own field next to the target sends at once. */
+  assault(target) {
+    if (!this.canCommand() || target < 0) return;
+    this.select(-1);
+    this.game.assault(this.ui.human, target, this.ui.sendFraction);
+  }
+
   // ------------------------------------------------------------------ frame
 
   frame(ms) {
@@ -264,7 +343,7 @@ class App {
     try {
       // The renderer must know the current match before any of its events arrive.
       if (this.renderer.game !== game) this.renderer.setGame(game);
-      if (this.mode === 'play' || this.mode === 'menu') game.step(dt);
+      if (this.mode === 'play' || this.mode === 'menu' || this.mode === 'brief') game.step(dt);
       for (const e of game.drainEvents()) this.onEvent(e, now);
 
       const ui = this.ui;
@@ -274,6 +353,11 @@ class App {
           this.targetsAt = now;
           ui.targets = game.reachable(ui.human, ui.selected);
         }
+      }
+      if (ui.assault) {
+        // The preview follows the board: neighbours may have been lost or the field taken meanwhile.
+        const sources = this.canCommand() ? game.flankers(ui.human, ui.assault.target) : [];
+        ui.assault = sources.length ? { target: ui.assault.target, sources } : null;
       }
       if (this.tutorial) this.runTutorial(now);
 
@@ -292,7 +376,7 @@ class App {
     const human = this.ui.human;
     this.renderer.onEvent(e, game, now);
     const name = (id) => `<span style="color:${PALETTE_HEX[game.factions[id].color]}">${game.factions[id].name}</span>`;
-    const quiet = this.mode === 'menu' ? 0 : 1;
+    const quiet = this.mode === 'play' ? 1 : 0;
 
     // In the menu match there is no human (-1); neutral fields are -1 as well, so compare with care.
     const mine = (id) => human >= 0 && id === human;
@@ -301,6 +385,17 @@ class App {
       case 'send':
         if (mine(e.owner)) this.sfx.play('send');
         break;
+      case 'siege':
+        if (mine(e.owner)) this.sfx.play('repel', 0.5);
+        else if (mine(e.defender)) {
+          this.sfx.play('repel', 0.8);
+          if (e.tile === game.factions[human].castle && now - this.alarmAt > 7) {
+            this.alarmAt = now;
+            this.sfx.play('alarm');
+            this.banner(i18n.t('alarm'), '#ff8d7f', 2200);
+          }
+        }
+        break;
       case 'capture':
         if (mine(e.owner)) this.sfx.play('capture');
         else if (mine(e.previous)) this.sfx.play('lost');
@@ -308,12 +403,7 @@ class App {
         if (e.citadel) this.banner(i18n.t('citadel', { name: name(e.owner) }), null, 2200);
         break;
       case 'repel':
-        if (mine(e.owner) || mine(e.defender)) this.sfx.play('repel', 0.8);
-        if (mine(e.defender) && e.tile === game.factions[human].castle && now - this.alarmAt > 7) {
-          this.alarmAt = now;
-          this.sfx.play('alarm');
-          this.banner(i18n.t('alarm'), '#ff8d7f', 2200);
-        }
+        if (mine(e.owner)) this.sfx.play('lost', 0.6);
         break;
       case 'build':
         if (mine(e.owner)) this.sfx.play('build');
@@ -334,6 +424,7 @@ class App {
         } else this.later(6000, () => this.mode === 'menu' && this.startAttract());
         break;
       case 'defeat':
+        this.banner(i18n.t('wins', { name: name(e.by) }), null, 4000);
         this.later(500, () => this.sfx.play('defeat'));
         this.later(2400, () => this.showResult(false));
         break;
@@ -358,10 +449,46 @@ class App {
     el.classList.toggle('show', Boolean(text));
   }
 
+  /** The mission goal with its progress, always visible under the share bar. */
+  updateGoal() {
+    const game = this.game;
+    const text = $('#goal-text');
+    const bar = $('#goal-bar');
+    if (game.objective.type !== 'hold') {
+      const left = game.factions.filter((f) => f.alive && f.id !== this.ui.human).length;
+      text.textContent = i18n.t('goalConquer', { n: left });
+      text.style.color = '';
+      bar.hidden = true;
+      return;
+    }
+    const hold = game.hold;
+    const s = game.objective.seconds;
+    bar.hidden = false;
+    if (hold.owner < 0) {
+      text.textContent = i18n.t('goalFree', { s });
+      text.style.color = '';
+      bar.firstElementChild.style.width = '0%';
+      return;
+    }
+    const f = game.factions[hold.owner];
+    const vars = { name: f.name, t: Math.floor(hold.time), s };
+    text.textContent = i18n.t(hold.secure ? 'goalRun' : 'goalStop', vars);
+    text.style.color = PALETTE_HEX[f.color];
+    bar.classList.toggle('paused', !hold.secure);
+    bar.firstElementChild.style.width = `${Math.min(100, (hold.time / s) * 100)}%`;
+    bar.firstElementChild.style.background = PALETTE_HEX[f.color];
+    // A rival running down the clock is the most urgent thing on the board.
+    if (hold.secure && hold.owner !== this.ui.human && hold.time > s * 0.5 && this.last - this.holdWarnAt > 12) {
+      this.holdWarnAt = this.last;
+      this.sfx.play('alarm');
+      this.banner(i18n.t('holdWarn', { name: `<span style="color:${PALETTE_HEX[f.color]}">${f.name}</span>` }), '#ff8d7f', 2600);
+    }
+  }
+
   updateHud(force) {
     const game = this.game;
     this.hudAt = this.last;
-    if (this.mode === 'menu') return;
+    if (this.el.dataset.mode !== 'play') return;
     const stats = game.stats();
     const human = this.ui.human;
 
@@ -371,6 +498,7 @@ class App {
     $('#share-legend').innerHTML = stats.factions
       .map((f) => `<span class="${f.alive ? '' : 'out'}${f.id === human ? ' you' : ''}" style="color:${PALETTE_HEX[f.color]}">${f.name} ${f.tiles}</span>`)
       .join('');
+    this.updateGoal();
 
     if (!force && this.ui.selected < 0) return;
     $('#send-value').textContent = this.ui.sendFraction >= 1 ? '100 %' : '50 %';
@@ -389,13 +517,14 @@ class App {
   }
 
   showResult(won) {
-    if (this.mode === 'menu') return;
+    if (this.mode === 'menu' || this.mode === 'brief') return;
     const game = this.game;
     const m = this.mission;
     const stats = game.humanStats;
-    const goals = [won, won && game.time <= m.par, won && stats.lost <= 3];
+    const goals = [won, won && game.time <= m.par, won && stats.lost <= (m.loseLimit ?? 3)];
     const got = goals.filter(Boolean).length;
     if (won && !m.random) {
+      this.store.done[m.id] = true;
       this.store.stars[m.id] = Math.max(this.store.stars[m.id] || 0, got);
       this.store.best[m.id] = Math.min(this.store.best[m.id] || Infinity, Math.round(game.time));
       saveStore(this.store);
@@ -403,11 +532,12 @@ class App {
     const title = $('#result-title');
     title.textContent = i18n.t(won ? 'victory' : 'defeat');
     title.className = `sheet-title big ${won ? 'win' : 'loss'}`;
-    $('#result-sub').textContent = i18n.t(won ? 'victorySub' : 'defeatSub');
-    const labels = [i18n.t('goalWin'), i18n.t('goalTime', { t: clock(m.par) }), i18n.t('goalHold')];
+    const byHold = game.reason === 'hold';
+    $('#result-sub').textContent = won ? i18n.t(byHold ? 'victoryHold' : 'victorySub') : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: game.factions[game.winner]?.name ?? '' });
+    const labels = this.goalLabels(m);
     $('#result-stars').innerHTML = goals.map((g, i) => `<div class="${g ? 'got' : ''}">${star}<span>${labels[i]}</span></div>`).join('');
     $('#result-stats').innerHTML = `<div><b>${clock(game.time)}</b>${i18n.t('time')}</div><div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;
-    const hasNext = won && !m.random && MISSIONS.indexOf(m) < MISSIONS.length - 1;
+    const hasNext = won && CAMPAIGN.indexOf(m) >= 0 && CAMPAIGN.indexOf(m) < CAMPAIGN.length - 1;
     $('#btn-next').hidden = !hasNext;
     $('#btn-retry').classList.toggle('primary', !hasNext);
     this.setHint('');
@@ -416,7 +546,8 @@ class App {
 
   // --------------------------------------------------------------- tutorial
 
-  runTutorial(now) {
+  /** Mission 1 teaches one thing after the other; a step also moves on by itself after a while. */
+  runTutorial() {
     const game = this.game;
     const tut = this.tutorial;
     const ui = this.ui;
@@ -429,24 +560,31 @@ class App {
       tut.at = game.time;
       this.setHint(i18n.t(`hint${step}`));
     };
+    const waited = game.time - tut.at;
+    const stats = game.humanStats;
     if (tut.step === 0) {
-      if (game.humanStats.sent > 0) advance(1);
+      if (stats.sent > 0) advance(1);
       else if (!ui.tutorialPath && !ui.dragging && ui.selected < 0) {
-        // Show the gesture: from the castle through own land to a free field.
+        // Show the gesture: from the castle through own land to a free field the attack can take.
         const castle = game.factions[0].castle;
+        const amount = game.sendAmount(castle, ui.sendFraction);
         for (const id of game.reachable(0, castle)) {
-          if (game.tiles[id].owner < 0) {
-            ui.tutorialPath = game.findPath(0, castle, id);
+          if (game.tiles[id].owner >= 0) continue;
+          const path = game.findPath(0, castle, id);
+          const fc = game.forecast(id, [{ owner: 0, from: path[path.length - 2], units: amount }]);
+          if (!fc.holds) {
+            ui.tutorialPath = path;
             break;
           }
         }
       } else if (ui.dragging || ui.selected >= 0) ui.tutorialPath = null;
-    } else {
-      ui.tutorialPath = null;
-      const tiles = game.stats().factions[0].tiles;
-      if (tut.step === 1 && (tiles >= 12 || game.time - tut.at > 30)) advance(2);
-      else if (tut.step === 2 && (game.humanStats.built > 0 || game.time - tut.at > 25)) advance(3);
+      return;
     }
+    ui.tutorialPath = null;
+    const tiles = game.stats().factions[0].tiles;
+    if (tut.step === 1 && (tiles >= 12 || waited > 40)) advance(2);
+    else if (tut.step === 2 && (stats.flanked > 0 || waited > 70)) advance(3);
+    else if (tut.step === 3 && (stats.built > 0 || waited > 30)) advance(4);
   }
 
   fatal(err) {
@@ -465,4 +603,3 @@ try {
   el.hidden = false;
   el.textContent = /WebGL2/.test(String(err)) ? i18n.t('noWebgl') : String(err && err.message ? err.message : err);
 }
-

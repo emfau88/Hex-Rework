@@ -13,7 +13,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
-const HEX0 = Math.PI / 6;
+const HEX = Math.PI / 6;
 
 const VS_PLACE = `#version 300 es
 precision highp float;
@@ -274,6 +274,8 @@ export class DioramaRenderer {
     this.game = game;
     this.effects = [];
     this.shake = 0;
+    // Hand-built maps are turned by a quarter on tall screens; the hexes turn with them.
+    this.hex0 = HEX + (game.map.rot || 0);
     const n = game.tiles.length;
     this.anim = game.tiles.map((t) => {
       const c = this._targetColor(game, t);
@@ -293,13 +295,14 @@ export class DioramaRenderer {
 
   _buildStatic(game) {
     const m = new Mesh();
+    const rot = game.map.rot || 0;
     models.table(m, game.map);
     for (const t of game.tiles) {
       m.tile = t.id;
-      models.tileBase(m, t, game.seed);
-      if (t.castle >= 0) models.castle(m, t);
-      else if (t.ruin) models.ruin(m, t);
-      else if (t.terrain === 'citadel') models.citadel(m, t);
+      models.tileBase(m, t, game.seed, rot);
+      if (t.castle >= 0) models.castle(m, t, rot);
+      else if (t.ruin) models.ruin(m, t, rot);
+      else if (t.terrain === 'citadel') models.citadel(m, t, rot);
       else {
         if (t.building === 'tower') models.tower(m, t);
         else if (t.building === 'farm') models.farm(m, t);
@@ -318,6 +321,7 @@ export class DioramaRenderer {
   _envelopePoints() {
     if (this._envelope) return this._envelope;
     const pts = [];
+    const HEX0 = this.hex0;
     for (const t of this.game.tiles) {
       for (let i = 0; i < 6; i++) {
         const a = HEX0 + (i * Math.PI) / 3;
@@ -398,6 +402,7 @@ export class DioramaRenderer {
 
   /** Field under a canvas position, or -1. */
   pick(px, py) {
+    const HEX0 = this.hex0;
     let best = -1;
     let bd = Infinity;
     for (const t of this.game.tiles) {
@@ -435,6 +440,27 @@ export class DioramaRenderer {
     };
   }
 
+  /**
+   * Attackers line up at the edge they came through, just outside the field they besiege.
+   * Returns the spot, the direction they face and the sideways axis of the line.
+   */
+  poolPosition(game, tile, pool) {
+    const S = game.tiles[pool.from];
+    let dx = tile.x - S.x;
+    let dz = tile.z - S.z;
+    const len = Math.hypot(dx, dz) || 1;
+    dx /= len;
+    dz /= len;
+    return {
+      x: (S.x + tile.x) / 2 - dx * 0.2,
+      y: S.height + this.lift(S.id),
+      z: (S.z + tile.z) / 2 - dz * 0.2,
+      dx,
+      dz,
+      angle: Math.atan2(dx, dz),
+    };
+  }
+
   // ----------------------------------------------------------------- events
 
   onEvent(e, game, time) {
@@ -446,6 +472,8 @@ export class DioramaRenderer {
     } else if (e.type === 'repel') {
       this.effects.push({ tile: e.tile, color: colorOf(e.owner), at: time, life: 0.55, sparks: 5, size: 0.6 });
       this.anim[e.tile].vel -= 0.7;
+    } else if (e.type === 'siege') {
+      this.anim[e.tile].vel -= 0.5;
     } else if (e.type === 'build') {
       this.effects.push({ tile: e.tile, color: lin('#f4d989'), at: time, life: 0.9, sparks: 6, size: 0.8 });
       this.anim[e.tile].vel += 1.1;
@@ -523,6 +551,7 @@ export class DioramaRenderer {
     const m = new Mesh();
     const g = new Mesh();
     const tiles = game.tiles;
+    const HEX0 = this.hex0;
 
     for (const t of tiles) {
       const a = this.anim[t.id];
@@ -582,6 +611,30 @@ export class DioramaRenderer {
       }
     }
 
+    // Battles: steel flashes at every edge where attackers stand, and the field itself flickers.
+    for (const t of tiles) {
+      if (!t.pools.length) continue;
+      const y = t.height + this.anim[t.id].lift;
+      for (const p of t.pools) {
+        const pos = this.poolPosition(game, t, p);
+        const c = PALETTE[game.factions[p.owner].color];
+        const ex = pos.x + pos.dx * 0.32;
+        const ez = pos.z + pos.dz * 0.32;
+        for (let i = 0; i < 3; i++) {
+          const k = (time * 2.6 + i / 3 + p.from * 0.37) % 1;
+          const side = (hash(p.from * 7 + i + Math.floor(time * 2.6 + i / 3)) - 0.5) * 0.5;
+          const sx = ex - pos.dz * side;
+          const sz = ez + pos.dx * side;
+          m.cyl(sx, Math.max(y, pos.y) + 0.22 + Math.sin(k * Math.PI) * 0.3, sz, 0.03 * (1 - k), 0, 0.07, 4, lin('#fff0b8'), 1.6);
+        }
+        const A = [ex - pos.dz * 0.42, Math.max(y, pos.y) + 0.035, ez + pos.dx * 0.42];
+        const B = [ex + pos.dz * 0.42, Math.max(y, pos.y) + 0.035, ez - pos.dx * 0.42];
+        m.beam(A, B, 0.07, scale3(c, 1.5), 1.2);
+        g.beam(A, B, 0.3, c, 0);
+      }
+      g.ring(t.x, y + 0.05, t.z, 0.78, 0.06 + 0.03 * Math.sin(time * 9 + t.id), lin('#ff8d7f'), 0, 18);
+    }
+
     // Capture rings and sparks.
     this.effects = this.effects.filter((e) => time - e.at < e.life);
     for (const e of this.effects) {
@@ -633,6 +686,21 @@ export class DioramaRenderer {
       for (let i = 0; i < spots.length; i++) {
         const wobble = hash(t.id * 5 + i);
         put(t.x + spots[i][0], t.height + a.lift + 0.012, t.z + spots[i][1], (wobble - 0.5) * 0.7, c, 1.0);
+      }
+    }
+
+    // Besiegers: a short line at the edge, pushing against the field.
+    for (const t of game.tiles) {
+      for (const p of t.pools) {
+        const pos = this.poolPosition(game, t, p);
+        const c = scale3(PALETTE[game.factions[p.owner].color], 1.15);
+        const count = Math.max(1, Math.min(4, Math.ceil(p.units / 6)));
+        for (let i = 0; i < count; i++) {
+          const lane = (i - (count - 1) / 2) * 0.2;
+          const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
+          const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
+          put(pos.x - pos.dz * lane + pos.dx * push, pos.y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, 1.08);
+        }
       }
     }
 

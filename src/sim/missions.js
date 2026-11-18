@@ -54,16 +54,17 @@ export const CAMPAIGN = [
     par: 360,
     seed: 23,
     aiDelay: 4,
-    ai: { rushAfter: 180 },
+    // EMBER starts ahead and sits behind the passes, so it grows a little slower and storms late.
+    ai: { rushAfter: 210, incomeMul: 0.85 },
     // The passes favour the defender, so the storm comes early here and forces a decision.
     rules: { stormStart: 300 },
     layout: [
       'm  m  .  .  f  .  .  .  f  .  .  m  m',
       '  m  .  .  f  .  h  h+:14 .  f  .  .  m',
       'w  .  .  .0 .  f  .  .  .  .  .  .  w',
-      '  .  .  .0 .  h  m  m  h  .  .  .  .',
-      '.  K0 .  .0 .0 f  m  f  .  .1:4 .  K1 .',
-      '  .  .  .0 .  h  m  m  h  .1:4 .  .  .',
+      '  .  .  .0* .  h  m  m  h  .  .  .  .',
+      '.  K0 .  .0 .0+ f  m  f  .  .1:4 .  K1 .',
+      '  .  .  .0* .  h  m  m  h  .1:4 .  .  .',
       'w  .  .  .0 .  f  .  .  .1:4 .  .  .  w',
       '  m  .  .  f  h1+:20 .1:8 .1:4 .1:4 f  .  .  m',
       'm  m  .  .  f  .  .  .  f  .  .  m  m',

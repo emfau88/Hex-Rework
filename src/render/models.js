@@ -28,10 +28,11 @@ const DOOR = lin('#2d5262');
 const WOOD = lin('#8b6b45');
 const GOLD = lin('#d9b566');
 const GREENS = ['#456f3e', '#4c803e', '#5a9145', '#3f743b'].map(lin);
-const HEX0 = Math.PI / 6;
+const HEX = Math.PI / 6;
 
 /** The field itself: cliff, bevel and top. Top and bevel take the field's colour through `tint`. */
-export function tileBase(m, t, seed) {
+export function tileBase(m, t, seed, rot = 0) {
+  const HEX0 = HEX + rot;
   const { x, z, height: h } = t;
   const bottom = -0.88 - hash(t.id * 3 + seed) * 0.22;
   const water = t.terrain === 'water';
@@ -85,11 +86,11 @@ export function rock(m, x, y, z, s, seed, snow = false) {
 }
 
 /** Castle with keep, four corner towers and battlements. Roofs carry the kingdom colour. */
-export function castle(m, t) {
+export function castle(m, t, rot = 0) {
   const x = t.x;
   const z = t.z;
   const y = t.height + 0.02;
-  m.cyl(x, y, z, 0.69, 0.64, 0.11, 6, STONE_DARK, 0, HEX0);
+  m.cyl(x, y, z, 0.69, 0.64, 0.11, 6, STONE_DARK, 0, HEX + rot);
   m.box(x, y + 0.1, z, 1.02, 0.12, 0.94, STONE_MID);
   m.box(x, y + 0.22, z, 0.72, 0.53, 0.64, STONE_MID);
   m.box(x, y + 0.75, z, 0.83, 0.1, 0.75, STONE);
@@ -118,11 +119,11 @@ export function castle(m, t) {
   m.cyl(x - 0.06, y + 1.84, z - 0.06, 0.044, 0, 0.09, 6, BLACK, 0.45, 0, true, 1.6);
 }
 
-export function ruin(m, t) {
+export function ruin(m, t, rot = 0) {
   const x = t.x;
   const z = t.z;
   const y = t.height + 0.01;
-  m.cyl(x, y, z, 0.69, 0.64, 0.11, 6, STONE_DARK, 0, HEX0);
+  m.cyl(x, y, z, 0.69, 0.64, 0.11, 6, STONE_DARK, 0, HEX + rot);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) m.box(x + sx * 0.44, y + 0.11, z + sz * 0.39, 0.3, 0.16 + (sx === sz ? 0.17 : 0), 0.3, scale3(STONE_MID, 0.74));
   for (let i = 0; i < 7; i++) {
     const a = i * 2.399;
@@ -132,7 +133,8 @@ export function ruin(m, t) {
 }
 
 /** Central citadel: high income, golden crown, glowing core in the owner's colour. */
-export function citadel(m, t) {
+export function citadel(m, t, rot = 0) {
+  const HEX0 = HEX + rot;
   const x = t.x;
   const z = t.z;
   const y = t.height + 0.02;

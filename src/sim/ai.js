@@ -191,11 +191,15 @@ export function aiThink(game, f) {
     plans.push({ o, extra, score });
   }
 
+  // A kingdom gives orders at a pace a person could keep up with: at most one grab of free land
+  // per decision; a second order, where the strength allows one, must be aimed at a rival.
   plans.sort((a, b) => b.score - a.score);
   const used = new Set();
   let actions = 0;
+  let land = 0;
   for (const plan of plans) {
     if (actions >= P.actions) break;
+    if (plan.o.owner < 0 && land++ > 0) continue;
     if (plan.extra.some((x) => used.has(x.origin))) continue;
     for (const x of plan.extra) {
       used.add(x.origin);

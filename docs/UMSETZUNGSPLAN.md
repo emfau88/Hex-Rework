@@ -1,5 +1,8 @@
 # Umsetzungsplan · HexWars im Diorama-Look
 
+> Hinweis vom 18.11.2026: Dieser Plan beschreibt den Prototyp 0.1. Regeln, Missionen und die nächsten
+> Schritte stehen seitdem in [REWORK-PLAN.md](REWORK-PLAN.md).
+
 Arbeitstitel **One Crown** · Stand 17.11.2026 · Prototyp 0.1
 
 ## 1 · Kurzfassung
