@@ -54,7 +54,7 @@ class App {
 
     this.buildMenu();
     this.bind();
-    attachInput($('#overlay'), this);
+    this.input = attachInput($('#overlay'), this);
     this.applyLanguage();
     this.resize();
     this.startAttract();
@@ -65,6 +65,7 @@ class App {
 
   setMode(mode) {
     this.mode = mode;
+    this.input?.disarm(); // a combined attack armed before a pause or a new match is void
     const behindSheet = mode === 'menu' || mode === 'brief';
     this.el.dataset.mode = behindSheet ? 'menu' : 'play';
     $('#menu').hidden = mode !== 'menu';
@@ -257,12 +258,14 @@ class App {
     });
 
     $('#btn-send').addEventListener('click', () => {
+      this.input.disarm(); // the armed attack was previewed with the old share
       this.ui.sendFraction = this.store.sendFraction = this.ui.sendFraction >= 1 ? 0.5 : 1;
       save();
       this.sfx.play('select');
       this.updateHud(true);
     });
     $('#btn-supply').addEventListener('click', () => {
+      this.input.disarm();
       this.store.supply = !this.store.supply;
       save();
       if (this.game && this.ui.human >= 0) this.game.factions[this.ui.human].autoSupply = this.store.supply;
@@ -271,6 +274,7 @@ class App {
     });
     for (const type of ['tower', 'farm']) {
       $(`#btn-${type}`).addEventListener('click', () => {
+        this.input.disarm();
         if (!this.canCommand() || this.ui.selected < 0) return;
         if (this.game.build(this.ui.human, this.ui.selected, type)) this.updateHud(true);
       });
@@ -282,12 +286,13 @@ class App {
     });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        this.ui.assault = null;
-        this.select(-1);
+        // Drops the selection, the preview and a combined attack that was armed by a first tap.
+        this.input.cancel();
       } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause')) {
         e.preventDefault();
         this.setMode(this.mode === 'play' ? 'pause' : 'play');
       } else if (e.key === '1' || e.key === '2') {
+        this.input.disarm();
         this.ui.sendFraction = this.store.sendFraction = e.key === '1' ? 0.5 : 1;
         save();
         this.updateHud(true);

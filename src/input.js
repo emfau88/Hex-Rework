@@ -4,13 +4,37 @@
 //   Combined attack: tap a foreign field twice. Every own field next to it attacks at once.
 //                    The first tap (or hovering with the mouse) shows what the attack would achieve.
 //   Cancel:          tap the selected field again, tap empty ground, Esc or the right mouse button.
+//
+// The first tap on a foreign field arms the combined attack; only a second tap on the same field
+// sends it. Whatever happens in between disarms it again: a cancel, another action, the preview
+// disappearing or moving to another field. A single tap must never send troops.
 
 const DRAG_START = 10; // pixels before a press counts as a drag
 const DOUBLE_TAP = 2500; // ms the preview of a combined attack stays armed for the second tap
 
-export function attachInput(el, app) {
+/**
+ * @param {EventTarget} el   the element that receives the pointer events
+ * @param {object} app       the app shell (ui state, game, renderer, select/order/assault)
+ * @param {() => number} [clock]  milliseconds; replaceable for tests
+ * @returns {{ cancel: () => void, disarm: () => void }}
+ *   cancel  drops selection, preview and the armed attack (Esc, right mouse button)
+ *   disarm  only takes back the armed attack; call it for every other action of the player
+ */
+export function attachInput(el, app, clock = () => performance.now()) {
   let down = null;
   let armed = { id: -1, at: 0 };
+
+  const disarm = () => {
+    armed = { id: -1, at: 0 };
+  };
+
+  const cancel = () => {
+    disarm();
+    down = null;
+    app.ui.dragging = false;
+    app.ui.assault = null;
+    app.select(-1);
+  };
 
   const position = (e) => {
     const r = el.getBoundingClientRect();
@@ -32,9 +56,12 @@ export function attachInput(el, app) {
     if (ui.selected < 0 || !ui.targets) {
       // Nothing selected: over a foreign field, preview the combined attack of all neighbours.
       ui.assault = assaultAt(id);
+      // The armed attack lives only as long as its own preview is the one on screen.
+      if (!ui.assault || ui.assault.target !== armed.id) disarm();
       return;
     }
     ui.assault = null;
+    disarm();
     if (id >= 0 && id !== ui.selected && ui.targets.has(id)) {
       ui.hover = id;
       ui.dragPath = app.game.findPath(ui.human, ui.selected, id);
@@ -44,10 +71,8 @@ export function attachInput(el, app) {
   el.addEventListener('pointerdown', (e) => {
     if (!app.canCommand()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) {
-      if (e.button === 2) {
-        app.ui.assault = null;
-        app.select(-1);
-      }
+      if (e.button === 2) cancel();
+      else disarm();
       return;
     }
     e.preventDefault();
@@ -64,6 +89,8 @@ export function attachInput(el, app) {
     } catch {
       /* capture is a convenience only */
     }
+    // Only a press on a foreign field can be the second tap; everything else is another action.
+    if (!down.foreign) disarm();
     if (order) return; // decided on release: a tap orders, a drag starts a new order from here
     if (own) {
       ui.assault = null;
@@ -84,6 +111,7 @@ export function attachInput(el, app) {
     ui.pointer = p;
     if (!down.moved && Math.hypot(p.x - down.p.x, p.y - down.p.y) > DRAG_START) {
       down.moved = true;
+      disarm(); // a drag is not a tap
       if (down.order && down.own) {
         down.order = false;
         app.select(down.id);
@@ -99,9 +127,7 @@ export function attachInput(el, app) {
     const d = down;
     down = null;
     if (cancelled || !app.canCommand()) {
-      ui.dragging = false;
-      ui.assault = null;
-      app.select(-1);
+      cancel();
       return;
     }
     if (d.order) {
@@ -115,19 +141,23 @@ export function attachInput(el, app) {
         app.select(-1);
       }
     } else if (d.foreign && !d.moved) {
-      // First tap arms the combined attack and shows its forecast, the second one sends it.
-      const now = performance.now();
+      // First tap arms the combined attack and shows its forecast, the second one sends it,
+      // provided that very preview is still on screen and nothing has disarmed it since.
+      const now = clock();
       const plan = assaultAt(d.id);
-      if (plan && armed.id === d.id && now - armed.at < DOUBLE_TAP) {
-        app.assault(d.id);
-        armed = { id: -1, at: 0 };
+      const shown = ui.assault && ui.assault.target === d.id;
+      if (plan && shown && armed.id === d.id && now - armed.at < DOUBLE_TAP) {
+        disarm();
         ui.assault = null;
+        app.assault(d.id);
       } else {
         armed = plan ? { id: d.id, at: now } : { id: -1, at: 0 };
         ui.assault = plan;
       }
-    } else if (!d.own) {
-      ui.assault = null;
+    } else {
+      // Empty ground, or a drag that started on a foreign field.
+      disarm();
+      if (!d.own) ui.assault = null;
     }
     ui.dragging = false;
     ui.hover = -1;
@@ -136,8 +166,14 @@ export function attachInput(el, app) {
 
   el.addEventListener('pointerup', (e) => release(e, false));
   el.addEventListener('pointercancel', (e) => release(e, true));
-  el.addEventListener('pointerleave', () => {
-    if (!down) app.ui.assault = null;
+  el.addEventListener('pointerleave', (e) => {
+    // Only a mouse can leave the board without lifting. A finger "leaves" every time it is lifted,
+    // and that must neither hide the preview of the first tap nor take back the armed attack.
+    if (down || !e || e.pointerType !== 'mouse') return;
+    app.ui.assault = null;
+    disarm();
   });
   el.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  return { cancel, disarm };
 }
