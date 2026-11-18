@@ -1,11 +1,18 @@
-# HexWars Diorama · „One Crown“ · Stand 0.3
+# One Crown · HexWars Diorama
+
+## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
+
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.3 vom 18.11.2026.
+
+[![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
 Echtzeit-Strategie auf einer plastischen Hex-Insel. Nachfolger von HEXFRONT mit neuen Regeln: Stapeln reicht
 nicht mehr, es zählt die Form der Front.
 
-**Plan, Messwerte und bekannte Schwächen stehen in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md).**
+- **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
+- **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
-## Starten
+## Lokal starten
 
 | Wo | Wie |
 |---|---|
@@ -13,6 +20,7 @@ nicht mehr, es zählt die Form der Front.
 | Handy | `start-handy.bat` doppelklicken. Im Fenster steht eine Adresse wie `http://192.168.x.x:4180/`. Diese im Handy-Browser öffnen (gleiches WLAN). |
 
 Voraussetzung ist Node.js ab Version 20. Es wird nichts installiert und nichts heruntergeladen.
+Zum Spielen über den Link oben braucht es das alles nicht.
 
 ## Die Regeln in vier Sätzen
 
