@@ -495,10 +495,7 @@ export class Game {
     for (const t of tiles) {
       if (t.owner < 0) continue;
       t.units = this._drift(t.units, t.supplied, this.cap(t), t.supplied ? this.income(t) : 0);
-      if (!t.order) continue;
-      // A field without a link to its castle cannot save up, so its order lapses.
-      if (!t.supplied) this._dropOrder(t);
-      else if (t.units >= t.orderCost + 1) this._complete(t);
+      if (t.order && t.units >= t.orderCost + 1) this._complete(t);
     }
 
     // Marching.
@@ -701,6 +698,8 @@ export class Game {
         }
       }
     }
+    // A field without a link to its castle cannot save up, so its order lapses on the spot.
+    for (const t of tiles) if (t.order && !t.supplied) this._dropOrder(t);
   }
 
   /**

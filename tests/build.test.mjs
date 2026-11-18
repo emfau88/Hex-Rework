@@ -105,8 +105,8 @@ test('a field that is cut off cannot save up: its order lapses', () => {
   game.tiles[game.factions[0].castle].owner = 1;
   game._supply();
   assert.equal(field.supplied, false);
+  assert.equal(field.order ?? null, null, 'the order is gone the moment the link is lost');
   run(game, 1);
-  assert.equal(field.order ?? null, null);
   assert.equal(game.build(0, field.id, 'tower'), false, 'and no new order is noted while it is cut off');
 });
 
@@ -132,8 +132,8 @@ test('computer kingdoms never hold an order they cannot pay for, and no field st
       for (const seed of [1000, 1017, 1034]) {
         const game = new Game({ mission, seed, difficulty, human: -1, wide: true });
         const since = new Map(); // field -> second its order was first seen
-        while (game.phase === 'running' && game.time < 360) {
-          game.step(0.5);
+        while (game.phase === 'running' && game.time < 480) {
+          game.step(0.1); // looked at after every single step of the rules
           for (const e of game.drainEvents()) if (e.type === 'build') built++;
           for (const t of game.tiles) {
             if (!t.order) {
