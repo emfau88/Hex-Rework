@@ -42,7 +42,7 @@ function play(game, think, every = 1) {
   return game;
 }
 
-for (const mission of MISSIONS.filter((m) => !m.random && (!only || m.id === only))) {
+for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === only))) {
   const sample = new Game({ mission, seed: mission.seed ?? 1, human: -1, wide });
   const playable = sample.tiles.filter((t) => t.passable).length;
   const goal = sample.objective.type === 'hold' ? `Zitadelle ${sample.objective.seconds} s halten` : 'Burgen erobern';

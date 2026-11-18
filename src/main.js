@@ -140,7 +140,7 @@ class App {
     this.ui.tutorialPath = null;
     this.ui.tutorialMark = null;
     // The guided first steps run until the mission has been won once.
-    this.tutorial = mission.tutorial && !this.store.done[mission.id] ? this.prepareTutorial() : null;
+    this.tutorial = mission.guide && !this.store.done[mission.id] ? this.prepareTutorial(mission.guide) : null;
     this.setMode('play');
     this.updateHud(true);
     if (this.tutorial) this.setHint('');
@@ -562,24 +562,37 @@ class App {
   // --------------------------------------------------------------- tutorial
 
   /**
-   * Mission 1, first playthrough: four short steps, one sentence each.
-   *   1 send troops   2 spread out   3 attack from several sides   4 take the castle
-   * Until step 4 the rival keeps the peace, so nothing disturbs the lesson.
+   * Guided steps on the first playthrough of a mission: one short sentence at a time, with the field
+   * it is about marked on the board.
+   *   basics   (mission 1)  send troops · spread out · attack from several sides · take the castle
+   *   cutoff   (mission 2)  cut the outpost off · take it once it has withered · on to the castle
+   *   citadel  (mission 3)  reach the citadel · take it from several sides · close the ring
    */
-  prepareTutorial() {
+  prepareTutorial(kind) {
     const game = this.game;
-    // Practice target for step 3: a free hill fort that touches at least two of the player's fields.
-    let fort = -1;
-    for (const t of game.tiles) {
-      if (t.owner >= 0 || t.terrain !== 'hill') continue;
-      if (game.flankers(0, t.id).length >= 2 && (fort < 0 || t.units < game.tiles[fort].units)) fort = t.id;
-    }
-    game.truce = true;
-    game.reserved = fort >= 0 ? new Set([fort]) : null;
-    return { step: 0, text: null, fort, target: null, flashUntil: 0, until: 0 };
+    const tut = { kind, step: 0, steps: kind === 'basics' ? 4 : 3, text: null, target: null, flashUntil: 0, until: 0 };
+    if (kind === 'basics') {
+      // Practice target for step 3: a free hill fort that touches at least two of the player's fields.
+      // Until the last step the rival keeps the peace, so nothing disturbs the lesson.
+      tut.fort = -1;
+      for (const t of game.tiles) {
+        if (t.owner >= 0 || t.terrain !== 'hill') continue;
+        if (game.flankers(0, t.id).length >= 2 && (tut.fort < 0 || t.units < game.tiles[tut.fort].units)) tut.fort = t.id;
+      }
+      game.truce = true;
+      game.reserved = tut.fort >= 0 ? new Set([tut.fort]) : null;
+    } else if (kind === 'cutoff') {
+      // The rival's tower field is its outpost; the rival field next to it is the link to its castle.
+      const outpost = game.tiles.find((t) => t.owner === 1 && t.building === 'tower');
+      const link = outpost && outpost.neighbors.map((n) => game.tiles[n]).find((o) => o.owner === 1);
+      if (!link) return null;
+      tut.outpost = outpost.id;
+      tut.link = link.id;
+    } else if (game.objective.type !== 'hold') return null;
+    return tut;
   }
 
-  /** Step 1: a free field next to the player's land that half the castle garrison can take. */
+  /** Mission 1, step 1: a free field next to the player's land that half the castle garrison can take. */
   tutorialTarget() {
     const game = this.game;
     const tut = this.tutorial;
@@ -600,6 +613,18 @@ class App {
     return tut.target;
   }
 
+  /** Whether a combined attack of all the player's neighbouring fields would take `tile` right now. */
+  assaultWins(tile) {
+    const game = this.game;
+    if (tile.pools.some((p) => p.owner === 0)) return true; // already under way
+    const extra = [];
+    for (const id of game.flankers(0, tile.id)) {
+      const units = game.sendAmount(id, this.ui.sendFraction);
+      if (units >= 1) extra.push({ owner: 0, from: id, units });
+    }
+    return extra.length >= 2 && !game.forecast(tile.id, extra).holds;
+  }
+
   runTutorial(now) {
     const game = this.game;
     const tut = this.tutorial;
@@ -607,14 +632,15 @@ class App {
     ui.tutorialPath = null;
     ui.tutorialMark = null;
     if (this.mode !== 'play' || game.phase !== 'running') return;
-    if (now < tut.flashUntil) return; // "✓ Good!" stays for a moment
+    if (now < tut.flashUntil) return; // the "done" tick stays for a moment
     const stats = game.humanStats;
+    const rival = game.factions[1].name;
 
     const say = (key, vars) => {
       const text = i18n.t(key, vars);
       if (tut.text === text) return;
       tut.text = text;
-      this.setHint(text, `${tut.step + 1}/4`);
+      this.setHint(text, `${tut.step + 1}/${tut.steps}`);
     };
     const done = () => {
       tut.step++;
@@ -624,44 +650,102 @@ class App {
       this.setHint(i18n.t('tutDone'));
       $('#hint').classList.add('ok');
     };
-
-    if (tut.step === 0) {
-      if (stats.captured >= 1) return done();
-      say('tut0');
-      // Show the gesture while the player is not already doing it and no troops are on their way.
-      const path = this.tutorialTarget();
-      if (path && !ui.dragging && ui.selected < 0 && !game.armies.some((a) => a.owner === 0)) {
-        ui.tutorialPath = path;
-        ui.tutorialMark = { tile: path[path.length - 1] };
-      }
-    } else if (tut.step === 1) {
-      const n = Math.min(2, stats.captured - 1);
-      if (n >= 2) return done();
-      say('tut1', { n });
-    } else if (tut.step === 2) {
-      const fort = tut.fort >= 0 ? game.tiles[tut.fort] : null;
-      // Done once the fort is the player's; an earlier two-sided attack elsewhere does not count,
-      // because this step is about the double tap.
-      if (!fort || fort.owner === 0) {
-        game.truce = false;
-        game.reserved = null;
-        return done();
-      }
-      const extra = [];
-      for (const id of game.flankers(0, fort.id)) {
-        const units = game.sendAmount(id, ui.sendFraction);
-        if (units >= 1) extra.push({ owner: 0, from: id, units });
-      }
-      const ready = fort.pools.length > 0 || (extra.length >= 2 && !game.forecast(fort.id, extra).holds);
-      say(ready ? 'tut2' : 'tut2wait');
-      ui.tutorialMark = { tile: fort.id, taps: ready, ready };
-    } else {
-      say('tut3', { name: game.factions[1].name });
-      if (!tut.until) tut.until = game.time + 25;
+    /** The last sentence of a guide stays for a while and then makes room. */
+    const fade = (seconds) => {
+      if (!tut.until) tut.until = game.time + seconds;
       else if (game.time > tut.until) {
         this.setHint('');
         this.tutorial = null;
       }
+    };
+
+    if (tut.kind === 'basics') {
+      if (tut.step === 0) {
+        if (stats.captured >= 1) return done();
+        say('tut0');
+        // Show the gesture while the player is not already doing it and no troops are on their way.
+        const path = this.tutorialTarget();
+        if (path && !ui.dragging && ui.selected < 0 && !game.armies.some((a) => a.owner === 0)) {
+          ui.tutorialPath = path;
+          ui.tutorialMark = { tile: path[path.length - 1] };
+        }
+      } else if (tut.step === 1) {
+        const n = Math.min(2, stats.captured - 1);
+        if (n >= 2) return done();
+        say('tut1', { n });
+      } else if (tut.step === 2) {
+        const fort = tut.fort >= 0 ? game.tiles[tut.fort] : null;
+        // Done once the fort is the player's; an earlier two-sided attack elsewhere does not count,
+        // because this step is about the double tap.
+        if (!fort || fort.owner === 0) {
+          game.truce = false;
+          game.reserved = null;
+          return done();
+        }
+        const ready = this.assaultWins(fort);
+        say(ready ? 'tut2' : 'tut2wait');
+        ui.tutorialMark = { tile: fort.id, taps: ready, ready };
+      } else {
+        say('tut3', { name: rival });
+        fade(25);
+      }
+      return;
+    }
+
+    if (tut.kind === 'cutoff') {
+      const outpost = game.tiles[tut.outpost];
+      const link = game.tiles[tut.link];
+      if (tut.step < 2 && outpost.owner === 0) {
+        // Stormed or starved out: either way the outpost is gone.
+        tut.step = 1;
+        return done();
+      }
+      if (tut.step === 0) {
+        if (!outpost.supplied) return done();
+        say('tutC0', { name: rival });
+        ui.tutorialMark = { tile: link.id };
+      } else if (tut.step === 1) {
+        if (outpost.supplied) {
+          // The rival has restored the link.
+          say('tutC1b');
+          ui.tutorialMark = { tile: link.owner === 0 ? outpost.id : link.id };
+        } else {
+          say('tutC1');
+          ui.tutorialMark = { tile: outpost.id };
+        }
+      } else {
+        say('tutC2', { name: rival });
+        fade(25);
+      }
+      return;
+    }
+
+    // citadel
+    const prize = game.tiles[game.objective.tile];
+    const ring = prize.neighbors.map((n) => game.tiles[n]).filter((t) => t.passable);
+    const mine = ring.filter((t) => t.owner === 0).length;
+    if (tut.step === 0) {
+      if (prize.owner === 0 || mine >= 2) return done();
+      say('tutZ0', { n: mine });
+      ui.tutorialMark = { tile: prize.id };
+    } else if (tut.step === 1) {
+      if (prize.owner === 0) return done();
+      const ready = this.assaultWins(prize);
+      say(ready ? 'tutZ1' : 'tutZ1wait');
+      ui.tutorialMark = { tile: prize.id, taps: ready, ready };
+    } else if (prize.owner !== 0) {
+      // Lost again: back to taking it.
+      tut.step = 1;
+      tut.text = null;
+      tut.until = 0;
+    } else if (game.hold.secure) {
+      say('tutZ3');
+      fade(20);
+    } else {
+      tut.until = 0;
+      say('tutZ2', { n: mine, m: ring.length });
+      const missing = ring.find((t) => t.owner !== 0);
+      if (missing) ui.tutorialMark = { tile: missing.id };
     }
   }
 

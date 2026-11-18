@@ -1,4 +1,4 @@
-# HexWars Diorama · „One Crown“ · Stand 0.2
+# HexWars Diorama · „One Crown“ · Stand 0.3
 
 Echtzeit-Strategie auf einer plastischen Hex-Insel. Nachfolger von HEXFRONT mit neuen Regeln: Stapeln reicht
 nicht mehr, es zählt die Form der Front.
@@ -44,12 +44,13 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
 |---|---|---|---|
 | 1 | Erste Krone | Burg erobern | Feldgröße, Angriff von mehreren Seiten |
 | 2 | Die zwei Pässe | Burg erobern | Türme, Abschneiden eines Vorpostens |
-| 3 | Drei Reiche | Zitadelle 60 Sekunden halten oder beide Burgen erobern | Zwei Rivalen, Kronenregel |
+| 3 | Drei Reiche | Zitadelle samt den Feldern ringsum insgesamt 60 Sekunden halten, oder beide Burgen erobern | Zwei Rivalen, Kronenregel |
 
-Mission 1 führt beim ersten Durchspielen in vier kurzen Schritten durch die Bedienung. Bis zum letzten Schritt
-hält der Gegner still.
+Jede Mission führt beim ersten Durchspielen in drei bis vier kurzen Schritten durch das, was neu ist. In
+Mission 1 hält der Gegner bis zum letzten Schritt still.
 
-Dazu „Gefecht“: eine Zufallskarte mit vier Reichen. Sie ist noch nicht auf die neuen Regeln abgestimmt.
+Dazu „Gefecht“ auf Zufallskarten: ein Duell und eine Partie mit vier Reichen. Die Inseln sind gespiegelt,
+jedes Reich startet auf genau gleichem Land.
 
 ## Prüfen ohne Browser
 
@@ -63,6 +64,10 @@ node tools/simulate.mjs 60
 
 ```bash
 node tools/showmap.mjs m2
+```
+
+```bash
+node tools/regions.mjs m3
 ```
 
 Die Messung zeigt je Karte und Stärke: Partiedauer, Siege je Startplatz, festgefahrene Partien, wie lange ein
@@ -95,5 +100,5 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
-Stand 0.2 vom 18.11.2026. Geprüft mit Regeltests, Messläufen und Durchläufen im Browser am PC und im
+Stand 0.3 vom 18.11.2026. Geprüft mit Regeltests, Messläufen und Durchläufen im Browser am PC und im
 Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

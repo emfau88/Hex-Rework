@@ -24,6 +24,12 @@ export class Overlay {
     this.width = 1;
     this.height = 1;
     this.dpr = 1;
+    // Where a number plate may move to when its spot is taken: offsets in field widths, nearest first.
+    this.offsets = [];
+    for (let dx = -0.8; dx <= 0.801; dx += 0.05) for (let dy = -0.7; dy <= 0.701; dy += 0.1) this.offsets.push([dx, dy]);
+    this.offsets.sort((p, q) => Math.hypot(p[0], p[1] * 1.3) - Math.hypot(q[0], q[1] * 1.3));
+    this.stats = { plates: 0, covered: 0 };
+    this.trace = null; // set to an array to collect plates that found no free spot (debugging)
   }
 
   resize(width, height, dpr) {
@@ -49,6 +55,26 @@ export class Overlay {
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
 
+    // Every number plate drawn this frame is remembered, so that later ones can dodge earlier ones.
+    const plates = [];
+    let covered = 0;
+    const hits = (x, y, w, h) => plates.some((r) => Math.abs(r.x - x) * 2 < r.w + w && Math.abs(r.y - y) * 2 < r.h + h);
+    /** Returns a height for a plate at x where it covers no other plate; a little above or below if needed. */
+    const settle = (x, y, w, h) => {
+      // Take the nearest gap between the plates already drawn, searching a fine grid around the spot.
+      for (const [dx, dy] of this.offsets) {
+        const px = x + dx * hexPx;
+        const py = y + dy * hexPx;
+        if (hits(px, py, w + 1, h + 1)) continue;
+        plates.push({ x: px, y: py, w, h });
+        return [px, py];
+      }
+      covered++;
+      if (this.trace) this.trace.push({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), near: plates.filter((r) => Math.abs(r.x - x) < 3 * w && Math.abs(r.y - y) < 3 * h).length });
+      plates.push({ x, y, w, h });
+      return [x, y];
+    };
+
     // Troop numbers on fields.
     ctx.font = `800 ${fs}px ${FONT}`;
     for (const t of game.tiles) {
@@ -58,6 +84,7 @@ export class Overlay {
       const owned = t.owner >= 0;
       const w = Math.max(fs * 1.7, ctx.measureText(text).width + fs * 0.95);
       const h = fs + 6;
+      plates.push({ x: p.x, y: p.y, w, h });
       pill(ctx, p.x, p.y, w, h);
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
       ctx.fill();
@@ -81,44 +108,54 @@ export class Overlay {
       }
     }
 
-    // Marching armies carry their strength above them.
+    // Only what concerns the player gets a number: own troops, and rivals marching on or fighting
+    // for the player's fields. Everything else is told by the soldiers themselves.
+    const concerns = (owner, tile) => ui.human < 0 || owner === ui.human || tile.owner === ui.human;
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
-    for (const a of game.armies) {
-      if (a.done) continue;
-      const pos = renderer.armyPosition(game, a);
-      const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
-      const text = String(a.units);
-      const w = Math.max(afs * 1.6, ctx.measureText(text).width + afs * 0.8);
-      const h = afs + 5;
-      pill(ctx, p.x, p.y, w, h);
-      ctx.fillStyle = PALETTE_HEX[game.factions[a.owner].color];
+    const badge = (x, y, text, color, ring) => {
+      const w = Math.max(afs * 1.5, ctx.measureText(text).width + afs * 0.7);
+      const h = afs + 4;
+      const [px, py] = settle(x, y, w, h);
+      pill(ctx, px, py, w, h);
+      ctx.fillStyle = color;
       ctx.fill();
-      ctx.lineWidth = 1.2;
-      ctx.strokeStyle = 'rgba(6, 20, 27, 0.7)';
+      ctx.lineWidth = ring ? 2 : 1.2;
+      ctx.strokeStyle = ring ? '#fff3c4' : 'rgba(6, 20, 27, 0.7)';
       ctx.stroke();
       ctx.fillStyle = '#06141b';
-      ctx.fillText(text, p.x, p.y + 0.5);
-    }
+      ctx.fillText(text, px, py + 0.5);
+    };
 
-    // Besiegers show their strength at the edge where they fight.
+    // Besiegers: one number per kingdom and field, at the edge where most of them stand.
     for (const t of game.tiles) {
+      if (!t.pools.length) continue;
+      const groups = new Map();
       for (const pool of t.pools) {
-        const pos = renderer.poolPosition(game, t, pool);
+        if (!concerns(pool.owner, t)) continue;
+        const g = groups.get(pool.owner);
+        if (!g) groups.set(pool.owner, { units: pool.units, lead: pool });
+        else {
+          g.units += pool.units;
+          if (pool.units > g.lead.units) g.lead = pool;
+        }
+      }
+      for (const [owner, g] of groups) {
+        const pos = renderer.poolPosition(game, t, g.lead);
         const p = renderer.project(pos.x, pos.y + 0.78, pos.z);
-        const text = String(Math.max(1, Math.round(pool.units)));
-        const w = Math.max(afs * 1.6, ctx.measureText(text).width + afs * 0.8);
-        const h = afs + 5;
-        pill(ctx, p.x, p.y, w, h);
-        ctx.fillStyle = PALETTE_HEX[game.factions[pool.owner].color];
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#fff3c4';
-        ctx.stroke();
-        ctx.fillStyle = '#06141b';
-        ctx.fillText(text, p.x, p.y + 0.5);
+        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true);
       }
     }
+
+    // Marching armies carry their strength above them. Automatic supply columns do not: they are
+    // many and small, and nothing has to be decided about them.
+    for (const a of game.armies) {
+      if (a.done || a.kind === 'supply' || !concerns(a.owner, game.tiles[a.path[a.path.length - 1]])) continue;
+      const pos = renderer.armyPosition(game, a);
+      const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
+      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false);
+    }
+    this.stats = { plates: plates.length, covered };
 
     if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);

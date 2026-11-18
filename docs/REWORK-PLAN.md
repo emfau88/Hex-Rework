@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 18.11.2026 · Bulk 0 bis 5 sind umgesetzt (Stand 0.2), Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 18.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt (Stand 0.3), Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -63,7 +63,7 @@ Versionsverwaltung. Bulk 0 bis 5 gehören zu dieser Arbeitsrunde, Bulk 6 bis 11 
 **Fertig, wenn** die Regeltests grün sind: ein Angriff von drei Seiten kostet höchstens halb so viel wie von
 einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mit ihrem Reich.
 
-**Stand: erledigt.** Zehn Regeltests grün (`node --test tests/rules.test.mjs`).
+**Stand: erledigt.** Inzwischen 12 Regeltests grün (`node --test tests/rules.test.mjs`).
 
 ### Bulk 2 · Gegner und Messwerkzeug
 
@@ -76,9 +76,10 @@ einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mi
 **Fertig, wenn** auf „Normal“ der Stapel-Bot höchstens 1 von 10 Partien gewinnt, eine Partie im Mittel 4 bis
 7 Minuten dauert, höchstens 1 von 20 Partien festfährt und ein untätiger Spieler mindestens 2:30 übersteht.
 
-**Stand: drei von vier Kriterien erfüllt.** Der Stapel-Bot gewinnt 0 von 60 Partien. Ein starker Testspieler
-braucht 3:18 bis 5:56. Ein untätiger Spieler übersteht mindestens 3:04. Nicht erfüllt: Spielen zwei gleich
-starke Computer gegeneinander, enden auf Mission 2 und 3 rund ein Drittel der Partien nicht in 15 Minuten.
+**Stand: erledigt.** Der Stapel-Bot gewinnt 0 von 60 Partien. Ein starker Testspieler braucht auf „Normal“
+2:52 bis 6:03. Ein untätiger Spieler übersteht mindestens 2:34. Ohne Mensch enden auf „Normal“ höchstens 3 von 60
+Partien ohne Sieger. Beim ersten Anlauf war das letzte Kriterium verfehlt; es wurde mit den Nachbesserungen
+in Abschnitt 9 erreicht.
 
 ### Bulk 3 · Darstellung und Bedienung
 
@@ -103,7 +104,7 @@ mit dem tatsächlichen Ausgang übereinstimmt.
 |---|---|---|---|
 | 1 · Erste Krone | Duell, kleine Insel | Schicken, Feldgröße 20, Angriff von zwei Seiten, Burg umzingeln | Burg erobern |
 | 2 · Die zwei Pässe | Duell, Gebirgsriegel mit zwei Engstellen | Türme und Höfe, Abschneiden einer Speerspitze | Burg erobern |
-| 3 · Drei Reiche | Zwei Gegner, Zitadelle in der Mitte | Mehrere Gegner, Kronenregel, zweiter Siegweg | Zitadelle 60 Sekunden halten oder beide Burgen erobern |
+| 3 · Drei Reiche | Zwei Gegner, Zitadelle in der Mitte | Mehrere Gegner, Kronenregel, zweiter Siegweg | Zitadelle samt den sechs Feldern ringsum insgesamt 60 Sekunden halten, oder beide Burgen erobern |
 
 **Fertig, wenn** alle drei Missionen von Start bis Ergebnis fehlerfrei durchlaufen, ein starker Testspieler
 jede auf „Normal“ gewinnt und dafür 3 bis 7 Minuten braucht, und der Stapel-Bot keine davon regelmäßig gewinnt.
@@ -179,17 +180,20 @@ neben dem Projekt, ohne die neue Arbeit zu berühren:
 git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ```
 
-## 7 · Ergebnisse dieser Runde
+## 7 · Ergebnisse (Stand 18.11.2026, nach den Nachbesserungen)
 
 Gemessen mit `node tools/simulate.mjs 60` (60 Partien je Karte und Stärke, Breitbild).
 
-**Starker Testspieler** (plant wie der schwere Computer, gibt aber nur alle 1,5 Sekunden einen Befehl):
+**Starker Testspieler** (plant wie der schwere Computer, gibt aber nur alle 1,5 Sekunden einen Befehl und sitzt
+auf dem Platz des Spielers):
 
 | Mission | Leicht | Normal | Schwer |
 |---|---|---|---|
-| 1 · Erste Krone | 55 von 60 Siegen, 3:19 | 57 von 60, 3:09 | 60 von 60, 3:09 |
-| 2 · Die zwei Pässe | 60 von 60, 5:13 | 60 von 60, 5:56 | 40 von 60, 8:48 |
-| 3 · Drei Reiche | 59 von 60, 4:28 | 60 von 60, 4:42 | 60 von 60, 6:08 |
+| 1 · Erste Krone | 59 von 60 Siegen, 3:05 | 58 von 60, 2:52 | 59 von 60, 2:49 |
+| 2 · Die zwei Pässe | 60 von 60, 4:38 | 60 von 60, 3:45 | 58 von 60, 5:05 |
+| 3 · Drei Reiche | 57 von 60, 4:53 | 59 von 60, 6:03 | 23 von 60, 8:00 |
+| Gefecht · Duell | 59 von 60, 2:48 | 49 von 60, 3:35 | 16 von 60, 4:31 |
+| Gefecht · Vier Reiche | 47 von 60, 5:09 | 17 von 60, 5:01 | 4 von 60, 5:02 |
 
 Mission 1 ist die Einführung; ihr Gegner verhält sich auf allen Stärken gleich. Die Werte gelten ohne die
 geführten Schritte, die den Gegner anfangs stillhalten lassen.
@@ -197,16 +201,23 @@ geführten Schritte, die den Gegner anfangs stillhalten lassen.
 **Stapel-Bot** (alles auf ein Feld, geradeaus zur Burg): 0 von 60 Siegen auf jeder Karte und jeder Stärke.
 Im Prototyp 0.1 waren es 13 bis 23 von 40 Duellen.
 
-**Untätiger Spieler:** fällt auf „Normal“ frühestens nach 4:04 (Mission 1), 3:34 (Mission 2), 3:04 (Mission 3).
+**Untätiger Spieler** fällt auf „Normal“ frühestens nach 4:04 (Mission 1), 3:35 (Mission 2), 2:34 (Mission 3).
+
+**Ohne Mensch, „Normal“:** Partien ohne Sieger nach 15 Minuten: Mission 1 und 2 keine, Mission 3 drei von 60.
+Siege je Startplatz auf Mission 3: 4 / 34 / 19 (der Platz des Spielers ist nicht mehr im Vorteil).
+
+**Zahlen im Bild:** In einer vom Testspieler gespielten Partie überdeckte in Mission 1 nie eine Zahl eine
+andere, in Mission 2 in 5 von 237 geprüften Bildern eine einzelne, in Mission 3 in 3 von 215.
 
 ### Geprüft und nicht geprüft
 
 | Geprüft | Wie |
 |---|---|
-| Regeln | 10 Regeltests, darunter Vorhersage gegen tatsächlichen Ausgang und gleiche Partie bei gleichem Startwert |
+| Regeln | 12 Regeltests, darunter Vorhersage gegen tatsächlichen Ausgang, Waffenruhe der Einführung und gleiches Land für jedes Reich auf Zufallskarten |
 | Menü, Besprechung, Partie, Sieg, Niederlage, nächste Mission, Freischaltung | im Browser, Missionen 1 bis 3 vom Testspieler-Programm durchgespielt, keine Fehlermeldung |
 | Ziehen mit Vorhersage, Sturmbefehl mit zwei Tipps | im Browser mit nachgestellten Mausereignissen |
-| Hochformat | 375 × 812: Karte gedreht, eigene Burg unten, jedes Feld antippbar |
+| Geführte Schritte | Mission 1 mit nachgestellten Klicks; Mission 2 und 3 mit gestellten Spielständen durch jeden Schritt und jede Verzweigung |
+| Hochformat | 375 × 812: Karten gedreht, eigene Burg unten, jedes Feld antippbar, auch auf der Zufallskarte |
 
 | Nicht geprüft | Folge |
 |---|---|
@@ -216,46 +227,48 @@ Im Prototyp 0.1 waren es 13 bis 23 von 40 Duellen.
 
 ### Bekannte Schwächen
 
-- **Mission 2 auf „Schwer“** gewinnt der Testspieler nur in 40 von 60 Partien und erst nach knapp 9 Minuten,
-  also im Sturm. Die Pässe begünstigen den Verteidiger stark.
-- **Mission 3 ist für den Spieler vermutlich leichter als gedacht:** Die beiden Rivalen reiben sich oft
-  gegenseitig auf. Ohne Mensch gewinnt auf „Schwer“ immer der Platz des Spielers.
-- **Gleich starke Computer fahren sich fest:** Auf Mission 2 und 3 enden auf „Normal“ 22 und 19 von 60
-  Partien nicht in 15 Minuten. Mit einem Menschen am Zug ist das seltener, gemessen ist es nicht.
-- **Zufallskarte (Gefecht):** Die erzeugten Inseln sind nicht für die neuen Regeln abgestimmt. Die
-  Startplätze sind ungleich, und das erzeugte Duell ist mit 2:34 zu kurz.
-- **Viele Zahlen im Bild**, sobald an mehreren Feldern gekämpft wird.
-- **Der Computer schneidet nur zufällig ab.** Er bewertet Felder höher, deren Fall andere abtrennt, plant
-  das Abschneiden aber nicht über mehrere Züge.
+- **Mission 3 auf „Schwer“ ist sehr hart.** Der Testspieler gewinnt 23 von 60 Partien und verliert meist
+  die eigene Burg, weil ihn beide Rivalen angreifen.
+- **Gefecht mit vier Reichen ist ab „Normal“ schwer** (17 von 60). Drei Gegner gegen einen lassen wenig Luft.
+- **Leichte Gegner beenden nichts untereinander.** Ohne Mensch laufen auf „Leicht“ Mission 2 immer und
+  Mission 3 in 11 von 60 Partien bis zum Zeitlimit. Im Spiel fällt das nur auf, wenn man selbst nichts tut.
+- **Auf „Schwer“ im Vier-Reiche-Gefecht** gewinnt der beste Startplatz genau doppelt so oft wie der
+  schwächste (20 zu 10). Die Karte ist gespiegelt; der Rest ist Würfelglück in 60 Partien.
+- **Der Testspieler ist ein Programm.** Er nutzt weder gezieltes Abschneiden noch das Überfüllen von
+  Feldern vor einem Sturm. Ein Mensch kann besser oder schlechter abschneiden.
 
-## 8 · Einführung in Mission 1
+## 8 · Geführte Schritte
 
-Beim ersten Durchspielen führen vier Schritte durch die Mission, je ein Satz mit Markierung im Bild:
+Beim ersten Durchspielen einer Mission führt eine kurze Anleitung, je ein Satz mit Markierung im Bild und
+einem Zähler. Nach dem ersten Sieg entfällt sie.
 
-| Schritt | Text | Geschafft, wenn |
+| Mission | Schritt | Text | Geschafft, wenn |
+|---|---|---|---|
+| 1 | 1/4 | Ziehe von deiner Burg auf das markierte Feld. | das erste Feld erobert ist |
+| 1 | 2/4 | Nimm zwei weitere Felder (0/2). Jedes Feld liefert Truppen. | zwei weitere erobert sind |
+| 1 | 3/4 | Die Festung ist für ein Feld allein zu stark. Tippe sie zweimal an: Alle Nachbarn greifen zugleich an. | die kleine Festung neben der Burg erobert ist |
+| 1 | 4/4 | Jetzt die Burg von EMBER: erst die Felder ringsum nehmen, dann von allen Seiten stürmen. | blendet nach 25 Sekunden aus |
+| 2 | 1/3 | EMBER hält einen Vorposten auf deiner Seite. Zum Stürmen ist er zu stark. Nimm das markierte Feld dahinter. | der Vorposten keine Verbindung zur Burg mehr hat |
+| 2 | 2/3 | Abgeschnitten! Der Vorposten verliert jetzt Truppen. Nimm ihn, sobald er schwach ist. | der Vorposten erobert ist |
+| 2 | 3/3 | Jetzt durch einen Pass zur Burg von EMBER. Ein Turm hält eine Engstelle: eigenes Feld antippen, Turm bauen. | blendet nach 25 Sekunden aus |
+| 3 | 1/3 | Ziel ist die Zitadelle in der Mitte. Nimm zuerst zwei Felder, die an sie grenzen (0/2). | zwei Felder am Ring erobert sind |
+| 3 | 2/3 | Tippe die Zitadelle zweimal an: Alle deine Felder daneben greifen zugleich an. | die Zitadelle erobert ist |
+| 3 | 3/3 | Die Uhr läuft erst, wenn dir alle Felder ringsum gehören (3/6). Nimm das markierte Feld. | der Ring geschlossen ist |
+
+Die Anleitung reagiert auf das Spiel: Reicht ein Sturm noch nicht, steht das im Text; stellt der Gegner die
+Verbindung zum Vorposten wieder her oder geht die Zitadelle verloren, springt sie einen Schritt zurück.
+In Mission 1 hält der Gegner bis zum letzten Schritt still, in Mission 2 und 3 nicht.
+
+## 9 · Nachbesserungen
+
+| Nr. | Was | Stand |
 |---|---|---|
-| 1/4 | Ziehe von deiner Burg auf das markierte Feld. | das erste Feld erobert ist |
-| 2/4 | Nimm zwei weitere Felder (0/2). Jedes Feld liefert Truppen. | zwei weitere Felder erobert sind |
-| 3/4 | Die Festung ist für ein Feld allein zu stark. Tippe sie zweimal an: Alle Nachbarn greifen zugleich an. | die kleine Festung neben der Burg erobert ist |
-| 4/4 | Jetzt die Burg von EMBER: erst die Felder ringsum nehmen, dann von allen Seiten stürmen. | blendet nach 25 Sekunden aus |
-
-Bis Schritt 4 hält der Gegner still: Er greift keine Felder des Spielers an und lässt das freie Land nahe der
-Spielerburg sowie die Übungsfestung in Ruhe. Ist die Mission einmal gewonnen, entfällt die Führung.
-Geprüft im Browser mit nachgestellten Klicks durch alle vier Schritte.
-
-## 9 · Was konkret nachgebessert werden muss
-
-Nach Wirkung sortiert. Punkt 1 bis 5 und 9 lassen sich mit Messläufen erledigen, 6 und 7 sind größere
-Arbeiten, 8 braucht dich.
-
-| Nr. | Was | Woran man „fertig“ erkennt |
-|---|---|---|
-| 1 | **Mission 2 auf „Schwer“ entschärfen.** Die Pässe begünstigen den Verteidiger zu stark. Einen dritten Durchgang öffnen oder den Startvorsprung des Gegners senken. | Testspieler gewinnt mindestens 50 von 60 Partien in unter 7 Minuten |
-| 2 | **Mission 3 anziehen.** Die Rivalen reiben sich gegenseitig auf. Karte so umbauen, dass beide zuerst auf die Zitadelle und den Spieler treffen. | Ohne Mensch gewinnt der Platz des Spielers nicht öfter als die anderen |
-| 3 | **Gegner setzt nach.** Nach einem Durchbruch nachrücken und gezielt abschneiden, damit gleich starke Gegner sich nicht festfahren. | Höchstens 3 von 60 Partien ohne Sieger nach 15 Minuten |
-| 4 | **Zufallskarte anpassen** oder vorerst aus dem Menü nehmen. Größeres Duell, faire Startplätze. | Kein Startplatz gewinnt mehr als doppelt so oft wie ein anderer |
-| 5 | **Weniger Zahlen im Bild.** Belagerer je Feld zu einer Zahl zusammenfassen, fremde Kämpfe ohne Zahl. | Auf Mission 3 ist jede Zahl ohne Überdeckung lesbar |
-| 6 | **Kampf deutlicher zeigen.** Mauerstücke an der Burg je gehaltenem Nachbarfeld, Soldaten treffen aufeinander, Anzeige für volle Felder. | Ein Zuschauer erkennt ohne Erklärung, wer wo angreift |
-| 7 | **PC-Bedienung.** Mausrad-Zoom, Verschieben, Tastenkürzel für Sturm und Bauen. | Eine Partie lässt sich ohne Blick auf die Leisten spielen |
-| 8 | **Ton, echtes Handy, Safari prüfen.** | Du hast es gehört und am Handy gespielt |
-| 9 | **Geführte Schritte auch für Mission 2 und 3** (Abschneiden, Zitadelle), im Stil von Mission 1. | Jede neue Regel wird einmal im Bild gezeigt |
+| 1 | Mission 2 auf „Schwer“ entschärfen | **Erledigt.** Ziel war 50 von 60 Siegen in unter 7 Minuten; gemessen 58 von 60 in 5:05. Die Karte blieb, die Wirkung kommt vom Gegner, der jetzt nachsetzt. |
+| 2 | Mission 3 anziehen | **Erledigt für „Normal“, auf „Schwer“ übers Ziel hinaus.** Der Platz des Spielers gewinnt ohne Mensch nicht mehr öfter als die anderen. Die Rivalen treffen sich nur noch an der Zitadelle, das Land ist gleicher verteilt, die Uhr zählt je Reich insgesamt. „Schwer“ ist jetzt sehr hart. |
+| 3 | Gegner setzt nach | **Erledigt für „Normal“.** Ziel war höchstens 3 von 60 Partien ohne Sieger; gemessen 0, 0 und 3 auf Mission 1 bis 3. Frisch eroberte Felder rücken weiter vor, eine Reserve besetzt das eroberte Feld. Dabei gefunden und behoben: Der Nachschub bevorzugte Reiche im oberen Teil der Karte. |
+| 4 | Zufallskarte anpassen | **Erledigt.** Die Insel ist jetzt links-rechts und oben-unten gespiegelt, alle Burgen stehen auf gleichem Land. Siege je Startplatz auf „Normal“: Duell 31 / 29, Vier Reiche 18 / 11 / 15 / 16. Das Duell dauert im Mittel 5:24 statt 2:34. Neu im Menü: Duell auf Zufallskarte. |
+| 5 | Weniger Zahlen im Bild | **Erledigt bis auf Einzelfälle.** Belagerer tragen eine Zahl je Reich und Feld, Kämpfe zwischen Rivalen und Nachschubkolonnen tragen keine, Zahlen weichen einander aus. Rest siehe Abschnitt 7. |
+| 6 | Kampf deutlicher zeigen | offen, gesondert |
+| 7 | PC-Bedienung (Zoom, Verschieben, Tastenkürzel) | offen, gesondert |
+| 8 | Ton, echtes Handy, Safari prüfen | offen, das kannst nur du |
+| 9 | Geführte Schritte für Mission 2 und 3 | **Erledigt**, siehe Abschnitt 8. |

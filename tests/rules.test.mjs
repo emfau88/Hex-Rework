@@ -190,3 +190,32 @@ test('during the tutorial truce the rival leaves the player and the practice for
   assert.equal(fort.owner, -1);
   assert.ok(game.stats().factions[1].tiles > 7, 'the rival still grows on its own side');
 });
+
+test('generated islands give every kingdom exactly the same land', () => {
+  for (const id of ['duel', 'random']) {
+    const mission = MISSIONS.find((m) => m.id === id);
+    for (let seed = 1; seed <= 25; seed++) {
+      for (const wide of [true, false]) {
+        const game = new Game({ mission, seed: seed * 977, human: -1, wide });
+        assert.equal(game.factions.length, mission.factions);
+        // Signature of a castle's surroundings: terrain and garrison of every field, sorted by distance.
+        const signature = (castle) => {
+          const dist = new Int16Array(game.tiles.length).fill(-1);
+          const queue = [castle];
+          dist[castle] = 0;
+          for (let i = 0; i < queue.length; i++) {
+            for (const n of game.tiles[queue[i]].neighbors) {
+              if (dist[n] < 0 && game.tiles[n].passable) {
+                dist[n] = dist[queue[i]] + 1;
+                queue.push(n);
+              }
+            }
+          }
+          return game.tiles.filter((t) => t.passable && t.castle < 0).map((t) => `${dist[t.id]}:${t.terrain}:${t.owner >= 0 ? 'own' : Math.floor(t.units)}`).sort().join(',');
+        };
+        const first = signature(game.factions[0].castle);
+        for (const f of game.factions) assert.equal(signature(f.castle), first, `${id} seed ${seed}: kingdom ${f.id} starts on different land`);
+      }
+    }
+  }
+});
