@@ -118,7 +118,7 @@ export class Overlay {
     // Only what concerns the player gets a number: own troops, and rivals marching on or fighting
     // for the player's fields. Everything else is told by the soldiers themselves.
     const concerns = (owner, tile) => ui.human < 0 || owner === ui.human || tile.owner === ui.human;
-    this._battles(ctx, game, ui, contested, fs, settle, concerns);
+    this._battles(ctx, game, ui, contested, fs, plates, concerns);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
     const badge = (x, y, text, color, ring) => {
@@ -179,7 +179,7 @@ export class Overlay {
    * the edges. Where the battle concerns the player, a small tag says how it will end: in how many
    * seconds the field falls and to whom (the dot), or that it holds.
    */
-  _battles(ctx, game, ui, contested, fs, settle, concerns) {
+  _battles(ctx, game, ui, contested, fs, plates, concerns) {
     if (this.fightsOf !== game) {
       this.fights.clear();
       this.fightsOf = game;
@@ -223,7 +223,12 @@ export class Overlay {
       const dot = fc.holds ? 0 : tagSize * 0.9;
       const tw = ctx.measureText(text).width + tagSize * 0.9 + dot;
       const th = tagSize + 5;
-      const [x, y] = settle(p.x, p.y + h / 2 + th / 2 + 6, tw, th);
+      // The tag sits on top of the rim like a cap, over the field itself. On a phone there is no free
+      // room between the plates; here it covers a few soldiers rather than the number of another
+      // field, and it is always clear which field it belongs to.
+      const x = p.x;
+      const y = p.y - h / 2 - th / 2 - 1;
+      plates.push({ x, y, w: tw, h: th });
       pill(ctx, x, y, tw, th);
       ctx.fillStyle = 'rgba(6, 20, 27, 0.94)';
       ctx.fill();

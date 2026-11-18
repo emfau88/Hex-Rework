@@ -30,9 +30,72 @@ const GOLD = lin('#d9b566');
 const GREENS = ['#456f3e', '#4c803e', '#5a9145', '#3f743b'].map(lin);
 const HEX = Math.PI / 6;
 
+// Banks: where a field stands higher than its neighbour, a slope runs down onto the neighbour
+// instead of a bare wall. Towards water it is a beach, below mountains scree, elsewhere earth.
+const BANK_MIN = 0.1; // smaller steps keep their plain edge
+const BANK_TOP = 0.075; // the bank starts below the bevel of the upper field
+const BANK_SAND = lin('#c9b98c');
+const BANK_SCREE = lin('#76857b');
+const BANK_EARTH = lin('#6f8561');
+
+/** How far a bank reaches out for a step of this height. */
+export function bankRun(rise) {
+  return Math.min(0.34, Math.max(0.2, rise * 1.3));
+}
+
+/**
+ * Height of the ground above the lower field `low`, `d` field radii out from the shared edge towards
+ * `low`'s centre. Zero where the fields are level or the bank has ended. Attackers stand on it.
+ */
+export function bankHeight(high, low, d) {
+  const rise = high.height - low.height;
+  if (rise < BANK_MIN) return 0;
+  const drop = rise - BANK_TOP;
+  // The bank starts at the cliff line, a hair inside the true edge.
+  return Math.max(0, drop * (1 - (d + 0.013) / bankRun(rise)));
+}
+
+function banks(m, t, tiles, HEX0) {
+  const { x, z } = t;
+  const top = t.height - BANK_TOP;
+  const R = 0.985;
+  const sloped = [];
+  for (let i = 0; i < 6; i++) {
+    const o = t.nb[i] >= 0 ? tiles[t.nb[i]] : null;
+    sloped.push(o && t.height - o.height >= BANK_MIN ? o : null);
+  }
+  for (let i = 0; i < 6; i++) {
+    const o = sloped[i];
+    if (!o) continue;
+    const run = bankRun(t.height - o.height);
+    const a0 = HEX0 + (i * Math.PI) / 3;
+    const a1 = a0 + Math.PI / 3;
+    const nx = Math.cos(a0 + Math.PI / 6);
+    const nz = Math.sin(a0 + Math.PI / 6);
+    const foot = o.height + 0.006;
+    const A = [x + Math.cos(a0) * R, top, z + Math.sin(a0) * R];
+    const B = [x + Math.cos(a1) * R, top, z + Math.sin(a1) * R];
+    const A2 = [A[0] + nx * run, foot, A[2] + nz * run];
+    const B2 = [B[0] + nx * run, foot, B[2] + nz * run];
+    const base = o.terrain === 'water' && t.terrain !== 'mountain' ? BANK_SAND : t.terrain === 'mountain' ? BANK_SCREE : BANK_EARTH;
+    const c = scale3(base, 0.9 + hash(t.id * 11 + i) * 0.2);
+    m.quad(A, B, B2, A2, c);
+    // Ends: join the bank of the next edge round the corner, or close the side.
+    const next = sloped[(i + 1) % 6];
+    if (next) {
+      const run2 = bankRun(t.height - next.height);
+      const n2x = Math.cos(a1 + Math.PI / 6);
+      const n2z = Math.sin(a1 + Math.PI / 6);
+      m.tri(B, [B[0] + n2x * run2, next.height + 0.006, B[2] + n2z * run2], B2, scale3(c, 0.94));
+    } else m.tri(B, [B[0], foot, B[2]], B2, scale3(c, 0.8));
+    if (!sloped[(i + 5) % 6]) m.tri(A, A2, [A[0], foot, A[2]], scale3(c, 0.8));
+  }
+}
+
 /** The field itself: cliff, bevel and top. Top and bevel take the field's colour through `tint`. */
-export function tileBase(m, t, seed, rot = 0) {
+export function tileBase(m, t, seed, rot = 0, tiles = null) {
   const HEX0 = HEX + rot;
+  if (tiles) banks(m, t, tiles, HEX0);
   const { x, z, height: h } = t;
   const bottom = -0.88 - hash(t.id * 3 + seed) * 0.22;
   const water = t.terrain === 'water';
@@ -59,13 +122,19 @@ export function tree(m, x, y, z, s, seed) {
   m.cyl(x, y + 0.69 * s, z, 0.17 * s, 0, 0.5 * s, 5, scale3(g, 1.13), 0, 0.17 + seed);
 }
 
+const ROCK_GREYS = ['#8b9b96', '#939f97', '#84928f'];
+
 export function rock(m, x, y, z, s, seed, snow = false) {
-  const n = 5;
+  // Large rocks differ in the number of sides, in height and in tone; pebbles stay simple.
+  const large = s > 0.3;
+  const n = large ? 5 + Math.floor(hash(seed + 3) * 3) : 5;
+  const tall = large ? 0.8 + hash(seed + 9) * 0.25 : 1;
+  const grey = large ? ROCK_GREYS[Math.floor(hash(seed + 5) * 3)] : ROCK_GREYS[0];
   const phase = hash(seed) * TAU;
   const rings = [];
   for (let ring = 0; ring < 3; ring++) {
     const r = ring === 0 ? s : ring === 1 ? s * 0.48 : s * 0.08;
-    const yy = y + (ring === 0 ? 0 : ring === 1 ? s * 0.91 : s * 1.64);
+    const yy = y + (ring === 0 ? 0 : ring === 1 ? s * 0.91 * tall : s * 1.64 * tall);
     const pts = [];
     for (let i = 0; i < n; i++) {
       const a = phase + (i * TAU) / n;
@@ -77,11 +146,11 @@ export function rock(m, x, y, z, s, seed, snow = false) {
   for (let ring = 0; ring < 2; ring++) {
     for (let i = 0; i < n; i++) {
       const j = (i + 1) % n;
-      const c = lin(snow && ring === 1 ? '#dfebde' : '#8b9b96');
+      const c = lin(snow && ring === 1 ? '#dfebde' : grey);
       m.quad(rings[ring][i], rings[ring + 1][i], rings[ring + 1][j], rings[ring][j], scale3(c, 0.73 + hash(seed + i * 4 + ring * 8) * 0.38));
     }
   }
-  const top = [x + s * 0.13, y + s * 1.8, z];
+  const top = [x + s * 0.13, y + s * 1.8 * tall, z];
   for (let i = 0; i < n; i++) m.tri(rings[2][i], top, rings[2][(i + 1) % n], lin(snow ? '#f1f0df' : '#a2b1a6'));
 }
 
@@ -153,7 +222,7 @@ export function citadel(m, t, rot = 0) {
   }
 }
 
-const BUILD_AT = { tower: [-0.24, -0.26], farm: [0.2, -0.3] };
+export const BUILD_AT = { tower: [-0.24, -0.26], farm: [0.2, -0.3] };
 
 /** Watchtower: +60 % defence on its field. */
 export function tower(m, t) {
@@ -210,13 +279,35 @@ export function scaffold(m, t, type) {
 
 /** Scenery of a field that is not covered by a building. Props stay in the rear half:
  *  the middle belongs to the garrison, the front corner to the number plate. */
-export function scenery(m, t, seed) {
+export function scenery(m, t, seed, tiles = null, rot = 0) {
   const { x, z, height: h } = t;
   const s = t.id * 17 + seed;
   if (t.terrain === 'mountain') {
-    rock(m, x - 0.14, h, z + 0.05, 0.71, s, true);
-    rock(m, x + 0.36, h, z - 0.19, 0.49, s + 22, true);
-    rock(m, x - 0.42, h, z - 0.35, 0.34, s + 4, false);
+    // Every mountain field has its own group of peaks: one main peak that stands taller inside a
+    // range than at its rim, and one to three lesser ones around it.
+    let range = 0;
+    if (tiles) for (const n of t.neighbors) if (tiles[n].terrain === 'mountain') range++;
+    const a0 = hash(s + 1) * TAU;
+    const off = 0.06 + hash(s + 2) * 0.16;
+    rock(m, x + Math.cos(a0) * off, h, z + Math.sin(a0) * off * 0.7, Math.min(0.76, 0.54 + Math.min(range, 4) * 0.04 + hash(s) * 0.1), s, true);
+    const lesser = 1 + Math.floor(hash(s + 3) * 3);
+    for (let i = 0; i < lesser; i++) {
+      const a = a0 + 1.9 + i * (1.5 + hash(s + 5 + i) * 0.9);
+      const d = 0.4 + hash(s + 7 + i) * 0.2;
+      const size = 0.24 + hash(s + 9 + i) * 0.27;
+      rock(m, x + Math.cos(a) * d, h, z + Math.sin(a) * d, size, s + 22 + i * 7, size > 0.4);
+    }
+    // Rocks on the edge shared with the next mountain field hide the grid inside a range.
+    if (tiles) {
+      for (let i = 0; i < 6; i++) {
+        const nb = t.nb[i];
+        if (nb <= t.id || tiles[nb].terrain !== 'mountain' || hash(s + 31 + i) < 0.25) continue;
+        const am = HEX + rot + (i * Math.PI) / 3 + Math.PI / 6;
+        const along = (hash(s + 41 + i) - 0.5) * 0.5;
+        const size = 0.3 + hash(s + 51 + i) * 0.2;
+        rock(m, x + Math.cos(am) * 0.87 - Math.sin(am) * along, h, z + Math.sin(am) * 0.87 + Math.cos(am) * along, size, s + 61 + i * 3, size > 0.42);
+      }
+    }
     return;
   }
   if (t.terrain === 'water') {

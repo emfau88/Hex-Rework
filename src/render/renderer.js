@@ -151,6 +151,15 @@ const FORMATION = [
   [[-0.36, 0.14], [-0.12, 0.3], [0.12, 0.3], [0.36, 0.14], [-0.2, -0.02], [0.2, -0.02]],
 ];
 const KEEP_FRONT = [[], [[0, 0.66]], [[-0.2, 0.62], [0.2, 0.62]], [[-0.34, 0.56], [0, 0.7], [0.34, 0.56]]];
+// Garrison at which the n-th figure appears (see figures). The newest figure is small at first and
+// grows with the next few troops, so a garrison visibly dwindles in battle instead of jumping.
+const FIGURE_AT = [0, 1, 5, 10, 18, 28, 40];
+function figureScale(units, index) {
+  return 0.62 + 0.38 * clamp((units - FIGURE_AT[index + 1]) / 3, 0, 1);
+}
+const smooth = (f) => f * f * (3 - 2 * f);
+const DUST = lin('#b9ac8c');
+const ARROW = lin('#efe6c8');
 
 export class DioramaRenderer {
   constructor(canvas) {
@@ -299,7 +308,7 @@ export class DioramaRenderer {
     models.table(m, game.map);
     for (const t of game.tiles) {
       m.tile = t.id;
-      models.tileBase(m, t, game.seed, rot);
+      models.tileBase(m, t, game.seed, rot, game.tiles);
       if (t.castle >= 0) models.castle(m, t, rot);
       else if (t.ruin) models.ruin(m, t, rot);
       else if (t.terrain === 'citadel') models.citadel(m, t, rot);
@@ -307,7 +316,7 @@ export class DioramaRenderer {
         if (t.building === 'tower') models.tower(m, t);
         else if (t.building === 'farm') models.farm(m, t);
         else if (t.order) models.scaffold(m, t, t.order);
-        models.scenery(m, t, game.seed);
+        models.scenery(m, t, game.seed, game.tiles, rot);
       }
     }
     const gl = this.gl;
@@ -453,7 +462,8 @@ export class DioramaRenderer {
     dz /= len;
     return {
       x: (S.x + tile.x) / 2 - dx * 0.2,
-      y: S.height + this.lift(S.id),
+      // Attackers of a higher field stand on its bank: they storm uphill.
+      y: S.height + this.lift(S.id) + models.bankHeight(tile, S, 0.2),
       z: (S.z + tile.z) / 2 - dz * 0.2,
       dx,
       dz,
@@ -547,7 +557,7 @@ export class DioramaRenderer {
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, n, 2, gl.RGBA, gl.FLOAT, data);
   }
 
-  _buildDynamic(game, time, ui) {
+  _buildDynamic(game, time, ui, bt) {
     const m = new Mesh();
     const g = new Mesh();
     const tiles = game.tiles;
@@ -611,28 +621,52 @@ export class DioramaRenderer {
       }
     }
 
-    // Battles: steel flashes at every edge where attackers stand, and the field itself flickers.
+    // Battles: steel flashes and dust at every edge where the two sides meet, arrows from a tower,
+    // and the field itself flickers. Everything runs on the clock of the rules (`bt`), so a battle
+    // stands still during the planning pause and slows down with the pace.
     for (const t of tiles) {
       if (!t.pools.length) continue;
       const y = t.height + this.anim[t.id].lift;
       for (const p of t.pools) {
         const pos = this.poolPosition(game, t, p);
         const c = PALETTE[game.factions[p.owner].color];
-        const ex = pos.x + pos.dx * 0.32;
-        const ez = pos.z + pos.dz * 0.32;
+        // The line where they clash: the shared edge of the two fields.
+        const ex = pos.x + pos.dx * 0.2;
+        const ez = pos.z + pos.dz * 0.2;
+        const ey = Math.max(y, pos.y);
         for (let i = 0; i < 3; i++) {
-          const k = (time * 2.6 + i / 3 + p.from * 0.37) % 1;
-          const side = (hash(p.from * 7 + i + Math.floor(time * 2.6 + i / 3)) - 0.5) * 0.5;
+          const k = (bt * 2.6 + i / 3 + p.from * 0.37) % 1;
+          const side = (hash(p.from * 7 + i + Math.floor(bt * 2.6 + i / 3)) - 0.5) * 0.5;
           const sx = ex - pos.dz * side;
           const sz = ez + pos.dx * side;
-          m.cyl(sx, Math.max(y, pos.y) + 0.22 + Math.sin(k * Math.PI) * 0.3, sz, 0.03 * (1 - k), 0, 0.07, 4, lin('#fff0b8'), 1.6);
+          m.cyl(sx, ey + 0.22 + Math.sin(k * Math.PI) * 0.3, sz, 0.03 * (1 - k), 0, 0.07, 4, lin('#fff0b8'), 1.6);
         }
-        const A = [ex - pos.dz * 0.42, Math.max(y, pos.y) + 0.035, ez + pos.dx * 0.42];
-        const B = [ex + pos.dz * 0.42, Math.max(y, pos.y) + 0.035, ez - pos.dx * 0.42];
+        for (let i = 0; i < 2; i++) {
+          // Dust kicked up by the fighting: low puffs that spread and settle.
+          const k = (bt * 1.2 + i * 0.5 + p.from * 0.21) % 1;
+          const side = (hash(p.from * 13 + i + Math.floor(bt * 1.2 + i * 0.5 + p.from * 0.21)) - 0.5) * 0.7;
+          const r = 0.05 + k * 0.1;
+          m.cyl(ex - pos.dz * side, ey + 0.015 + k * 0.1, ez + pos.dx * side, r, r * 0.55, 0.045 * (1 - k) + 0.008, 6, DUST, 0.12);
+        }
+        if (t.building === 'tower' && p.owner !== t.owner) {
+          // The tower shoots: arrows fly in a low arc from its top to the besiegers.
+          const tx = t.x + models.BUILD_AT.tower[0];
+          const tz = t.z + models.BUILD_AT.tower[1];
+          const ty = y + 0.78;
+          for (let i = 0; i < 2; i++) {
+            const k = (bt * 1.5 + i * 0.5 + p.from * 0.3) % 1;
+            const side = (hash(p.from * 3 + i + Math.floor(bt * 1.5 + i * 0.5 + p.from * 0.3)) - 0.5) * 0.4;
+            const hx = pos.x - pos.dz * side;
+            const hz = pos.z + pos.dx * side;
+            m.box(mix(tx, hx, k), mix(ty, pos.y + 0.16, k) + Math.sin(k * Math.PI) * 0.3, mix(tz, hz, k), 0.022, 0.022, 0.17, ARROW, Math.atan2(hx - tx, hz - tz), 0.5);
+          }
+        }
+        const A = [ex - pos.dz * 0.42, ey + 0.035, ez + pos.dx * 0.42];
+        const B = [ex + pos.dz * 0.42, ey + 0.035, ez - pos.dx * 0.42];
         m.beam(A, B, 0.07, scale3(c, 1.5), 1.2);
         g.beam(A, B, 0.3, c, 0);
       }
-      g.ring(t.x, y + 0.05, t.z, 0.78, 0.06 + 0.03 * Math.sin(time * 9 + t.id), lin('#ff8d7f'), 0, 18);
+      g.ring(t.x, y + 0.05, t.z, 0.78, 0.06 + 0.03 * Math.sin(bt * 9 + t.id), lin('#ff8d7f'), 0, 18);
     }
 
     // Capture rings and sparks.
@@ -683,13 +717,34 @@ export class DioramaRenderer {
       const count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
       const spots = keep ? KEEP_FRONT[count] : FORMATION[count];
       const c = scale3(PALETTE[game.factions[t.owner].color], 1.1);
+      const y = t.height + a.lift + 0.012;
+      const foes = t.pools.length ? t.pools.filter((p) => p.owner !== t.owner) : null;
       for (let i = 0; i < spots.length; i++) {
         const wobble = hash(t.id * 5 + i);
-        put(t.x + spots[i][0], t.height + a.lift + 0.012, t.z + spots[i][1], (wobble - 0.5) * 0.7, c, 1.0);
+        const size = i === spots.length - 1 ? figureScale(t.units, i) : 1;
+        let x = t.x + spots[i][0];
+        let z = t.z + spots[i][1];
+        let rot = (wobble - 0.5) * 0.7;
+        let hop = 0;
+        if (foes && foes.length) {
+          // Under attack the garrison leaves its ranks: every figure goes to one of the edges the
+          // attackers stand at, faces them and strikes out of step with them.
+          const p = foes[i % foes.length];
+          const pos = this.poolPosition(game, t, p);
+          const mates = Math.ceil((spots.length - (i % foes.length)) / foes.length);
+          const lane = (Math.floor(i / foes.length) - (mates - 1) / 2) * 0.21;
+          const strike = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from + 1.57)) * 0.08;
+          const k = smooth(clamp((time - p.since) / 0.45, 0, 1));
+          x = mix(x, pos.x + pos.dx * (0.42 - strike) - pos.dz * lane, k);
+          z = mix(z, pos.z + pos.dz * (0.42 - strike) + pos.dx * lane, k);
+          rot = mix(rot, pos.angle + Math.PI, k);
+          hop = Math.abs(Math.sin(time * 14 + i * 1.7 + p.from)) * 0.03 * k;
+        }
+        put(x, y + hop, z, rot, c, size);
       }
     }
 
-    // Besiegers: a short line at the edge, pushing against the field.
+    // Besiegers: a line at the edge, striking at the defenders who have come to meet them.
     for (const t of game.tiles) {
       for (const p of t.pools) {
         const pos = this.poolPosition(game, t, p);
@@ -699,7 +754,9 @@ export class DioramaRenderer {
           const lane = (i - (count - 1) / 2) * 0.2;
           const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
-          put(pos.x - pos.dz * lane + pos.dx * push, pos.y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, 1.08);
+          // The last figure of a pool shrinks as the pool is worn down.
+          const size = i === count - 1 ? 1.08 * clamp(0.55 + (p.units - (count - 1) * 6) / 6, 0.55, 1) : 1.08;
+          put(pos.x - pos.dz * lane + pos.dx * push, pos.y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, size);
         }
       }
     }
@@ -761,8 +818,10 @@ export class DioramaRenderer {
     this.vpNow = matmul(ortho(f.cx - f.halfW + sx, f.cx + f.halfW + sx, f.cy - f.halfH + sy, f.cy + f.halfH + sy, 0.1, 100), this.view);
 
     this._animate(game, time, dt, ui);
-    this._buildDynamic(game, time, ui);
-    this._buildSoldiers(game, time);
+    // Clock of the rules, smooth between two steps: it stands still while the match is paused.
+    const bt = game.time + game.acc;
+    this._buildDynamic(game, time, ui, bt);
+    this._buildSoldiers(game, bt);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.tileTexture);
