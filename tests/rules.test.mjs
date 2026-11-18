@@ -172,3 +172,21 @@ test('the same seed gives the same match', () => {
   };
   assert.equal(play(), play());
 });
+
+test('during the tutorial truce the rival leaves the player and the practice fort alone', () => {
+  const mission = CAMPAIGN.find((m) => m.id === 'm1');
+  const game = new Game({ mission, human: 0 });
+  const fort = game.tiles.find((t) => t.owner < 0 && t.terrain === 'hill' && game.flankers(0, t.id).length >= 2);
+  assert.ok(fort, 'mission 1 has a fort next to two of the player\'s starting fields');
+  game.truce = true;
+  game.reserved = new Set([fort.id]);
+  let attacked = 0;
+  for (let i = 0; i < 1500; i++) {
+    game.step(0.1);
+    for (const e of game.drainEvents()) if (e.type === 'siege' && (e.defender === 0 || e.tile === fort.id)) attacked++;
+  }
+  assert.equal(attacked, 0);
+  assert.equal(game.humanStats.lost, 0);
+  assert.equal(fort.owner, -1);
+  assert.ok(game.stats().factions[1].tiles > 7, 'the rival still grows on its own side');
+});

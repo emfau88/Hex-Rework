@@ -119,6 +119,10 @@ export function aiThink(game, f) {
   for (const e of targets.values()) {
     const o = e.tile;
     if (o.castle >= 0 && game.time < P.rushAfter) continue; // the opening belongs to expansion, not to castle rushes
+    // While the first mission still explains the basics, the rival leaves the player alone:
+    // no attack on the player's fields, on free land close to the player's castle or on the practice fort.
+    if (game.reserved && game.reserved.has(o.id)) continue;
+    if (game.truce && (o.owner === game.human || (o.owner < 0 && toCastle[o.id] >= 0 && toCastle[o.id] <= 3))) continue;
     const sources = e.sources
       .map((s) => ({ s, n: spare(s) }))
       .filter((x) => x.n >= 2)

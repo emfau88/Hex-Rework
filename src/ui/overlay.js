@@ -120,6 +120,7 @@ export class Overlay {
       }
     }
 
+    if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
@@ -243,6 +244,37 @@ export class Overlay {
     ctx.lineTo(ui.pointer.x, ui.pointer.y);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  /** First mission: the field the current step is about pulses; with `taps` it says how often to tap it. */
+  _mark(ctx, game, renderer, mark, time, hexPx, fs) {
+    const t = game.tiles[mark.tile];
+    const p = renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z);
+    const color = mark.ready === false ? '#9fb0b3' : '#fff3c4';
+    for (let i = 0; i < 2; i++) {
+      const k = (time * 0.9 + i * 0.5) % 1;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, hexPx * (0.3 + k * 0.28), hexPx * (0.3 + k * 0.28) * 0.72, 0, 0, Math.PI * 2);
+      ctx.globalAlpha = (1 - k) * 0.9;
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    if (!mark.taps) return;
+    const text = i18n.t('tapTwice');
+    ctx.font = `800 ${fs + 1}px ${FONT}`;
+    const w = ctx.measureText(text).width + 18;
+    const h = fs + 11;
+    const y = p.y - hexPx * 0.62 - 6 * Math.abs(Math.sin(time * 3));
+    pill(ctx, p.x, y, w, h);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(6, 20, 27, 0.8)';
+    ctx.stroke();
+    ctx.fillStyle = '#06141b';
+    ctx.fillText(text, p.x, y + 0.5);
   }
 
   /** First mission: a looping finger shows the drag gesture. */

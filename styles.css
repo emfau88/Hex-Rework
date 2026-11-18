@@ -357,6 +357,24 @@ canvas {
   opacity: 1;
 }
 
+#hint .step {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--gold-ink);
+  font-size: 12px;
+  font-weight: 900;
+  vertical-align: 1px;
+}
+
+#hint.ok {
+  border-color: #8fe3a0;
+  color: #b8f2c4;
+  font-weight: 800;
+}
+
 /* --------------------------------------------------------------- sheets */
 
 .sheet {

@@ -39,6 +39,7 @@ class App {
       sendFraction: this.store.sendFraction,
       showNumbers: false,
       tutorialPath: null,
+      tutorialMark: null,
     };
     this.mode = 'menu';
     this.mission = null;
@@ -92,6 +93,7 @@ class App {
     this.ui.human = -1;
     this.ui.assault = null;
     this.ui.tutorialPath = null;
+    this.ui.tutorialMark = null;
     this.game = new Game({ mission: ATTRACT, seed: (Math.random() * 1e9) | 0, difficulty: 'hard', human: -1, wide: this.wide() });
     this.setHint('');
     this.setMode('menu');
@@ -135,11 +137,13 @@ class App {
     this.ui.assault = null;
     this.alarmAt = -100;
     this.holdWarnAt = -100;
-    this.tutorial = mission.tutorial ? { step: 0, at: 0 } : null;
     this.ui.tutorialPath = null;
+    this.ui.tutorialMark = null;
+    // The guided first steps run until the mission has been won once.
+    this.tutorial = mission.tutorial && !this.store.done[mission.id] ? this.prepareTutorial() : null;
     this.setMode('play');
     this.updateHud(true);
-    if (this.tutorial) this.setHint(i18n.t('hint0'));
+    if (this.tutorial) this.setHint('');
     else if (mission.lesson) {
       // The new rule of the mission stays on screen for the opening.
       this.setHint(i18n.pick(mission.lesson));
@@ -443,10 +447,21 @@ class App {
     this.bannerTimer = setTimeout(() => el.classList.remove('show'), ms);
   }
 
-  setHint(text) {
+  /** Hint line above the bottom bar. With `step` it carries a small counter such as "2/4". */
+  setHint(text, step) {
     const el = $('#hint');
-    if (text) el.textContent = text;
+    if (text) {
+      el.textContent = '';
+      if (step) {
+        const chip = document.createElement('b');
+        chip.className = 'step';
+        chip.textContent = step;
+        el.append(chip);
+      }
+      el.append(text);
+    }
     el.classList.toggle('show', Boolean(text));
+    el.classList.toggle('ok', false);
   }
 
   /** The mission goal with its progress, always visible under the share bar. */
@@ -546,45 +561,108 @@ class App {
 
   // --------------------------------------------------------------- tutorial
 
-  /** Mission 1 teaches one thing after the other; a step also moves on by itself after a while. */
-  runTutorial() {
+  /**
+   * Mission 1, first playthrough: four short steps, one sentence each.
+   *   1 send troops   2 spread out   3 attack from several sides   4 take the castle
+   * Until step 4 the rival keeps the peace, so nothing disturbs the lesson.
+   */
+  prepareTutorial() {
+    const game = this.game;
+    // Practice target for step 3: a free hill fort that touches at least two of the player's fields.
+    let fort = -1;
+    for (const t of game.tiles) {
+      if (t.owner >= 0 || t.terrain !== 'hill') continue;
+      if (game.flankers(0, t.id).length >= 2 && (fort < 0 || t.units < game.tiles[fort].units)) fort = t.id;
+    }
+    game.truce = true;
+    game.reserved = fort >= 0 ? new Set([fort]) : null;
+    return { step: 0, text: null, fort, target: null, flashUntil: 0, until: 0 };
+  }
+
+  /** Step 1: a free field next to the player's land that half the castle garrison can take. */
+  tutorialTarget() {
+    const game = this.game;
+    const tut = this.tutorial;
+    if (tut.target && game.tiles[tut.target[tut.target.length - 1]].owner < 0) return tut.target;
+    tut.target = null;
+    const castle = game.factions[0].castle;
+    const amount = game.sendAmount(castle, this.ui.sendFraction);
+    for (const id of game.reachable(0, castle)) {
+      const t = game.tiles[id];
+      if (t.owner >= 0 || t.terrain === 'hill' || t.terrain === 'citadel') continue;
+      const path = game.findPath(0, castle, id);
+      const fc = game.forecast(id, [{ owner: 0, from: path[path.length - 2], units: amount }]);
+      if (!fc.holds) {
+        tut.target = path;
+        break;
+      }
+    }
+    return tut.target;
+  }
+
+  runTutorial(now) {
     const game = this.game;
     const tut = this.tutorial;
     const ui = this.ui;
-    if (this.mode !== 'play' || game.phase !== 'running') {
-      ui.tutorialPath = null;
-      return;
-    }
-    const advance = (step) => {
-      tut.step = step;
-      tut.at = game.time;
-      this.setHint(i18n.t(`hint${step}`));
-    };
-    const waited = game.time - tut.at;
-    const stats = game.humanStats;
-    if (tut.step === 0) {
-      if (stats.sent > 0) advance(1);
-      else if (!ui.tutorialPath && !ui.dragging && ui.selected < 0) {
-        // Show the gesture: from the castle through own land to a free field the attack can take.
-        const castle = game.factions[0].castle;
-        const amount = game.sendAmount(castle, ui.sendFraction);
-        for (const id of game.reachable(0, castle)) {
-          if (game.tiles[id].owner >= 0) continue;
-          const path = game.findPath(0, castle, id);
-          const fc = game.forecast(id, [{ owner: 0, from: path[path.length - 2], units: amount }]);
-          if (!fc.holds) {
-            ui.tutorialPath = path;
-            break;
-          }
-        }
-      } else if (ui.dragging || ui.selected >= 0) ui.tutorialPath = null;
-      return;
-    }
     ui.tutorialPath = null;
-    const tiles = game.stats().factions[0].tiles;
-    if (tut.step === 1 && (tiles >= 12 || waited > 40)) advance(2);
-    else if (tut.step === 2 && (stats.flanked > 0 || waited > 70)) advance(3);
-    else if (tut.step === 3 && (stats.built > 0 || waited > 30)) advance(4);
+    ui.tutorialMark = null;
+    if (this.mode !== 'play' || game.phase !== 'running') return;
+    if (now < tut.flashUntil) return; // "✓ Good!" stays for a moment
+    const stats = game.humanStats;
+
+    const say = (key, vars) => {
+      const text = i18n.t(key, vars);
+      if (tut.text === text) return;
+      tut.text = text;
+      this.setHint(text, `${tut.step + 1}/4`);
+    };
+    const done = () => {
+      tut.step++;
+      tut.text = null;
+      tut.flashUntil = now + 0.9;
+      this.sfx.play('build');
+      this.setHint(i18n.t('tutDone'));
+      $('#hint').classList.add('ok');
+    };
+
+    if (tut.step === 0) {
+      if (stats.captured >= 1) return done();
+      say('tut0');
+      // Show the gesture while the player is not already doing it and no troops are on their way.
+      const path = this.tutorialTarget();
+      if (path && !ui.dragging && ui.selected < 0 && !game.armies.some((a) => a.owner === 0)) {
+        ui.tutorialPath = path;
+        ui.tutorialMark = { tile: path[path.length - 1] };
+      }
+    } else if (tut.step === 1) {
+      const n = Math.min(2, stats.captured - 1);
+      if (n >= 2) return done();
+      say('tut1', { n });
+    } else if (tut.step === 2) {
+      const fort = tut.fort >= 0 ? game.tiles[tut.fort] : null;
+      // Done once the fort is the player's; an earlier two-sided attack elsewhere does not count,
+      // because this step is about the double tap.
+      if (!fort || fort.owner === 0) {
+        game.truce = false;
+        game.reserved = null;
+        return done();
+      }
+      const extra = [];
+      for (const id of game.flankers(0, fort.id)) {
+        const units = game.sendAmount(id, ui.sendFraction);
+        if (units >= 1) extra.push({ owner: 0, from: id, units });
+      }
+      const ready = fort.pools.length > 0 || (extra.length >= 2 && !game.forecast(fort.id, extra).holds);
+      say(ready ? 'tut2' : 'tut2wait');
+      ui.tutorialMark = { tile: fort.id, taps: ready, ready };
+    } else {
+      say('tut3', { name: game.factions[1].name });
+      if (!tut.until) tut.until = game.time + 25;
+      else if (game.time > tut.until) {
+        this.setHint('');
+        this.tutorial = null;
+      }
+    }
   }
 
   fatal(err) {

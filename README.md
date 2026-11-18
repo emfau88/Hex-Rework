@@ -46,6 +46,9 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
 | 2 | Die zwei Pässe | Burg erobern | Türme, Abschneiden eines Vorpostens |
 | 3 | Drei Reiche | Zitadelle 60 Sekunden halten oder beide Burgen erobern | Zwei Rivalen, Kronenregel |
 
+Mission 1 führt beim ersten Durchspielen in vier kurzen Schritten durch die Bedienung. Bis zum letzten Schritt
+hält der Gegner still.
+
 Dazu „Gefecht“: eine Zufallskarte mit vier Reichen. Sie ist noch nicht auf die neuen Regeln abgestimmt.
 
 ## Prüfen ohne Browser

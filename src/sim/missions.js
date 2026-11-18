@@ -13,8 +13,8 @@ export const CAMPAIGN = [
     name: { de: 'Erste Krone', en: 'First Crown' },
     blurb: { de: 'Duell · Einführung', en: 'Duel · tutorial' },
     brief: {
-      de: 'Eine kleine Insel, ein Rivale. Breite dich aus, nimm die Hügelfestungen in der Mitte und hole dir seine Krone.',
-      en: 'A small island and one rival. Spread out, take the hill forts in the middle and claim his crown.',
+      de: 'Eine kleine Insel, ein Rivale. Vier kurze Schritte zeigen dir das Wichtigste, dann holst du dir seine Krone.',
+      en: 'A small island and one rival. Four short steps show you the essentials, then you claim his crown.',
     },
     lesson: {
       de: 'Ein Feld versorgt 20 Truppen. Starke Felder fallen, wenn du sie von mehreren Seiten zugleich angreifst.',
@@ -27,10 +27,13 @@ export const CAMPAIGN = [
     aiDelay: 8,
     // A patient teacher: slow, never storms the player's castle early, and does not answer every siege.
     ai: { think: 2.2, margin: 1.4, sides: 2, reinforce: 2, frontKeep: 5, rushAfter: 240, incomeMul: 0.9 },
+    // Fuller fields around the castle, so the first combined attack works right away.
+    rules: { startRing: 10 },
+    // The small forts (h:9) next to each castle touch two starting fields: the tutorial's practice target.
     layout: [
       'm  m  .  .  f  m  f  .  .  m  m',
       '  m  .  .  .  .  .  .  .  .  m',
-      'w  .  .  .  f  h:16 f  .  .  .  w',
+      'w  .  .  h:9 f  h:16 f  h:9 .  .  w',
       '  .  K0 .  .  .  .  .  .  K1 .',
       'w  .  .  .  f  h:16 f  .  .  .  w',
       '  m  .  .  .  .  .  .  .  .  m',

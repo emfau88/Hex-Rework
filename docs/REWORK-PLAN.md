@@ -187,11 +187,12 @@ Gemessen mit `node tools/simulate.mjs 60` (60 Partien je Karte und Stärke, Brei
 
 | Mission | Leicht | Normal | Schwer |
 |---|---|---|---|
-| 1 · Erste Krone | 53 von 60 Siegen, 3:38 | 59 von 60, 3:18 | 58 von 60, 3:10 |
+| 1 · Erste Krone | 55 von 60 Siegen, 3:19 | 57 von 60, 3:09 | 60 von 60, 3:09 |
 | 2 · Die zwei Pässe | 60 von 60, 5:13 | 60 von 60, 5:56 | 40 von 60, 8:48 |
 | 3 · Drei Reiche | 59 von 60, 4:28 | 60 von 60, 4:42 | 60 von 60, 6:08 |
 
-Mission 1 ist die Einführung; ihr Gegner verhält sich auf allen Stärken gleich.
+Mission 1 ist die Einführung; ihr Gegner verhält sich auf allen Stärken gleich. Die Werte gelten ohne die
+geführten Schritte, die den Gegner anfangs stillhalten lassen.
 
 **Stapel-Bot** (alles auf ein Feld, geradeaus zur Burg): 0 von 60 Siegen auf jeder Karte und jeder Stärke.
 Im Prototyp 0.1 waren es 13 bis 23 von 40 Duellen.
@@ -226,3 +227,35 @@ Im Prototyp 0.1 waren es 13 bis 23 von 40 Duellen.
 - **Viele Zahlen im Bild**, sobald an mehreren Feldern gekämpft wird.
 - **Der Computer schneidet nur zufällig ab.** Er bewertet Felder höher, deren Fall andere abtrennt, plant
   das Abschneiden aber nicht über mehrere Züge.
+
+## 8 · Einführung in Mission 1
+
+Beim ersten Durchspielen führen vier Schritte durch die Mission, je ein Satz mit Markierung im Bild:
+
+| Schritt | Text | Geschafft, wenn |
+|---|---|---|
+| 1/4 | Ziehe von deiner Burg auf das markierte Feld. | das erste Feld erobert ist |
+| 2/4 | Nimm zwei weitere Felder (0/2). Jedes Feld liefert Truppen. | zwei weitere Felder erobert sind |
+| 3/4 | Die Festung ist für ein Feld allein zu stark. Tippe sie zweimal an: Alle Nachbarn greifen zugleich an. | die kleine Festung neben der Burg erobert ist |
+| 4/4 | Jetzt die Burg von EMBER: erst die Felder ringsum nehmen, dann von allen Seiten stürmen. | blendet nach 25 Sekunden aus |
+
+Bis Schritt 4 hält der Gegner still: Er greift keine Felder des Spielers an und lässt das freie Land nahe der
+Spielerburg sowie die Übungsfestung in Ruhe. Ist die Mission einmal gewonnen, entfällt die Führung.
+Geprüft im Browser mit nachgestellten Klicks durch alle vier Schritte.
+
+## 9 · Was konkret nachgebessert werden muss
+
+Nach Wirkung sortiert. Punkt 1 bis 5 und 9 lassen sich mit Messläufen erledigen, 6 und 7 sind größere
+Arbeiten, 8 braucht dich.
+
+| Nr. | Was | Woran man „fertig“ erkennt |
+|---|---|---|
+| 1 | **Mission 2 auf „Schwer“ entschärfen.** Die Pässe begünstigen den Verteidiger zu stark. Einen dritten Durchgang öffnen oder den Startvorsprung des Gegners senken. | Testspieler gewinnt mindestens 50 von 60 Partien in unter 7 Minuten |
+| 2 | **Mission 3 anziehen.** Die Rivalen reiben sich gegenseitig auf. Karte so umbauen, dass beide zuerst auf die Zitadelle und den Spieler treffen. | Ohne Mensch gewinnt der Platz des Spielers nicht öfter als die anderen |
+| 3 | **Gegner setzt nach.** Nach einem Durchbruch nachrücken und gezielt abschneiden, damit gleich starke Gegner sich nicht festfahren. | Höchstens 3 von 60 Partien ohne Sieger nach 15 Minuten |
+| 4 | **Zufallskarte anpassen** oder vorerst aus dem Menü nehmen. Größeres Duell, faire Startplätze. | Kein Startplatz gewinnt mehr als doppelt so oft wie ein anderer |
+| 5 | **Weniger Zahlen im Bild.** Belagerer je Feld zu einer Zahl zusammenfassen, fremde Kämpfe ohne Zahl. | Auf Mission 3 ist jede Zahl ohne Überdeckung lesbar |
+| 6 | **Kampf deutlicher zeigen.** Mauerstücke an der Burg je gehaltenem Nachbarfeld, Soldaten treffen aufeinander, Anzeige für volle Felder. | Ein Zuschauer erkennt ohne Erklärung, wer wo angreift |
+| 7 | **PC-Bedienung.** Mausrad-Zoom, Verschieben, Tastenkürzel für Sturm und Bauen. | Eine Partie lässt sich ohne Blick auf die Leisten spielen |
+| 8 | **Ton, echtes Handy, Safari prüfen.** | Du hast es gehört und am Handy gespielt |
+| 9 | **Geführte Schritte auch für Mission 2 und 3** (Abschneiden, Zitadelle), im Stil von Mission 1. | Jede neue Regel wird einmal im Bild gezeigt |
