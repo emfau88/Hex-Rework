@@ -3,7 +3,6 @@
 
 import { TAU, lin, scale3, normalize } from './glutil.js';
 import { hash } from '../sim/rng.js';
-import { MAP_ANGLE } from '../sim/maps.js';
 
 export const PALETTE = ['#28b3f3', '#ee594d', '#76c954', '#e7bb3c'].map(lin);
 export const PALETTE_HEX = ['#36bfff', '#ff665c', '#77d864', '#f4c24e'];
@@ -43,6 +42,11 @@ const BANK_SAND = lin('#c9b98c');
 const BANK_SCREE = lin('#76857b');
 const BANK_EARTH = lin('#6f8561');
 
+// Beyond the rim of the island lies open water. Rim fields slope down to it like to any water field.
+export const SEA_LEVEL = 0.085;
+export const SEA = Object.freeze({ height: 0.1, terrain: 'water' });
+const SEA_COLOR = scale3(lin('#2d7da3'), 0.84);
+
 /** How far into the higher field a bank reaches for a step of this height. */
 export function bankRun(rise) {
   return Math.min(0.26, Math.max(0.16, rise));
@@ -75,7 +79,7 @@ export function tileBase(m, t, seed, rot = 0, tiles = null) {
   const rimY = [];
   const lower = [];
   for (let i = 0; i < 6; i++) {
-    const o = tiles && t.nb[i] >= 0 ? tiles[t.nb[i]] : null;
+    const o = tiles ? (t.nb[i] >= 0 ? tiles[t.nb[i]] : SEA) : null;
     const rise = o ? h - o.height : 0;
     const bank = rise >= BANK_MIN;
     lower.push(bank ? o : null);
@@ -356,41 +360,50 @@ export function scenery(m, t, seed, tiles = null, rot = 0) {
   }
 }
 
-/** Quiet table under the island, aligned with the camera like the island itself. */
-export function table(m, map) {
-  const ca = Math.cos(MAP_ANGLE);
-  const sa = Math.sin(MAP_ANGLE);
-  const P = (u, y, v) => [u * ca + v * sa, y, -u * sa + v * ca];
-  const octagon = (hu, hv, cut) => [[-hu, -hv + cut], [-hu + cut, -hv], [hu - cut, -hv], [hu, -hv + cut], [hu, hv - cut], [hu - cut, hv], [-hu + cut, hv], [-hu, hv - cut]];
-  const prism = (shape, base, top, surface, rim) => {
-    for (let i = 0; i < shape.length; i++) {
-      const a = shape[i];
-      const c = shape[(i + 1) % shape.length];
-      m.tri(P(0, top, 0), P(a[0], top, a[1]), P(c[0], top, c[1]), surface, 0, UP);
-      m.quad(P(a[0], top, a[1]), P(a[0], base, a[1]), P(c[0], base, c[1]), P(c[0], top, c[1]), rim);
-    }
-  };
-  const y = -1.79;
-  m.quad([-120, -2.18, -120], [-120, -2.18, 120], [120, -2.18, 120], [120, -2.18, -120], lin('#102d39'), 0, UP);
-  const hu = map.halfU + 4.2;
-  const hv = map.halfV + 4.2;
-  const outer = octagon(hu, hv, 1.8);
-  prism(outer, y - 0.18, y, lin('#13303b'), lin('#1d3e48'));
-  for (let i = 0; i < outer.length; i++) {
-    const a = outer[i];
-    const c = outer[(i + 1) % outer.length];
-    m.beam(P(a[0] * 0.985, y + 0.006, a[1] * 0.985), P(c[0] * 0.985, y + 0.006, c[1] * 0.985), 0.026, lin('#35565e'), 0.04);
+/**
+ * The sea around the island: open water as far as the haze reaches, and a few skerries off the
+ * coast. It replaces the empty table the island used to stand on.
+ */
+export function sea(m, tiles, seed) {
+  const far = 120;
+  m.quad([-far, SEA_LEVEL, -far], [-far, SEA_LEVEL, far], [far, SEA_LEVEL, far], [far, SEA_LEVEL, -far], SEA_COLOR, 5, UP);
+  let placed = 0;
+  for (let i = 0; i < 120 && placed < 14; i++) {
+    const a = hash(seed * 3 + i * 7) * TAU;
+    const r = 4 + hash(seed * 5 + i * 11) * 15;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    let near = Infinity;
+    for (const t of tiles) near = Math.min(near, Math.hypot(t.x - x, t.z - z));
+    if (near < 1.6 || near > 4.4) continue;
+    const size = 0.16 + hash(seed + i * 13) * 0.3;
+    rock(m, x, SEA_LEVEL - 0.02, z, size, seed + i * 17, false);
+    if (hash(seed + i * 19) > 0.45) rock(m, x + 0.25 + size, SEA_LEVEL - 0.02, z + 0.2, size * 0.55, seed + i * 23, false);
+    placed++;
   }
-  const engraving = lin('#1c3b45');
-  for (let u = Math.ceil((-hu + 1) / 3) * 3; u <= hu - 1; u += 3) m.beam(P(u, y + 0.003, -hv + 1), P(u, y + 0.003, hv - 1), 0.012, engraving);
-  for (let v = Math.ceil((-hv + 1) / 3) * 3; v <= hv - 1; v += 3) m.beam(P(-hu + 1, y + 0.004, v), P(hu - 1, y + 0.004, v), 0.012, engraving);
-  const mount = octagon(map.halfU + 0.9, map.halfV + 0.9, 0.9);
-  prism(mount, y + 0.008, y + 0.225, lin('#172e39'), lin('#18313d'));
-  const line = octagon(map.halfU + 0.74, map.halfV + 0.74, 0.86);
-  for (let i = 0; i < line.length; i++) {
-    const a = line[i];
-    const c = line[(i + 1) % line.length];
-    m.beam(P(a[0], y + 0.237, a[1]), P(c[0], y + 0.237, c[1]), 0.022, lin('#355760'), 0.04);
+}
+
+/**
+ * A stretch of castle wall along one edge of the castle's field, seen from the field's centre in
+ * the direction `angle`. `up` runs from 1 (standing) to 0 (fallen, only rubble is left).
+ */
+export function castleWall(m, x, y, z, angle, up, seed) {
+  const nx = Math.cos(angle);
+  const nz = Math.sin(angle);
+  const cx = x + nx * 0.775;
+  const cz = z + nz * 0.775;
+  const rot = -angle - Math.PI / 2; // the long side lies along the edge
+  if (up > 0.02) {
+    m.box(cx, y, cz, 0.74, 0.17 * up, 0.07, STONE_MID, rot);
+    for (const s of [-0.27, 0, 0.27]) m.box(cx - nz * s, y + 0.17 * up, cz + nx * s, 0.14, 0.06 * up, 0.08, STONE, rot);
+  }
+  if (up < 0.98) {
+    const k = 1 - up;
+    for (let i = 0; i < 5; i++) {
+      const s = (hash(seed + i) - 0.5) * 0.72;
+      const o = (hash(seed + i + 9) - 0.5) * 0.16;
+      m.box(cx - nz * s + nx * o, y, cz + nx * s + nz * o, 0.08 + hash(seed + i + 3) * 0.07, (0.03 + hash(seed + i + 5) * 0.05) * k, 0.08, i % 2 ? STONE_DARK : STONE_MID, hash(seed + i + 7) * 3);
+    }
   }
 }
 

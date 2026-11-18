@@ -28,11 +28,15 @@ function bench() {
     setPointerCapture() {},
   };
   const clock = { ms: 0 };
-  const log = { assaults: [], orders: [] };
+  const log = { assaults: [], orders: [], zooms: [], pans: [] };
   const app = {
     game,
     ui: { selected: -1, hover: -1, targets: null, dragPath: null, dragging: false, pointer: null, assault: null, human: 0, sendFraction: 1 },
-    renderer: { pick: (x) => (x >= 0 ? x : -1) },
+    renderer: {
+      pick: (x) => (x >= 0 ? x : -1),
+      zoomAt: (x, y, factor) => log.zooms.push([x, y, factor]),
+      panBy: (dx, dy) => log.pans.push([dx, dy]),
+    },
     sfx: { unlock() {} },
     canCommand: () => true,
     select(id) {
@@ -170,4 +174,58 @@ test('a tap on a rival field without own neighbours neither previews nor arms', 
   b.tap(far.id);
   assert.deepEqual(b.log.assaults, []);
   assert.equal(b.app.ui.assault, null);
+});
+
+test('the mouse wheel zooms at the pointer', () => {
+  const b = bench();
+  b.fire('wheel', 37, { deltaY: -100 });
+  assert.equal(b.log.zooms.length, 1);
+  assert.equal(b.log.zooms[0][0], 37);
+  assert.ok(b.log.zooms[0][2] > 1, 'wheel up zooms in');
+  b.fire('wheel', 37, { deltaY: 100 });
+  assert.ok(b.log.zooms[1][2] < 1, 'wheel down zooms out');
+});
+
+test('dragging empty or foreign ground moves the map and gives no order', () => {
+  for (const start of ['empty', 'foreign']) {
+    const b = bench();
+    const x = start === 'empty' ? -500 : b.target;
+    b.fire('pointerdown', x);
+    b.fire('pointermove', x + 30);
+    b.fire('pointermove', x + 55);
+    b.fire('pointerup', x + 55);
+    assert.deepEqual(b.log.pans.map((p) => p[0]), [0, 25], `${start}: the map follows the finger once the drag has begun`);
+    assert.deepEqual(b.log.orders, []);
+    assert.deepEqual(b.log.assaults, []);
+    assert.equal(b.app.ui.assault, null);
+  }
+});
+
+test('dragging from an own field still gives an order and does not move the map', () => {
+  const b = bench();
+  b.fire('pointerdown', b.left);
+  b.fire('pointermove', 1000); // far enough to count as a drag (positions here are field numbers)
+  b.fire('pointermove', b.target);
+  b.fire('pointerup', b.target);
+  assert.deepEqual(b.log.orders, [[b.left, b.target]]);
+  assert.deepEqual(b.log.pans, []);
+});
+
+test('two fingers zoom and move the map and can never send troops', () => {
+  const b = bench();
+  const one = { pointerType: 'touch', pointerId: 1, isPrimary: true };
+  const two = { pointerType: 'touch', pointerId: 2, isPrimary: false };
+  b.tap(b.target, one); // armed: a second tap would send
+  b.fire('pointerdown', b.target, one);
+  b.fire('pointerdown', b.target + 100, two);
+  b.fire('pointermove', b.target + 200, two); // the fingers move apart
+  assert.equal(b.log.zooms.length, 1);
+  assert.ok(Math.abs(b.log.zooms[0][2] - 2) < 1e-9, 'twice the distance, twice the size');
+  b.fire('pointerup', b.target + 200, two);
+  b.fire('pointerup', b.target, one);
+  assert.deepEqual(b.log.assaults, [], 'lifting the fingers sends nothing');
+  b.tap(b.target, one);
+  assert.deepEqual(b.log.assaults, [], 'and the attack is no longer armed');
+  b.tap(b.target, one);
+  assert.deepEqual(b.log.assaults, [b.target]);
 });

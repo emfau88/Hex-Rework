@@ -165,6 +165,27 @@ export class Overlay {
     }
     this.stats = { plates: plates.length, covered };
 
+    // Refused orders: the reason floats up from the field for a moment.
+    for (const n of ui.notices || []) {
+      const t = game.tiles[n.tile];
+      const k = Math.min(1, Math.max(0, (time - n.at) / 1.8));
+      const p = renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z);
+      ctx.font = `800 ${fs}px ${FONT}`;
+      const w = ctx.measureText(n.text).width + 18;
+      const h = fs + 10;
+      const y = p.y - 26 - k * 16;
+      ctx.globalAlpha = k < 0.75 ? 1 : (1 - k) * 4;
+      pill(ctx, p.x, y, w, h);
+      ctx.fillStyle = 'rgba(40, 12, 10, 0.94)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ff9a8c';
+      ctx.stroke();
+      ctx.fillStyle = '#ffd3cc';
+      ctx.fillText(n.text, p.x, y + 0.5);
+      ctx.globalAlpha = 1;
+    }
+
     if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);

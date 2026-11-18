@@ -194,6 +194,23 @@ export class Game {
     return fraction >= 1 ? avail - 1 : Math.floor(avail * fraction);
   }
 
+  /**
+   * Why a send in the given mode would not be carried out, or null if it would:
+   *   'troops'  the field has nobody to spare (one always stays behind)
+   *   'path'    no way through own land to the target
+   *   'full'    the own target field can feed no more troops
+   * The interface uses it to tell the player why an order was refused.
+   */
+  sendProblem(owner, from, to, fraction) {
+    const src = this.tiles[from];
+    const dst = this.tiles[to];
+    if (!src || !dst || src.owner !== owner) return 'path';
+    if (this.sendAmount(from, fraction) < 1) return 'troops';
+    if (!this.findPath(owner, from, to)) return 'path';
+    if (dst.owner === owner && this.room(to, owner) < 1) return 'full';
+    return null;
+  }
+
   /** Own fields that touch `target` and could join a combined attack on it. */
   flankers(owner, target) {
     const t = this.tiles[target];

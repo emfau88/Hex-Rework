@@ -195,3 +195,23 @@ test('generated islands give every kingdom exactly the same land', () => {
     }
   }
 });
+
+test('the game can say why an order would be refused', () => {
+  const game = lab();
+  const a = at(game, 1, 0); // next to the castle of kingdom 0
+  const b = at(game, 2, 0);
+  const far = at(game, 3, 2);
+  give(game, a, 0, 1);
+  give(game, b, 0, 30);
+  give(game, far, 1, 5);
+  assert.equal(game.sendProblem(0, a.id, b.id, 1), 'troops', 'one troop always stays behind');
+  assert.equal(game.send(0, a.id, b.id, 1), null);
+  a.units = 10;
+  assert.equal(game.sendProblem(0, a.id, b.id, 0.5), 'full', 'the target feeds no more troops');
+  assert.equal(game.send(0, a.id, b.id, 0.5), null);
+  assert.equal(game.sendProblem(0, a.id, far.id, 1), 'path', 'the target touches no own field');
+  assert.equal(game.send(0, a.id, far.id, 1), null);
+  b.units = 12;
+  assert.equal(game.sendProblem(0, a.id, b.id, 0.5), null);
+  assert.ok(game.send(0, a.id, b.id, 0.5), 'and an order without a problem is carried out');
+});

@@ -42,6 +42,7 @@ class App {
       human: -1,
       sendFraction: this.store.sendFraction,
       pace: 1,
+      notices: [], // short messages at a field, such as the reason an order was refused: { tile, text, at }
       showNumbers: false,
       tutorialPath: null,
       tutorialMark: null,
@@ -276,6 +277,7 @@ class App {
     });
 
     const again = () => this.startMission(this.mission, this.mission.random ? this.seed : undefined);
+    $('#btn-view').addEventListener('click', () => this.renderer.resetView());
     $('#btn-pause').addEventListener('click', () => this.togglePause());
     $('#btn-continue').addEventListener('click', () => this.setMode('play'));
     $('#btn-options').addEventListener('click', () => this.setMode('options'));
@@ -326,6 +328,8 @@ class App {
       } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause' || this.mode === 'options')) {
         e.preventDefault();
         this.togglePause();
+      } else if (e.key === '0' || e.key === 'Home') {
+        this.renderer.resetView(); // back to the whole island
       } else if (e.key === '1' || e.key === '2') {
         this.input.disarm();
         this.ui.sendFraction = this.store.sendFraction = e.key === '1' ? 0.5 : 1;
@@ -372,7 +376,9 @@ class App {
 
   order(from, to) {
     if (from < 0 || to < 0) return;
-    this.game.send(this.ui.human, from, to, this.ui.sendFraction);
+    const problem = this.game.sendProblem(this.ui.human, from, to, this.ui.sendFraction);
+    if (problem) this.refuse(from, problem);
+    else this.game.send(this.ui.human, from, to, this.ui.sendFraction);
     this.select(-1);
   }
 
@@ -380,7 +386,15 @@ class App {
   assault(target) {
     if (!this.canCommand() || target < 0) return;
     this.select(-1);
-    this.game.assault(this.ui.human, target, this.ui.sendFraction);
+    // Refused only if not a single neighbour has troops to spare.
+    if (!this.game.assault(this.ui.human, target, this.ui.sendFraction)) this.refuse(target, 'troops');
+  }
+
+  /** An order was not carried out: say why, for a moment, at the field it was about. */
+  refuse(tile, problem) {
+    const key = problem === 'troops' ? 'noTroops' : problem === 'full' ? 'targetFull' : 'noPath';
+    this.ui.notices.push({ tile, text: i18n.t(key), at: this.last });
+    this.sfx.play('lost', 0.5);
   }
 
   // ------------------------------------------------------------------ frame
@@ -413,6 +427,7 @@ class App {
         ui.assault = sources.length ? { target: ui.assault.target, sources } : null;
       }
       if (this.tutorial) this.runTutorial(now);
+      if (ui.notices.length) ui.notices = ui.notices.filter((n) => now - n.at < 1.8 && n.tile < game.tiles.length);
 
       this.renderer.render(game, now, ui);
       this.overlay.draw(game, this.renderer, ui, now);
@@ -556,6 +571,11 @@ class App {
     const stats = game.stats();
     const human = this.ui.human;
 
+    // While the map is zoomed in, a button in the top bar leads back to the whole island.
+    const view = $('#btn-view');
+    view.hidden = !(this.renderer.zoom > 1.01);
+    view.setAttribute('aria-label', i18n.t('viewReset'));
+    view.title = i18n.t('viewReset');
     $('#clock').textContent = clock(game.time);
     $('#clock').classList.toggle('storm', game.storm);
     $('#share-bar').innerHTML = stats.factions.map((f) => `<i style="width:${((f.tiles / stats.playable) * 100).toFixed(1)}%;background:${PALETTE_HEX[f.color]}"></i>`).join('');

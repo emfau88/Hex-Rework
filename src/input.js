@@ -4,6 +4,8 @@
 //   Combined attack: tap a foreign field twice. Every own field next to it attacks at once.
 //                    The first tap (or hovering with the mouse) shows what the attack would achieve.
 //   Cancel:          tap the selected field again, tap empty ground, Esc or the right mouse button.
+//   Zoom and pan:    mouse wheel or two fingers zoom; dragging foreign or empty ground, or two
+//                    fingers, moves the map.
 //
 // The first tap on a foreign field arms the combined attack; only a second tap on the same field
 // sends it. Whatever happens in between disarms it again: a cancel, another action, the preview
@@ -68,11 +70,37 @@ export function attachInput(el, app, clock = () => performance.now()) {
     }
   };
 
+  // Zoom and pan. Fingers on the board, by pointer id; `pinch` is set while two of them hold the map.
+  const fingers = new Map();
+  let pinch = null;
+  const grip = () => {
+    const [a, b] = [...fingers.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) };
+  };
+
+  el.addEventListener('wheel', (e) => {
+    if (!app.canCommand()) return;
+    e.preventDefault();
+    const p = position(e);
+    app.renderer.zoomAt(p.x, p.y, Math.exp(-e.deltaY * 0.0015));
+  }, { passive: false });
+
   el.addEventListener('pointerdown', (e) => {
     if (!app.canCommand()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) {
       if (e.button === 2) cancel();
       else disarm();
+      return;
+    }
+    // A first contact starts afresh, in case the end of an earlier touch was never reported.
+    if (e.isPrimary !== false) fingers.clear();
+    fingers.set(e.pointerId, position(e));
+    if (fingers.size >= 2) {
+      // Two fingers hold the map: zoom and move it. Whatever the first finger had begun is dropped,
+      // so a pinch can never turn into an order.
+      e.preventDefault();
+      cancel();
+      pinch = grip();
       return;
     }
     e.preventDefault();
@@ -104,6 +132,16 @@ export function attachInput(el, app, clock = () => performance.now()) {
   el.addEventListener('pointermove', (e) => {
     const ui = app.ui;
     const p = position(e);
+    if (fingers.has(e.pointerId)) fingers.set(e.pointerId, p);
+    if (pinch) {
+      if (fingers.size >= 2) {
+        const now = grip();
+        app.renderer.panBy(now.x - pinch.x, now.y - pinch.y);
+        if (pinch.d > 0 && now.d > 0) app.renderer.zoomAt(now.x, now.y, now.d / pinch.d);
+        pinch = now;
+      }
+      return;
+    }
     if (!down) {
       if (e.pointerType === 'mouse' && app.canCommand()) hoverAt(p);
       return;
@@ -116,12 +154,24 @@ export function attachInput(el, app, clock = () => performance.now()) {
         down.order = false;
         app.select(down.id);
         ui.dragging = true;
+      } else if (!down.own && !down.order) {
+        down.pan = p; // a drag that starts on foreign or empty ground moves the map
       }
+    }
+    if (down.pan) {
+      app.renderer.panBy(p.x - down.pan.x, p.y - down.pan.y);
+      down.pan = p;
     }
     if (ui.dragging) hoverAt(p);
   });
 
   const release = (e, cancelled) => {
+    fingers.delete(e.pointerId);
+    if (pinch) {
+      // The pinch ends when a finger lifts; the one that stays on the board does nothing more.
+      if (fingers.size < 2) pinch = null;
+      return;
+    }
     if (!down) return;
     const ui = app.ui;
     const d = down;

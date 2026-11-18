@@ -13,6 +13,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
+const MAX_ZOOM = 2.6;
 const HEX = Math.PI / 6;
 
 const VS_PLACE = `#version 300 es
@@ -172,6 +173,10 @@ export class DioramaRenderer {
     this.dpr = 1;
     this.insets = { top: 0, bottom: 0 };
     this.camera = { azimuth: MAP_ANGLE, elevation: 0.84 };
+    // The player's view into the fitted picture: zoom 1 shows the whole island, pan is the offset of
+    // the centre in view units. Both are kept inside the fitted picture.
+    this.zoom = 1;
+    this.pan = [0, 0];
     this.shake = 0;
     this.effects = [];
     this.game = null;
@@ -299,13 +304,15 @@ export class DioramaRenderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     this.sceneVersion = -1;
     this._envelope = null;
+    this.zoom = 1;
+    this.pan = [0, 0];
     this._fit();
   }
 
   _buildStatic(game) {
     const m = new Mesh();
     const rot = game.map.rot || 0;
-    models.table(m, game.map);
+    models.sea(m, game.tiles, game.seed);
     for (const t of game.tiles) {
       m.tile = t.id;
       models.tileBase(m, t, game.seed, rot, game.tiles);
@@ -334,7 +341,7 @@ export class DioramaRenderer {
     for (const t of this.game.tiles) {
       for (let i = 0; i < 6; i++) {
         const a = HEX0 + (i * Math.PI) / 3;
-        pts.push([t.x + Math.cos(a), t.height, t.z + Math.sin(a)], [t.x + Math.cos(a), -1.1, t.z + Math.sin(a)]);
+        pts.push([t.x + Math.cos(a), t.height, t.z + Math.sin(a)], [t.x + Math.cos(a), 0, t.z + Math.sin(a)]);
       }
       const top = t.castle >= 0 ? 2.18 : t.terrain === 'mountain' ? 1.42 : t.terrain === 'citadel' ? 1.52 : t.terrain === 'forest' ? 0.99 : 0.82;
       for (const dx of [-0.66, 0.66]) for (const dz of [-0.66, 0.66]) pts.push([t.x + dx, t.height + top, t.z + dz]);
@@ -377,7 +384,7 @@ export class DioramaRenderer {
     this.eyeDir = fit.dir;
     const { view, unitsPerPx } = fit;
     let { l, r, b, t } = fit.box;
-    this.unitsPerPx = unitsPerPx;
+    this.fitUnitsPerPx = unitsPerPx;
     const halfW = (unitsPerPx * this.width) / 2;
     const halfH = (unitsPerPx * this.height) / 2;
     const cx = (l + r) / 2;
@@ -385,11 +392,64 @@ export class DioramaRenderer {
     const cy = (b + t) / 2 + ((this.insets.top - this.insets.bottom) / 2) * unitsPerPx;
     this.view = view;
     this.frame = { cx, cy, halfW, halfH };
-    this.vp = matmul(ortho(cx - halfW, cx + halfW, cy - halfH, cy + halfH, 0.1, 100), view);
+    this._applyView();
 
     const lightView = lookAt([LIGHT[0] * 40, LIGHT[1] * 40, LIGHT[2] * 40], [0, 0, 0]);
     ({ l, r, b, t } = this._bounds(lightView));
     this.lightVP = matmul(ortho(l - 1.4, r + 1.4, b - 1.4, t + 1.4, 0.5, 100), lightView);
+  }
+
+  // ------------------------------------------------------------ zoom and pan
+
+  /** The part of the fitted picture that is on screen: centre and half extents in view units. */
+  _window() {
+    const f = this.frame;
+    return { cx: f.cx + this.pan[0], cy: f.cy + this.pan[1], hw: f.halfW / this.zoom, hh: f.halfH / this.zoom };
+  }
+
+  _applyView() {
+    const f = this.frame;
+    if (!f) return;
+    this.zoom = clamp(this.zoom, 1, MAX_ZOOM);
+    const mx = f.halfW * (1 - 1 / this.zoom);
+    const my = f.halfH * (1 - 1 / this.zoom);
+    this.pan[0] = clamp(this.pan[0], -mx, mx);
+    this.pan[1] = clamp(this.pan[1], -my, my);
+    const w = this._window();
+    this.unitsPerPx = this.fitUnitsPerPx / this.zoom;
+    this.vp = matmul(ortho(w.cx - w.hw, w.cx + w.hw, w.cy - w.hh, w.cy + w.hh, 0.1, 100), this.view);
+    this.vpNow = this.vp;
+  }
+
+  /** Zooms by `factor`, keeping the point under (px, py) in CSS pixels where it is. */
+  zoomAt(px, py, factor) {
+    const f = this.frame;
+    if (!f) return;
+    const w = this._window();
+    const ux = (2 * px) / this.width - 1;
+    const uy = 1 - (2 * py) / this.height;
+    const vx = w.cx + w.hw * ux;
+    const vy = w.cy + w.hh * uy;
+    this.zoom = clamp(this.zoom * factor, 1, MAX_ZOOM);
+    this.pan[0] = vx - (f.halfW / this.zoom) * ux - f.cx;
+    this.pan[1] = vy - (f.halfH / this.zoom) * uy - f.cy;
+    this._applyView();
+  }
+
+  /** Moves the picture by (dx, dy) CSS pixels, as a finger dragging it would. */
+  panBy(dx, dy) {
+    if (!this.frame) return;
+    const w = this._window();
+    this.pan[0] -= (dx * 2 * w.hw) / this.width;
+    this.pan[1] += (dy * 2 * w.hh) / this.height;
+    this._applyView();
+  }
+
+  /** Back to the whole island. */
+  resetView() {
+    this.zoom = 1;
+    this.pan = [0, 0];
+    this._applyView();
   }
 
   // ------------------------------------------------------------- geometry API
@@ -576,11 +636,24 @@ export class DioramaRenderer {
           const a0 = HEX0 + (i * Math.PI) / 3;
           const a1 = a0 + Math.PI / 3;
           // On a bank the border runs along its foot, where the field really ends.
-          const by = y - (nb >= 0 ? models.bankDrop(t, tiles[nb], 0.821) : 0);
+          const by = y - models.bankDrop(t, nb >= 0 ? tiles[nb] : models.SEA, 0.821);
           const A = [t.x + Math.cos(a0) * 0.948, by + 0.024, t.z + Math.sin(a0) * 0.948];
           const B = [t.x + Math.cos(a1) * 0.948, by + 0.024, t.z + Math.sin(a1) * 0.948];
           m.beam(A, B, 0.04, line, 1.3);
           g.beam([A[0], by + 0.03, A[2]], [B[0], by + 0.03, B[2]], 0.2, a.cur, 0);
+        }
+      }
+
+      // Walls of a standing castle: one stretch towards every neighbouring field. It stands while
+      // the field beyond is the defender's or free, and falls to rubble once a rival holds that
+      // field. So the castle itself shows from how many sides it lies open.
+      if (t.castle >= 0) {
+        for (let i = 0; i < 6; i++) {
+          const o = t.nb[i] >= 0 ? tiles[t.nb[i]] : null;
+          if (!o || !o.passable) continue;
+          const open = o.owner >= 0 && o.owner !== t.owner;
+          const k = smooth(clamp((bt - Math.max(o.lastCapture, t.lastCapture)) / 0.7, 0, 1));
+          models.castleWall(m, t.x, y, t.z, HEX0 + (i * Math.PI) / 3 + Math.PI / 6, open ? 1 - k : k, t.id * 31 + i * 7);
         }
       }
 
@@ -616,7 +689,7 @@ export class DioramaRenderer {
       for (let i = 0; i < 6; i++) {
         const a0 = HEX0 + (i * Math.PI) / 3;
         const a1 = a0 + Math.PI / 3;
-        const sy = y - (t.nb[i] >= 0 ? models.bankDrop(t, tiles[t.nb[i]], 0.753) : 0);
+        const sy = y - models.bankDrop(t, t.nb[i] >= 0 ? tiles[t.nb[i]] : models.SEA, 0.753);
         const A = [t.x + Math.cos(a0) * 0.87, sy, t.z + Math.sin(a0) * 0.87];
         const B = [t.x + Math.cos(a1) * 0.87, sy, t.z + Math.sin(a1) * 0.87];
         m.beam(A, B, bright ? 0.06 : 0.045, c, 0.8);
@@ -821,10 +894,10 @@ export class DioramaRenderer {
 
     // Camera shake after a castle falls.
     this.shake *= Math.exp(-dt * 5);
-    const f = this.frame;
+    const f = this._window();
     const sx = Math.sin(time * 47) * this.shake;
     const sy = Math.cos(time * 53) * this.shake;
-    this.vpNow = matmul(ortho(f.cx - f.halfW + sx, f.cx + f.halfW + sx, f.cy - f.halfH + sy, f.cy + f.halfH + sy, 0.1, 100), this.view);
+    this.vpNow = matmul(ortho(f.cx - f.hw + sx, f.cx + f.hw + sx, f.cy - f.hh + sy, f.cy + f.hh + sy, 0.1, 100), this.view);
 
     this._animate(game, time, dt, ui);
     // Clock of the rules, smooth between two steps: it stands still while the match is paused.
