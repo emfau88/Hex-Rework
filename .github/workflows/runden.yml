@@ -1,0 +1,20 @@
+# Test version of the turn mode. The site is published only from main (pages.yml there); that workflow also
+# fetches this branch, runs its tests and puts it under runden/. A push here asks main to publish again, so
+# the test version is up to date after every step. The real game is published unchanged with it.
+name: Test version (runden)
+
+on:
+  push:
+    branches: [runden]
+
+permissions:
+  actions: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish main again, with this branch under runden/
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
