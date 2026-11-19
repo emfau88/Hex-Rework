@@ -1,6 +1,6 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.7 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.7.1 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
@@ -35,8 +35,8 @@ Sie stehen unter „Erledigt“.
 
 ## Von dir zu prüfen
 
-- [ ] **Mission 1 noch einmal spielen, auf „Normal“ und auf „Leicht“:** Ist sie jetzt zu schaffen? Ist „Normal“
-      zu leicht geworden? (Seit Stand 0.7 neu abgestimmt.)
+- [ ] **Mission 1 noch einmal auf „Normal“ spielen:** Stand 0.7 war dir zu leicht, davor war sie sehr schwer.
+      Seit Stand 0.7.1 liegt „Normal“ dazwischen. Passt es jetzt? Sonst: „Schwer“ probieren und Bescheid geben.
 - [ ] Die drei Missionen am PC spielen. Verstehst du, warum ein Angriff scheitert?
 - [ ] „Schwer“ ausprobieren, sobald „Normal“ sitzt: Ist der Schritt zu groß?
 - [ ] Eine Mission auf „Ruhig“ spielen: Kommst du mit Lesen, Planen und Bauen mit? Sonst auf „Normal“ vergleichen.
@@ -65,10 +65,11 @@ Sie stehen unter „Erledigt“.
 
 Stand 0.7, nach der Neuabstimmung für Menschen (REWORK-PLAN Abschnitt 14).
 
-- [ ] **Stapeln gewinnt gegen langsame Gegner wieder:** auf „Leicht“ 3 bis 24 von 60 Partien, auf „Normal“ 0 bis
-      10, auf „Schwer“ 0. Es dauert 7 bis 11 Minuten, etwa doppelt so lange wie richtiges Spielen.
-- [ ] Zwischen „Normal“ und „Schwer“ liegt ein großer Schritt (Gegner entscheidet alle 10 gegen alle 3 Sekunden)
-- [ ] Mission 3 dauert für langsame Spieler lange (Anfänger 5 s: 7:57 auf „Normal“; mit 8 s nur 25 von 60)
+- [ ] **Stapeln gewinnt gegen langsame Gegner wieder:** auf „Leicht“ 3 bis 24 von 60 Partien, auf „Normal“ nur
+      noch in Mission 2 (5 von 60), auf „Schwer“ 0. Es dauert 7 bis 11 Minuten, etwa doppelt so lange wie
+      richtiges Spielen.
+- [ ] Zwischen „Normal“ und „Schwer“ liegt ein großer Schritt (Gegner entscheidet alle 8 gegen alle 3 Sekunden)
+- [ ] Mission 3 dauert für langsame Spieler lange (Anfänger 5 s: 8:40 auf „Normal“; mit 8 s nur 2 von 60)
 - [ ] Vier-Reiche-Gefecht auf „Schwer“ bleibt hart (3-Sekunden-Spieler gewinnt 33 von 60)
 - [ ] Ohne Mensch enden Partien auf „Leicht“ und „Normal“ meist nicht in 15 Minuten
 - [ ] Die Testspieler sind Programme; ob sie einem Menschen ähneln, zeigt nur dein Spieltest

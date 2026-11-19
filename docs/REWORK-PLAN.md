@@ -682,3 +682,34 @@ deutlich schwerer (Duell „Normal“, Anfänger 8 s: 50 → 27; Vier Reiche „
 - Vermutet: dass die Stellvertreter einem Menschen ähneln. Sie sind Programme. „Anfänger 5 s“ passt zu deiner
   Beschreibung, aber ein Mensch kann klüger oder ungeschickter spielen. Maßgeblich ist dein nächster Spieltest.
 - Nicht geprüft: die Stufen im Browser gespielt; Zufallskarten mit anderen Startwerten als denen der Messung.
+
+### Nachtrag · „Normal“ angezogen (Stand 0.7.1)
+
+Deine Rückmeldung nach dem ersten Versuch mit Stand 0.7: Jetzt ist es zu leicht. „Normal“ liegt deshalb jetzt
+zwischen der alten und der ersten neuen Einstellung. „Leicht“ und „Schwer“ sind unverändert.
+
+| Wo | Stand 0.6 | Stand 0.7 | Stand 0.7.1 |
+|---|---|---|---|
+| „Normal“ allgemein: Gegner entscheidet | alle 1,6 s | alle 10 s | alle 8 s |
+| Mission 1 auf „Normal“ | alle 2,2 s, Zuwachs 90 % | alle 12 s, Zuwachs 75 % | alle 7 s, Zuwachs 90 % |
+| Mission 3 auf „Normal“ | alle 1,6 s | alle 16 s | alle 14 s |
+
+Gemessen auf „Normal“ (60 Partien, Siege und Median der Siegzeit):
+
+| Karte | 3 s | Anfänger 5 s | Anfänger 8 s | Stapel |
+|---|---|---|---|---|
+| Mission 1 | 60 in 3:42 | 56 in 6:31 (vorher 60 in 4:21) | 8 (vorher 58) | 0 (vorher 6) |
+| Mission 2 | 60 in 4:27 | 57 in 7:45 (vorher 60 in 6:16) | 3 (vorher 18) | 5 (vorher 10) |
+| Mission 3 | 60 in 3:33 | 56 in 8:40 (vorher 60 in 7:57) | 2 (vorher 25) | 0 |
+| Duell | 60 in 3:20 | 57 in 5:15 (vorher 58 in 4:41) | 20 (vorher 50) | 0 (vorher 1) |
+| Vier Reiche | 60 in 5:34 | 53 in 9:34 (vorher 55 in 8:05) | 9 (vorher 25) | 0 |
+
+Was das heißt: Wer etwa alle 5 Sekunden einen Befehl gibt, gewinnt auf „Normal“ weiter meistens, braucht aber
+anderthalb bis zwei Minuten länger und muss sich gegen einen Gegner wehren, der öfter angreift. Wer 8 Sekunden
+braucht, verliert auf „Normal“ jetzt meist und ist auf „Leicht“ richtig. Nebenbei gewinnt der Stapel-Spieler
+auf „Normal“ nur noch in Mission 2 (5 von 60).
+
+Offen: Ob das für dich passt, ist nicht gemessen, sondern deine nächste Rückmeldung. Die Spanne zwischen „zu
+schwer“ (alle 2,2 s) und „zu leicht“ (alle 12 s) ist groß; alle 7 s ist ein begründeter Mittelwert, kein
+Beweis. Ist es weiter zu leicht, ist der nächste Schritt alle 5 bis 6 s (gemessen: Anfänger 5 s gewinnt dann
+47 von 60 in 6:47).

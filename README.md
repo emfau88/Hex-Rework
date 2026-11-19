@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.7 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.7.1 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -88,7 +88,7 @@ Entscheidend ist, wie oft ein Reich einen Befehl gibt. Ein Mensch braucht dafür
 Stufen sind seit Stand 0.7 danach abgestimmt:
 
 - **Leicht:** für den Einstieg. Der Gegner entscheidet etwa alle 14 Sekunden und wächst langsamer.
-- **Normal:** für Spieler, die etwa alle 5 Sekunden einen Befehl geben. Der Gegner entscheidet alle 10 Sekunden.
+- **Normal:** für Spieler, die etwa alle 5 Sekunden einen Befehl geben. Der Gegner entscheidet alle 8 Sekunden.
 - **Schwer:** für Geübte, die alle 2 bis 3 Sekunden befehlen. Der Gegner entscheidet alle 3 Sekunden.
 
 In der Einführung von Mission 1 wartet der Gegner auf dich: Er nimmt kein Land mehr, sobald er ein Feld mehr

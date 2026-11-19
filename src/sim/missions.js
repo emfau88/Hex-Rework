@@ -30,7 +30,7 @@ export const CAMPAIGN = [
     ai: { margin: 1.4, sides: 2, reinforce: 2, frontKeep: 5 },
     aiBy: {
       easy: { think: 14, incomeMul: 0.6, rushAfter: 600 },
-      normal: { think: 12, incomeMul: 0.75, rushAfter: 600 },
+      normal: { think: 7, incomeMul: 0.9, rushAfter: 600 },
       hard: { think: 3, incomeMul: 0.9, rushAfter: 240 },
     },
     // Fuller fields around the castle, so the first combined attack works right away.
@@ -103,7 +103,7 @@ export const CAMPAIGN = [
     // Holding the citadel and its ring takes long, so the rivals decide slower here than elsewhere
     // and the storm comes early. Two rivals that both go for the player's castle at once would
     // leave no room to play the mission.
-    aiBy: { easy: { think: 18, incomeMul: 0.5 }, normal: { think: 16 }, hard: { think: 5, humanBias: 0.75, rushAfter: 180 } },
+    aiBy: { easy: { think: 18, incomeMul: 0.5 }, normal: { think: 14 }, hard: { think: 5, humanBias: 0.75, rushAfter: 180 } },
     rules: { stormStart: 300 },
     layout: [
       'm  m  m  .  .  f  .  .  .  .  .  m  m',

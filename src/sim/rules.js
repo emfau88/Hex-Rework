@@ -82,6 +82,6 @@ export const RULES = Object.freeze({
 //   hard    for a practised player who gives an order every 2 to 3 seconds
 export const DIFFICULTY = Object.freeze({
   easy: Object.freeze({ think: 14, margin: 1.4, sides: 2, waves: 0, actions: 1, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.6, humanBias: 0.6, rushAfter: 420 }),
-  normal: Object.freeze({ think: 10, margin: 1.3, sides: 3, waves: 0, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.35, incomeMul: 0.8, humanBias: 0.9, rushAfter: 300 }),
+  normal: Object.freeze({ think: 8, margin: 1.3, sides: 3, waves: 0, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.35, incomeMul: 0.8, humanBias: 0.9, rushAfter: 300 }),
   hard: Object.freeze({ think: 3, margin: 1.18, sides: 4, waves: 1, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, incomeMul: 1, humanBias: 1, rushAfter: 120 }),
 });
