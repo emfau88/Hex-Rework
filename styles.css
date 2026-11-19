@@ -518,6 +518,29 @@ canvas {
   background: rgba(3, 12, 17, 0.22);
 }
 
+/* Wide screens: the menu and the help in two columns, so that they fit a screen 720 points high. */
+@media (min-width: 760px) and (min-aspect-ratio: 1/1) {
+  #menu .card,
+  #pause .card {
+    width: min(760px, 100%);
+  }
+
+  #menu .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 22px;
+  }
+
+  #pause .how {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 30px;
+  }
+
+  #pause .actions {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
 .card {
   width: min(400px, 100%);
   padding: 20px 18px 16px;

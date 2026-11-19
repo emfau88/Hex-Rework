@@ -100,16 +100,23 @@
         <h1>ONE CROWN</h1>
         <p class="tag" data-t="tagline"></p>
       </div>
-      <h2 data-t="pickColor"></h2>
-      <div id="colors" class="colors"></div>
-      <h2 data-t="campaign"></h2>
-      <div id="missions" class="missions"></div>
-      <h2 data-t="skirmish"></h2>
-      <div id="skirmish" class="missions"></div>
-      <h2 data-t="difficulty"></h2>
-      <div id="difficulty" class="seg"></div>
-      <h2 data-t="tempo"></h2>
-      <div class="seg speed"></div>
+      <!-- One column on a phone; two side by side on wide screens, so the menu fits without scrolling. -->
+      <div class="cols">
+        <div class="col">
+          <h2 data-t="pickColor"></h2>
+          <div id="colors" class="colors"></div>
+          <h2 data-t="campaign"></h2>
+          <div id="missions" class="missions"></div>
+        </div>
+        <div class="col">
+          <h2 data-t="skirmish"></h2>
+          <div id="skirmish" class="missions"></div>
+          <h2 data-t="difficulty"></h2>
+          <div id="difficulty" class="seg"></div>
+          <h2 data-t="tempo"></h2>
+          <div class="seg speed"></div>
+        </div>
+      </div>
       <div class="foot">
         <button id="btn-sound" class="icon-btn" aria-label="Sound"><svg><use href="#i-sound"/></svg></button>
         <button id="btn-lang" class="icon-btn text">DE</button>
