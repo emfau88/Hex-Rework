@@ -98,6 +98,25 @@ Stufen sind seit Stand 0.7 danach abgestimmt:
 In der Einführung von Mission 1 wartet der Gegner auf dich: Er nimmt kein Land mehr, sobald er ein Feld mehr
 hat als du.
 
+## Figurenschau
+
+Eine kleine Testinsel, um Figuren einzeln anzusehen. Sie steht nicht im Menü, nur hinter einem eigenen Link:
+[emfau88.github.io/Hex-Rework/?schau](https://emfau88.github.io/Hex-Rework/?schau) (geht erst nach dem
+nächsten Hochladen), lokal `http://localhost:4180/?schau`.
+
+- **Werkzeuge:** „Befehle“ spielt wie sonst. „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld
+  auf diese Seite, mit so vielen Truppen, wie die Zahl daneben sagt. Burgen bleiben, wie sie sind.
+- **Zeit:** anhalten, ¼, ½, 1 oder 3-fach, „+1 s“ für genau eine Sekunde. Leertaste hält an und startet.
+- **Werte:** Das zuletzt angetippte Feld zeigt bei Ungeheuern Stärke, Angriff, Reichweite, Deckung und
+  Vorhaben, bei Reichen Truppen, Zuwachs, Deckung und den laufenden Kampf.
+- Der Gegner spielt hier nicht, niemand schickt von selbst Nachschub, abgeschnittene Felder schwinden nicht,
+  und die Schau endet nie.
+
+Ungeheuer sind eine eigene Seite, die **Wildnis**, in Violett. Sie gehört keinem Reich, greift jeden an, kann
+von jedem angegriffen werden, wächst nicht und schwindet nicht. Sie kann weder gewinnen noch verlieren. Ihre
+Figuren tragen vorerst ein dunkles Fell mit spitzen Ohren; jede echte Figur bekommt später ihr eigenes Modell
+(Plan in [docs/INHALTE-PLAN.md](docs/INHALTE-PLAN.md)). In den Missionen gibt es noch keine Ungeheuer.
+
 ## Prüfen ohne Browser
 
 ```bash
@@ -116,7 +135,8 @@ node tools/showmap.mjs m2
 node tools/regions.mjs m3
 ```
 
-Der erste Befehl lässt alle Tests laufen (Regeln, Bauen, Vorhersage, Eingabe). Die Messung zeigt je Karte und
+Der erste Befehl lässt alle Tests laufen (Regeln, Bauen, Vorhersage, Eingabe, Ungeheuer). Einer davon spielt
+jede Karte vier Minuten und prüft, dass sie Schritt für Schritt genau so läuft wie vor den Ungeheuern. Die Messung zeigt je Karte und
 Stärke: Partiedauer, Siege je Startplatz, festgefahrene Partien, wie lange ein untätiger Spieler überlebt, wie
 ein starker Testspieler abschneidet und ob der Stapel-Bot gewinnt. Mit `--only=m3`, `--level=hard` und
 `--shift=1` (andere Würfel) lässt sie sich eingrenzen.
@@ -131,7 +151,7 @@ src/ui/       Zahlen, Pfeile und Vorhersage, Sprachen, Speicherstand
 src/audio/    erzeugte Klänge
 src/input.js  Ziehen, Tippen, Sturmbefehl
 src/main.js   Menü, Besprechung, Spielschleife, Einführung
-tests/        Tests für Regeln, Bauen, Vorhersage und Eingabe
+tests/        Tests für Regeln, Bauen, Vorhersage, Eingabe und Ungeheuer
 tools/        Messung, Testspieler, Kartenanzeige, Messung verdeckter Zahlen im Browser
 ```
 
@@ -148,6 +168,10 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
+Nachtrag zu Stand 0.8 (19.11.2026): die Figurenschau unter `?schau` und Ungeheuer als eigene Seite
+„Wildnis“, die Grundlage für den Figurenpool (Abschnitt 16 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)).
+Im Spiel selbst ändert sich dadurch nichts.
+
 Stand 0.8 vom 19.11.2026: Tasten am PC für Sturm und Bauen, ein Streifen für den Füllstand eigener Felder, am
 Handy verdeckt keine Zahl mehr eine andere, Menü und Hilfe passen am PC ohne Scrollen auf 720 Punkte Höhe
 (Abschnitt 15 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.7 und 0.7.1: Die Gegner sind für
@@ -156,5 +180,5 @@ Sekunden sicher zu gewinnen. Davor Stand 0.6: Helmformen je Reich, umfallende Fi
 Seitenleisten am PC (Abschnitt 13 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.5: abgelehnte
 Befehle werden rückgemeldet, Zoom und Verschieben, Meer rund um die Insel, Burgmauern (Abschnitt 12), Stand 0.4: Tempo-Schalter,
 Pause mit Befehlen, Kampfanzeige, Kampfanimation, Gebirge und Böschungen (Abschnitt 11), und Stand 0.3.1: drei
-Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 58 Tests, Messläufen und Durchläufen im
+Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 70 Tests, Messläufen und Durchläufen im
 Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

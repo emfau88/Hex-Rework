@@ -61,6 +61,9 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 - [ ] Tasten am PC: Gehen dir S (Sturm), T (Turm) und H (Hof) leicht von der Hand?
 - [ ] Fällt dir am Handy auf, wenn die Zahl der Angreifer neben einem Kampf kurz fehlt?
 - [ ] Safari und iPhone
+- [ ] **Figurenschau** ansehen (Link mit `?schau` am Ende, siehe README): Kommst du mit Setzen, Zeit und
+      Werten zurecht, am PC und am Handy? Passt Violett als Farbe der Ungeheuer, und erkennt man sie am Fell
+      mit Ohren? Sollen Ungeheuer, die eine Burg nehmen, das Land des Reichs frei lassen (so ist es jetzt)?
 
 ## Offene Schwächen
 
@@ -89,8 +92,8 @@ Die Punkte 13 bis 16 (Ungeheuer, Figurentypen, Völker) sind ausgearbeitet in [I
 Wo und wie sie in Missionen vorkommen, ist bewusst offen (Idee: eine Figur retten, die ab der nächsten Mission
 mitkommt). Am normalen Spiel ändert sich bis dahin nichts.
 
-- [ ] **Schritt 0 · Figurenschau und Grundlage „Wildnis“:** Testinsel über einen eigenen Link; Ungeheuer
-      gehören keinem Reich · Aufwand mittel
+- [x] **Schritt 0 · Figurenschau und Grundlage „Wildnis“** (19.11.2026, Abschnitt 16 in
+      [REWORK-PLAN.md](REWORK-PLAN.md)): Testinsel über den Link `?schau`; Ungeheuer gehören keinem Reich
 - [ ] **1 · Troll:** greift aus seiner Höhle das schwächste Nachbarfeld an · Aufwand klein bis mittel
 - [ ] **2 · Steinriese:** schmale Kanten, Stampfen trifft alle Angreifer; nur rundum zu fällen · Aufwand mittel
 - [ ] **3 · Wolfsrudel:** zieht umher und fällt fast leere Felder an · Aufwand mittel
@@ -142,3 +145,5 @@ mitkommt). Am normalen Spiel ändert sich bis dahin nichts.
 - [x] Menü und Hilfe passen am PC ohne Scrollen auf 720 Punkte Höhe (Stand 0.8)
 - [x] Gegner für Menschen neu abgestimmt: Leicht, Normal und Schwer nach Sekunden pro Befehl; der Gegner
       wartet in der Einführung von Mission 1; langsame Testspieler im Messwerkzeug (Stand 0.7)
+- [x] Figurenschau (Link `?schau`) und Ungeheuer als eigene Seite „Wildnis“: Grundlage für den Figurenpool
+      (19.11.2026)

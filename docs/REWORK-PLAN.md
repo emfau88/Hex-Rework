@@ -770,3 +770,67 @@ zu den Tasten ausgeblendet. Keine Fehlermeldungen.
 
 Nicht geprüft: am echten Handy; ob der Streifen dort gut zu sehen ist (er ist knapp drei Bildpunkte hoch);
 die englischen Texte nur gelesen, nicht im Bild gesehen.
+
+## 16 · Figurenschau und Ungeheuer als eigene Seite (19.11.2026)
+
+Schritt 0 aus [INHALTE-PLAN.md](INHALTE-PLAN.md). Für Spieler ändert sich nichts: Die Figurenschau ist nicht im
+Menü, und Karten ohne Ungeheuer laufen mit demselben Würfel Schritt für Schritt wie vorher.
+
+### Grundlage „Wildnis“
+
+- Ungeheuer sind eine eigene Seite hinter den Reichen. Sie gehört keinem Reich, greift jeden an und kann von
+  jedem angegriffen werden. Sie kämpft nach denselben Kantenregeln, mit derselben Vorhersage.
+- Ihre Felder wachsen nicht und schwinden nicht, auch nicht über die Versorgungsgrenze hinaus. Sie gelten
+  nie als abgeschnitten.
+- Ungeheuer können weder gewinnen noch verlieren. Nehmen sie eine Burg, fällt das Reich, und sein Land wird
+  frei (jedes Feld behält ein Viertel seiner Truppen, wie sonst beim Erben). Ist es deine Burg, verlierst du,
+  und niemand gewinnt. Auf der Zitadelle lassen sie für niemanden die Uhr laufen. Diese Regeln sind
+  Startregeln; ob das Land frei werden soll, ist eine Frage an dich (Roadmap).
+- Die Seite gibt es nur auf Karten mit Ungeheuern. In einer Karte setzt `!` hinter dem Feldbuchstaben ein
+  Feld der Ungeheuer, zum Beispiel `.!:20` für eine Wiese mit 20. Kein Reich startet auf solchen Feldern.
+- Farbe Violett für Feld, Rand, Zahl und Figuren. Die Figuren tragen ein dunkles Fell mit zwei spitzen
+  Ohren statt eines Helms. Jede echte Figur aus dem Pool bekommt später ihr eigenes Modell.
+- Seitenleiste, Anteilsbalken und Ereignisse nennen sie „WILDNIS“ (englisch „WILDS“). Das Ziel „noch n
+  Burgen“ zählt sie nicht mit.
+
+### Figurenschau
+
+Erreichbar nur über den eigenen Link: an die Spieladresse `?schau` anhängen, also
+`https://emfau88.github.io/Hex-Rework/?schau` (erst nach dem nächsten Hochladen) oder lokal
+`http://localhost:4180/?schau`.
+
+- Kleine Insel mit beiden Burgen und einem Ungeheuer-Feld (20) in der Mitte.
+- Werkzeuge: **Befehle** (spielen wie sonst), **Wildnis**, die beiden Reiche, **Frei**. Mit einem der
+  vier letzten setzt ein Tipp das Feld auf diese Seite, mit so vielen Truppen, wie die Zahl daneben sagt
+  (1 bis 99). Burgen bleiben, wie sie sind. Ziehen verschiebt weiter die Karte.
+- Zeit: anhalten, ¼, ½, 1 oder 3-fach, „+1 s“ (eine Sekunde weiter, dann wieder Stillstand). Leertaste hält
+  an und startet.
+- Werte des zuletzt angetippten Feldes. Bei Ungeheuern: Stärke, Angriff, Reichweite, Deckung, Vorhaben
+  (jetzt: „hält sein Feld“ oder „wehrt sich“). Bei Reichen: Truppen, Zuwachs, Deckung, Kampf.
+- Anders als im Spiel: Der Gegner spielt nicht, niemand schickt von selbst Nachschub, abgeschnittene Felder
+  schwinden nicht (so bleibt stehen, was gesetzt wurde), es gibt keinen Sturm, und die Schau endet nie.
+- Am PC steht die Leiste links neben der Insel, am Handy über ihr. Der Knopf oben links öffnet die Hilfe mit
+  Neustart und Menü.
+
+### Tests
+
+Zwölf neue Tests, 70 insgesamt. Der wichtigste spielt jede bisherige Karte vier Minuten lang (je einmal mit
+Computer gegen Computer auf „Schwer“ und mit untätigem Spieler auf „Normal“) und vergleicht den ganzen Zustand
+mit einem Fingerabdruck, der vor dem Umbau aufgenommen wurde. Weitere: Ungeheuer wachsen und schwinden nicht;
+die Vorhersage stimmt genau, wenn Ungeheuer verteidigen und wenn sie angreifen; Burg an Ungeheuer verloren
+(Land frei, Partie geht weiter; eigene Burg: verloren, kein Sieger); Zitadelle; `!` in Karten; Computergegner
+gegen Ungeheuer (Mission 1 mit Ungeheuern auf den Festungen, ohne Fehler; auf „Schwer“ greift er sie an, auf
+„Leicht“ lässt er sie in fünf Minuten in Ruhe, wie gleich starke freie Hügel); Figurenschau; Eingabe in der
+Figurenschau.
+
+### Geprüft und nicht geprüft
+
+Geprüft im Browser bei 1280 × 720 mit echten Klicks: Ungeheuer setzen (30 auf eine Wiese), eigene Truppen
+auf drei Nachbarfelder, Sturm mit Doppeltipp. Vorschau „3× ✓ 30“; gemessen fiel das Feld genau nach den
+vorhergesagten 2,4 Sekunden mit 30 Truppen. Zeitlupe ¼, Anhalten (die Uhr steht), „+1 s“ (genau eine
+Sekunde), Leertaste, Neustart, zurück ins Menü. Danach ein normales Duell: Seitenleisten, Nachschub-Knopf und
+Ziel wie vorher. Im Handy-Format (375 × 812): Leiste über der Insel, nichts verdeckt, Werte in drei Zeilen.
+Keine Fehlermeldungen.
+
+Nicht geprüft: am echten Handy; die englischen Texte nur gelesen; das Fell der Ungeheuer nur klein im Bild
+gesehen.

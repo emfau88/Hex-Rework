@@ -42,6 +42,10 @@ Statistik kommen damit zurecht.
 **Fertig, wenn** man in der Figurenschau Truppen setzen und die Zeit steuern kann, und alle bisherigen Karten
 mit demselben Würfel genau so laufen wie vorher. Aufwand: mittel.
 
+**Erledigt am 19.11.2026:** Link `?schau` an die Spieladresse hängen. Es gibt noch keine echte Figur; gesetzt
+werden vorerst schlichte Trupps der Wildnis (violett, mit Fell und Ohren). Die Werte „Angriff“ und „Reichweite“
+bleiben leer, bis eine Figur sie hat. Einzelheiten in Abschnitt 16 von [REWORK-PLAN.md](REWORK-PLAN.md).
+
 ## Die Top 10
 
 Reihenfolge nach Empfehlung: vorne die Figuren, die Grundlagen legen und am leichtesten zu lesen sind.
