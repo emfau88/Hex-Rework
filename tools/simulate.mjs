@@ -11,12 +11,16 @@
 //   Plätze     wins per starting place (fairness)
 //   Patt       matches without a winner after 15 minutes
 //   untätig    how long a player survives who never touches the screen (shortest / median)
-//   stark      a good player at human speed (plans like the "hard" computer, one order every 1.5 s)
+//   stark      a fast, practised player: plans thoroughly and gives one order every 1.5 s
+//   3 s        the same planner at a person's pace: one order every 3 s
+//   Anfänger   a beginner (attacks from two sides at most, no second waves, wants a wide margin)
+//              who gives one order every 5 s, and one who needs 8 s
+//   A person needs 3 to 8 seconds for an order. The strengths are set by these slow stand-ins;
+//   "stark" alone says little about how hard a map is for a human.
 //   Stapel     a player who piles everything onto one field and marches straight at the castle
 
 import { Game } from '../src/sim/game.js';
 import { MISSIONS } from '../src/sim/missions.js';
-import { DIFFICULTY } from '../src/sim/rules.js';
 import { aiThink } from '../src/sim/ai.js';
 import { stackThink } from './bots.mjs';
 
@@ -28,7 +32,16 @@ const levels = (args.find((a) => a.startsWith('--level=')) || '--level=easy,norm
 // Without --shift the seeds are the ones every documented result was measured with.
 const shift = (Number((args.find((a) => a.startsWith('--shift=')) || '').slice(8)) || 0) * 100003;
 const LIMIT = 900;
-const STRONG = Object.freeze({ ...DIFFICULTY.hard, think: 1.5, actions: 1 });
+// Skills of the stand-in players. They are fixed here on purpose: retuning the rivals in rules.js
+// must not change the yardstick they are measured with.
+const THOROUGH = { margin: 1.1, sides: 6, waves: 2, reinforce: 3, frontKeep: 6, castleKeep: 26, build: 0.65, incomeMul: 1, humanBias: 1.1, rushAfter: 60 };
+const BEGINNER = { margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.85, humanBias: 0.6, rushAfter: 180 };
+const STRONG = Object.freeze({ ...THOROUGH, think: 1.5, actions: 1 });
+const SLOW = [
+  ['3 s', Object.freeze({ ...THOROUGH, think: 3, actions: 1 })],
+  ['Anfänger 5 s', Object.freeze({ ...BEGINNER, think: 5, actions: 1 })],
+  ['8 s', Object.freeze({ ...BEGINNER, think: 8, actions: 1 })],
+];
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const median = (a) => (a.length ? a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);
@@ -87,6 +100,23 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
       }
     }
 
+    // People are slower than "stark": the same seat with one order every 3, 5 and 8 seconds.
+    const slow = SLOW.map(([label, skill]) => {
+      let wins = 0;
+      const won = [];
+      for (let i = 0; i < Math.min(runs, 60); i++) {
+        const game = new Game({ mission, seed: 9000 + i * 11 + shift, difficulty, human: 0, wide });
+        const f = game.factions[0];
+        f.ai = skill;
+        play(game, (g) => aiThink(g, f), skill.think);
+        if (game.phase === 'finished' && game.winner === 0) {
+          wins++;
+          won.push(game.time);
+        }
+      }
+      return `${label} ${wins}/${Math.min(runs, 60)}${wins ? ` in ${fmt(median(won))}` : ''}`;
+    });
+
     let stack = 0;
     const stackTimes = [];
     for (let i = 0; i < Math.min(runs, 60); i++) {
@@ -103,6 +133,7 @@ for (const mission of MISSIONS.filter((m) => !m.hidden && (!only || m.id === onl
         `  Plätze [${wins.join(', ')}]  Patt ${stale}/${runs}` +
         `  | untätig ${fmt(Math.min(...idle))} / ${fmt(median(idle))}` +
         `  | stark ${strong}/${n}${strong ? ` in ${fmt(median(strongTimes))}` : ''}` +
+        `  | ${slow.join(' · ')}` +
         `  | Stapel ${stack}/${n}${stack ? ` in ${fmt(median(stackTimes))}` : ''}`,
     );
   }
