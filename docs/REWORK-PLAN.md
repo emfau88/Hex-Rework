@@ -851,8 +851,10 @@ Alle Zahlen sind Startwerte in `src/sim/rules.js` (`troll`) und noch nicht auf S
   das erste in fester Reihenfolge). 10 Sekunden vorher wird das Ziel ausgewählt und markiert: violetter Ring auf
   dem Feld, pulsierender Pfeil, Meldung „Trolle rüsten zum Überfall auf …“ und, wenn es dein Feld ist, ein
   Warnton. Der Überfall geht genau auf das markierte Feld, auch wenn inzwischen ein anderes schwächer ist.
-- **Über der Höhle** steht „Überfall n s“, umgerechnet auf das eingestellte Tempo. Ist die Höhle markiert, wird
-  das Schild violett. Liegt kein Reich daneben, steht dort nichts.
+- **Zeit bis zum Überfall:** Ein heller Ring um das Trollgesicht an der Zahl füllt sich, je näher der Überfall
+  kommt. In den 10 Sekunden der Warnung steht über der Zahl ein violettes Schild „Überfall n s“, umgerechnet
+  auf das eingestellte Tempo. Liegt kein Reich daneben, zeigt die Höhle beides nicht. (Anfangs stand das
+  Schild immer da; es verdeckte den Troll vor der Höhle, siehe „Nachtrag: lesbarer“.)
 - **Kein Überfall**, wenn kein Feld eines Reichs daneben liegt (freies Land wird nie überfallen), wenn das
   Ziel inzwischen kein Feld eines Reichs mehr ist, wenn die Höhle keinen vollen Trupp entbehren kann (einer
   bleibt immer zurück) oder wenn die Höhle angegriffen wird oder ein Angriff auf sie unterwegs ist. Dann
@@ -870,8 +872,8 @@ Alle Zahlen sind Startwerte in `src/sim/rules.js` (`troll`) und noch nicht auf S
 ### Im Bild
 
 - Troll: graugrün, kantig, gebückt, mit Hauern, leuchtenden Augen, langen Armen und einem Lendenschurz in
-  der Farbe seiner Seite. Die Keule schleift er hinter sich her. Bis zu 3 Trolle vor der Höhle, auf dem Marsch
-  und an der Kante; je Troll stehen etwa 12 Truppen am Rand.
+  der Farbe seiner Seite. Die Keule schleift er hinter sich her. (Anfangs bis zu 3 Trolle je Feld; seit dem
+  Nachtrag unten einer, groß.)
 - Höhle: Felsen mit dunklem Eingang, Steinpfosten, Knochen davor, Lagerfeuer mit Flackern rechts davor.
 - Figurenschau: neues Werkzeug „Troll“ setzt eine Höhle mit so vielen Trollen, wie die Zahl sagt. Die Insel
   startet mit einer Höhle in der Mitte und einem kleinen blauen Feld daneben. Werte der Höhle: Stärke (n / 30),
@@ -906,3 +908,24 @@ Fehlermeldungen.
 Nicht geprüft: am echten Handy; Bewegung nur in Standbildern gesehen; die englischen Texte nur gelesen; ob die
 Startwerte (30 Trolle, 8 alle 50 s, 10 s Vorwarnung) Spaß machen; ob der Computergegner gezielt gegen Höhlen
 spielt (er behandelt sie wie andere Felder der Wildnis).
+
+### Nachtrag: lesbarer (19.11.2026)
+
+Deine Rückmeldung: Der Troll sieht mit Höhle und Feuer gut aus, ist aber sehr schwer zu lesen. Gemessen ist ein
+Feld am PC (1280 × 720) 58 bis 70 Bildpunkte breit, am Handy (375 × 812) nur 36 bis 47. Größere Felder allein
+helfen nicht, weil das Spiel die ganze Insel immer auf den Bildschirm einpasst. Deshalb ist die Figur selbst
+lesbarer gemacht, nur im Bild, an Regeln und Zahlen ändert sich nichts:
+
+- **Ein großer Troll statt drei kleiner:** auf einem Feld anderthalbmal so groß wie vorher, ein zweiter erst
+  ab 20 Trollen. Vor der Höhle steht einer, links neben dem Eingang, wo die Zahl ihn nicht verdeckt. Am Rand
+  und auf dem Marsch einer, ab 13 Trollen zwei.
+- **Mehr Abstand zur Wiese:** hellere, grauere Haut statt eines Grüns wie das Gras, und ein violetter
+  Fellumhang über Schultern und Rücken, der von oben gut zu sehen ist.
+- **Zeichen an der Zahl:** links an der Zahl jedes Trollfelds sitzt ein kleines rundes Trollgesicht (Stirn,
+  gelbe Augen, zwei Hauer) mit violettem Rand. Dasselbe Zeichen tragen die Zahlen von Trollen auf dem Marsch
+  und am Rand. So erkennt man den Troll auch am Handy, wo die Figur klein bleibt.
+- **Schild nur noch in der Warnung,** davor der Ring um das Zeichen (siehe oben).
+
+Geprüft im Browser am PC und im Handy-Format, im Überblick und ganz nah, mit Warnung und Marsch; das Zeichen
+zusätzlich vergrößert Bildpunkt für Bildpunkt. Keine Fehlermeldungen, 79 Tests grün. Nicht geprüft: am echten
+Handy; ob du das Gesicht ohne Erklärung als Troll erkennst.

@@ -172,26 +172,18 @@ const FIGURE_AT = [0, 1, 5, 10, 18, 28, 40];
 function figureStrength(units, index, at = FIGURE_AT) {
   return clamp((units - at[index + 1]) / 3, 0, 1);
 }
-// Trolls are big: fewer of them stand for a garrison, a little further apart, and in front of their cave.
-const TROLL_AT = [0, 1, 8, 18, 30];
+// Trolls are few and big: one large figure reads better on a small screen than a crowd of small ones.
+// The number on the field tells how many there are. A second troll comes only for a big garrison.
+const TROLL_AT = [0, 1, 20];
 function trolls(units) {
-  return units < 1 ? 0 : units < 8 ? 1 : units < 18 ? 2 : units < 30 ? 3 : 4;
+  return units < 1 ? 0 : units < 20 ? 1 : 2;
 }
-const TROLL_SIZE = 1;
-const TROLL_FORMATION = [
-  [],
-  [[-0.05, 0.2]],
-  [[-0.26, 0.16], [0.2, 0.28]],
-  [[-0.4, 0.06], [-0.04, 0.34], [0.34, 0.04]],
-  [[-0.46, 0.02], [-0.16, 0.36], [0.2, 0.34], [0.44, -0.06]],
-];
-// Before a cave at most three, on the left; the fire burns on the right of its mouth.
-const TROLL_FRONT = [
-  [],
-  [[-0.28, 0.48]],
-  [[-0.44, 0.34], [-0.04, 0.62]],
-  [[-0.52, 0.24], [-0.2, 0.6], [0.16, 0.72]],
-];
+const TROLL_SIZE = 1.5; // on a field
+const TROLL_EDGE = 1.35; // at an edge and on the march, where the figures stand closer to others
+const TROLL_FORMATION = [[], [[0, 0.16]], [[-0.3, 0.08], [0.28, 0.26]]];
+// Before a cave one troll, left of its mouth, where the number in front does not cover it; the fire
+// burns on the right.
+const TROLL_FRONT = [[], [[-0.44, 0.1]]];
 const CAVE_FIRE = [0.4, 0.2];
 const FIRE = ['#ffb347', '#ff7a2e', '#ffe08a'].map(lin);
 const WOOD_DARK = lin('#4a3424');
@@ -942,7 +934,7 @@ export class DioramaRenderer {
       const keep = t.castle >= 0 || t.ruin || t.terrain === 'citadel' || t.cave;
       let count, spots;
       if (beast) {
-        count = keep ? Math.min(3, trolls(t.units)) : trolls(t.units);
+        count = keep ? Math.min(1, trolls(t.units)) : trolls(t.units);
         spots = keep ? TROLL_FRONT[count] : TROLL_FORMATION[count];
       } else {
         count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
@@ -970,7 +962,7 @@ export class DioramaRenderer {
           const p = foes[i % foes.length];
           const pos = this.poolPosition(game, t, p);
           const mates = Math.ceil((spots.length - (i % foes.length)) / foes.length);
-          const lane = (Math.floor(i / foes.length) - (mates - 1) / 2) * (beast ? 0.3 : 0.21);
+          const lane = (Math.floor(i / foes.length) - (mates - 1) / 2) * (beast ? 0.42 : 0.21);
           const strike = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from + 1.57)) * 0.08;
           const k = smooth(clamp((time - p.since) / 0.45, 0, 1));
           x = mix(x, pos.x + pos.dx * (0.42 - strike) - pos.dz * lane, k);
@@ -995,11 +987,11 @@ export class DioramaRenderer {
         const ground = S.height + this.anim[S.id].lift;
         const kingdom = game.factions[p.owner].color;
         const c = scale3(PALETTE[kingdom], 1.15);
-        // A troll stands for twice as many troops as a soldier at the edge.
+        // A troll stands for twice as many troops as a soldier at the edge, and there are two at most.
         const per = p.beast ? 12 : 6;
-        const count = Math.max(1, Math.min(p.beast ? 3 : 4, Math.ceil(p.units / per)));
+        const count = Math.max(1, Math.min(p.beast ? 2 : 4, Math.ceil(p.units / per)));
         for (let i = 0; i < count; i++) {
-          const lane = (i - (count - 1) / 2) * (p.beast ? 0.3 : 0.2);
+          const lane = (i - (count - 1) / 2) * (p.beast ? 0.42 : 0.2);
           const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
           // The last figure of a pool goes down as the last of its troops fall.
@@ -1007,7 +999,7 @@ export class DioramaRenderer {
           const tilt = -clamp(1 - share * 2.5, 0, 1) * 1.4;
           // Attackers who come down from a higher field stand on its bank.
           const y = ground - models.bankDrop(S, t, 0.666 + push);
-          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, p.beast ? TROLL_SIZE : 1.08, kingdom, tilt, p.beast);
+          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, p.beast ? TROLL_EDGE : 1.08, kingdom, tilt, p.beast);
         }
       }
     }
@@ -1018,15 +1010,15 @@ export class DioramaRenderer {
       const kingdom = game.factions[army.owner].color;
       const c = scale3(PALETTE[kingdom], 1.15);
       const beast = army.beast || null;
-      const count = beast ? Math.max(1, Math.min(3, Math.ceil(army.units / 4))) : Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
+      const count = beast ? (army.units > 12 ? 2 : 1) : Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
       const fx = Math.sin(pos.angle);
       const fz = Math.cos(pos.angle);
       for (let i = 0; i < count; i++) {
         const row = Math.floor(i / 2);
-        const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * (beast ? 0.2 : 0.14);
+        const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * (beast ? 0.24 : 0.14);
         const back = row * (beast ? 0.32 : 0.24);
         const bob = Math.abs(Math.sin(time * (beast ? 7 : 11) + i * 1.7 + army.id)) * 0.04;
-        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, beast ? TROLL_SIZE : 1.12, kingdom, 0, beast);
+        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, beast ? TROLL_EDGE : 1.12, kingdom, 0, beast);
       }
     }
 

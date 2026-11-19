@@ -452,12 +452,14 @@ export function soldier(m) {
 
 /**
  * One troll, standing on the origin and facing +z: broad, hunched, grey-green, with a club. About a
- * third taller than a soldier. Drawn instanced like the soldiers; the loincloth takes the colour of
- * its side (violet for the wilds), so the side can be told by colour as for every other figure.
+ * third taller than a soldier (and drawn half as big again on top). Drawn instanced like the soldiers;
+ * loincloth and the pelt over its shoulders take the colour of its side (violet for the wilds), so the
+ * side can be told by colour from above as for every other figure. The skin is paler than the meadow,
+ * so the troll does not melt into the grass.
  */
 export function troll(m) {
-  const skin = lin('#7d9068');
-  const shade = lin('#5d6e4d');
+  const skin = lin('#a7b593');
+  const shade = lin('#76856a');
   const hide = lin('#1c1420');
   const tusk = lin('#efe6cf');
   const knot = lin('#5b4227');
@@ -469,6 +471,8 @@ export function troll(m) {
   m.box(0, 0.27, 0.005, 0.3, 0.2, 0.2, skin); // belly
   m.box(0, 0.42, 0.03, 0.36, 0.13, 0.21, skin); // shoulders, hunched forward
   m.box(0, 0.47, -0.04, 0.2, 0.1, 0.12, shade); // hump behind the head
+  m.box(0, 0.545, -0.025, 0.38, 0.045, 0.16, hide, 0, 0, 0.75); // pelt over the shoulders
+  m.box(0, 0.33, -0.1, 0.32, 0.17, 0.03, hide, 0, 0, 0.75); // hanging down the back
   m.box(0, 0.47, 0.11, 0.15, 0.13, 0.13, skin); // head, low between the shoulders
   m.box(0, 0.585, 0.12, 0.16, 0.03, 0.11, shade); // heavy brow
   m.box(0, 0.5, 0.185, 0.045, 0.06, 0.04, shade); // nose

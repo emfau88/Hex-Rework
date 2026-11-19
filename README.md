@@ -119,9 +119,9 @@ Figuren tragen ein dunkles Fell mit spitzen Ohren; jede echte Figur bekommt ihr 
 [docs/INHALTE-PLAN.md](docs/INHALTE-PLAN.md)). In den Missionen gibt es noch keine Ungeheuer.
 
 Die erste echte Figur ist der **Troll**. Seine Höhle hat 30 Trolle und wächst nach. Alle 50 Sekunden ziehen
-8 Trolle gegen das schwächste Nachbarfeld eines Reichs. 10 Sekunden vorher ist das Ziel markiert (violetter
-Ring und Pfeil), und über der Höhle zählt „Überfall n s“ herunter. Wird die Höhle angegriffen, bleiben alle
-daheim. Nimmt ein Reich die Höhle, ist sie erledigt. Die Zahlen sind Startwerte (Abschnitt 17 in
+8 Trolle gegen das schwächste Nachbarfeld eines Reichs. Ein Ring um das Trollgesicht an der Zahl zeigt, wie
+nah der Überfall ist. 10 Sekunden vorher ist das Ziel markiert (violetter Ring und Pfeil), und über der Höhle
+zählt „Überfall n s“ herunter. Wird die Höhle angegriffen, bleiben alle daheim. Nimmt ein Reich die Höhle, ist sie erledigt. Die Zahlen sind Startwerte (Abschnitt 17 in
 [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)).
 
 ## Prüfen ohne Browser

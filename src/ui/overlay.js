@@ -17,6 +17,41 @@ function pill(ctx, x, y, w, h) {
   ctx.closePath();
 }
 
+/**
+ * The sign of a figure next to its number: a round badge of radius `r` with a ring in the colour of
+ * its side. A troll is a broad grey-green face with a heavy brow, glowing eyes and two tusks.
+ */
+function figureSign(ctx, kind, x, y, r, side) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = kind === 'troll' ? '#b3c19d' : '#d9d2c4';
+  ctx.fill();
+  ctx.lineWidth = Math.max(1.6, r * 0.24);
+  ctx.strokeStyle = side;
+  ctx.stroke();
+  if (kind === 'troll') {
+    const s = r * 0.8;
+    const dark = '#33402b';
+    ctx.fillStyle = dark;
+    ctx.fillRect(x - s * 0.78, y - s * 0.46, s * 1.56, s * 0.3); // brow
+    ctx.fillRect(x - s * 0.56, y + s * 0.36, s * 1.12, s * 0.16); // mouth
+    ctx.fillStyle = '#ffcf4a';
+    ctx.fillRect(x - s * 0.55, y - s * 0.14, s * 0.36, s * 0.24); // eyes
+    ctx.fillRect(x + s * 0.19, y - s * 0.14, s * 0.36, s * 0.24);
+    ctx.fillStyle = '#fbf5e4';
+    for (const k of [-1, 1]) {
+      ctx.beginPath(); // a tusk, pointing up out of the lower jaw
+      ctx.moveTo(x + k * s * 0.6, y + s * 0.52);
+      ctx.lineTo(x + k * s * 0.24, y + s * 0.52);
+      ctx.lineTo(x + k * s * 0.46, y + s * 0.02);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 export class Overlay {
   constructor(canvas) {
     this.canvas = canvas;
@@ -110,6 +145,7 @@ export class Overlay {
     // Troop numbers on fields.
     ctx.font = `800 ${fs}px ${FONT}`;
     const contested = [];
+    const signs = new Map(); // field → where the sign of its figure was drawn
     for (const t of game.tiles) {
       if (!t.passable) continue;
       const p = renderer.tileAnchor(t);
@@ -120,12 +156,16 @@ export class Overlay {
       const h = fs + 6;
       const fought = t.pools.some((pool) => pool.owner !== t.owner);
       if (fought) contested.push({ t, p, w, h });
+      // A field of a figure (a troll) shows its sign on the left end of the plate, so that the kind can
+      // be told at a glance even where the figure itself is small.
+      const sign = owned && t.beast ? h * 0.52 : 0;
+      const signX = p.x - w / 2 - sign * 0.45;
       // A contested field carries a rim around its number; other plates keep clear of all of it.
       const top = p.y - fs * 0.45;
       const core = fought ? null
         : owned && t.owner === ui.human ? { x: p.x, y: (top + p.y + h / 2) / 2, w, h: p.y + h / 2 - top }
         : { x: p.x, y: p.y, w: tw + 2, h: fs * 0.9 };
-      plates.push({ x: p.x, y: p.y, w: fought ? w + 9 : w, h: fought ? h + 9 : h, core });
+      plates.push({ x: p.x - sign * 0.72, y: p.y, w: (fought ? w + 9 : w) + sign * 1.44, h: fought ? h + 9 : h, core });
       pill(ctx, p.x, p.y, w, h);
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
       ctx.fill();
@@ -152,6 +192,10 @@ export class Overlay {
       }
       ctx.fillStyle = owned ? (!t.supplied ? '#c3cfd0' : full ? '#ffd27a' : '#ffffff') : '#b9c9c6';
       ctx.fillText(text, p.x, p.y + 0.5);
+      if (sign) {
+        figureSign(ctx, t.beast, signX, p.y, sign, PALETTE_HEX[game.factions[t.owner].color]);
+        signs.set(t.id, { x: signX, y: p.y, r: sign });
+      }
       if (t.order) {
         // Small dot: this field is saving up for a building.
         ctx.beginPath();
@@ -165,18 +209,22 @@ export class Overlay {
     // for the player's fields. Everything else is told by the soldiers themselves.
     const concerns = (owner, tile) => ui.human < 0 || owner === ui.human || tile.owner === ui.human;
     this._battles(ctx, game, ui, contested, fs, plates, concerns);
-    this._raids(ctx, game, renderer, ui, fs, plates, time);
+    this._raids(ctx, game, renderer, ui, fs, plates, time, signs);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
     // `spot`: name under which the number keeps its place between pictures; with it, the number moves
     // to the nearest free spot. Right for numbers that stand still. Without it the number stays with
     // what it belongs to: one that travels would otherwise jump from gap to gap.
-    const badge = (x, y, text, color, ring, spot = null) => {
+    // `beast`: the troops are figures of that kind; their sign stands at the left end of the number.
+    const badge = (x, y, text, color, ring, spot = null, beast = null) => {
       const w = Math.max(afs * 1.5, ctx.measureText(text).width + afs * 0.7);
       const h = afs + 4;
-      const at = spot ? settle(x, y, w, h, spot) : [x, y];
+      const sign = beast ? h * 0.55 : 0;
+      // The sign widens the badge to the left; the number keeps its place.
+      const at = spot ? settle(x - sign * 0.72, y, w + sign * 1.44, h, spot) : [x - sign * 0.72, y];
       if (!at) return;
-      const [px, py] = at;
+      const px = at[0] + sign * 0.72;
+      const py = at[1];
       pill(ctx, px, py, w, h);
       ctx.fillStyle = color;
       ctx.fill();
@@ -185,6 +233,7 @@ export class Overlay {
       ctx.stroke();
       ctx.fillStyle = '#06141b';
       ctx.fillText(text, px, py + 0.5);
+      if (sign) figureSign(ctx, beast, px - w / 2 - sign * 0.45, py, sign, color);
     };
 
     // Besiegers: one number per kingdom and field, at the edge where most of them stand.
@@ -203,7 +252,7 @@ export class Overlay {
       for (const [owner, g] of groups) {
         const pos = renderer.poolPosition(game, t, g.lead);
         const p = renderer.project(pos.x, pos.y + 0.78, pos.z);
-        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true, `${t.id}:${owner}`);
+        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true, `${t.id}:${owner}`, g.lead.beast || null);
       }
     }
     for (const key of this.spots.keys()) if (!spotsUsed.has(key)) this.spots.delete(key);
@@ -216,7 +265,7 @@ export class Overlay {
       if (a.done || a.kind === 'supply' || !concerns(a.owner, game.tiles[a.path[a.path.length - 1]])) continue;
       const pos = renderer.armyPosition(game, a);
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
-      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false);
+      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, null, a.beast || null);
     }
     this.stats = { plates: plates.length, dropped };
 
@@ -324,20 +373,32 @@ export class Overlay {
   }
 
   /**
-   * Lairs: the time until the next raid sits on top of the lair's number like a cap. Once the target
-   * is marked, the cap turns violet and pulses. Nothing is shown while the lair is under attack: then
-   * nobody leaves it.
+   * Lairs. Until the warning, a thin ring round the figure's sign fills up as the next raid comes
+   * closer; it covers nothing of the field. Once the target is marked, a violet cap with the seconds
+   * left sits on top of the lair's number and pulses. Nothing is shown while the lair is under
+   * attack (then nobody leaves it) or while there is nobody to raid.
    */
-  _raids(ctx, game, renderer, ui, fs, plates, time) {
+  _raids(ctx, game, renderer, ui, fs, plates, time, signs) {
     const tagSize = Math.max(9, fs - 3);
     const violet = PALETTE_HEX[game.wild >= 0 ? game.factions[game.wild].color : 4];
     for (const id of game.lairs) {
       const t = game.tiles[id];
       const lair = t.lair;
       if (!lair || game.besieged(t)) continue;
-      // No countdown while there is nobody to raid: with only free land around, nothing happens.
       const marked = lair.marked && lair.target >= 0;
       if (!marked && (lair.marked || game.prey(t) < 0)) continue;
+      if (!marked) {
+        const sign = signs.get(id);
+        if (!sign) continue;
+        // Drawn on the sign's own ring, so that it takes no room from the number next to it.
+        const near = 1 - Math.min(1, Math.max(0, (lair.at - game.time) / game.R[lair.kind].every));
+        ctx.beginPath();
+        ctx.arc(sign.x, sign.y, sign.r, -Math.PI / 2, -Math.PI / 2 + near * Math.PI * 2);
+        ctx.lineWidth = Math.max(1.6, sign.r * 0.24) + 0.4;
+        ctx.strokeStyle = '#fff3c4';
+        ctx.stroke();
+        continue;
+      }
       const s = Math.max(0, Math.ceil((lair.at - game.time) / (ui.pace || 1) - 1e-6));
       const text = i18n.t('raidIn', { s });
       const p = renderer.tileAnchor(t);
