@@ -17,19 +17,42 @@ function pill(ctx, x, y, w, h) {
   ctx.closePath();
 }
 
+// Outlines of the building signs, the same as on the build buttons (24 × 24, see index.html).
+const SIGN_SHAPES = {
+  tower: { at: [12, 12.5], points: [[6, 21], [6, 10.5], [4.8, 9], [4.8, 4], [7.4, 4], [7.4, 6], [9.6, 6], [9.6, 4], [14.4, 4], [14.4, 6], [16.6, 6], [16.6, 4], [19.2, 4], [19.2, 9], [18, 10.5], [18, 21]] },
+  farm: { at: [12, 12], points: [[2.5, 11.5], [12, 4], [21.5, 11.5], [20.2, 13.1], [19, 12.2], [19, 20], [5, 20], [5, 12.2], [3.8, 13.1]], door: [10, 14, 4, 6] },
+};
+
 /**
- * The sign of a figure next to its number: a round badge of radius `r` with a ring in the colour of
- * its side. A troll is a broad grey-green face with a heavy brow, glowing eyes and two tusks.
+ * The sign of what stands on a field, next to its number: a round badge of radius `r` with a ring in
+ * the colour of its side. A troll is a broad grey-green face with a heavy brow, glowing eyes and two
+ * tusks; a tower and a farm show the outlines of their build buttons.
  */
 function figureSign(ctx, kind, x, y, r, side) {
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = kind === 'troll' ? '#b3c19d' : '#d9d2c4';
+  ctx.fillStyle = kind === 'troll' ? '#b3c19d' : '#f2ead8';
   ctx.fill();
   ctx.lineWidth = Math.max(1.6, r * 0.24);
   ctx.strokeStyle = side;
   ctx.stroke();
+  const shape = SIGN_SHAPES[kind];
+  if (shape) {
+    const k = r / 20;
+    const px = (u) => x + (u - shape.at[0]) * k;
+    const py = (v) => y + (v - shape.at[1]) * k;
+    ctx.beginPath();
+    shape.points.forEach(([u, v], i) => (i ? ctx.lineTo(px(u), py(v)) : ctx.moveTo(px(u), py(v))));
+    ctx.closePath();
+    ctx.fillStyle = '#22323a';
+    ctx.fill();
+    if (shape.door) {
+      const [u, v, w, h] = shape.door;
+      ctx.fillStyle = '#f2ead8';
+      ctx.fillRect(px(u), py(v), w * k, h * k);
+    }
+  }
   if (kind === 'troll') {
     const s = r * 0.8;
     const dark = '#33402b';
@@ -146,6 +169,7 @@ export class Overlay {
     ctx.font = `800 ${fs}px ${FONT}`;
     const contested = [];
     const signs = new Map(); // field → where the sign of its figure was drawn
+    const drawn = []; // every sign drawn this frame, for the measuring aid (tools/overlap-probe.js)
     for (const t of game.tiles) {
       if (!t.passable) continue;
       const p = renderer.tileAnchor(t);
@@ -156,15 +180,24 @@ export class Overlay {
       const h = fs + 6;
       const fought = t.pools.some((pool) => pool.owner !== t.owner);
       if (fought) contested.push({ t, p, w, h });
-      // A field of a figure (a troll) shows its sign on the left end of the plate, so that the kind can
-      // be told at a glance even where the figure itself is small.
-      const sign = owned && t.beast ? h * 0.52 : 0;
+      // What changes the rules of a field shows its sign on the left end of the plate: a figure (a
+      // troll), a tower or a farm. So it can be told at a glance even where the model itself is small.
+      const kind = owned ? t.beast || t.building || null : null;
+      const sign = kind ? h * 0.52 : 0;
       const signX = p.x - w / 2 - sign * 0.45;
       // A contested field carries a rim around its number; other plates keep clear of all of it.
       const top = p.y - fs * 0.45;
-      const core = fought ? null
+      let core = fought ? null
         : owned && t.owner === ui.human ? { x: p.x, y: (top + p.y + h / 2) / 2, w, h: p.y + h / 2 - top }
         : { x: p.x, y: p.y, w: tw + 2, h: fs * 0.9 };
+      if (core && sign) {
+        // The sign is part of what must stay visible: the core reaches out over it.
+        const l = signX - sign;
+        const r = core.x + core.w / 2;
+        const t0 = Math.min(core.y - core.h / 2, p.y - sign);
+        const b = Math.max(core.y + core.h / 2, p.y + sign);
+        core = { x: (l + r) / 2, y: (t0 + b) / 2, w: r - l, h: b - t0 };
+      }
       plates.push({ x: p.x - sign * 0.72, y: p.y, w: (fought ? w + 9 : w) + sign * 1.44, h: fought ? h + 9 : h, core });
       pill(ctx, p.x, p.y, w, h);
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
@@ -193,8 +226,9 @@ export class Overlay {
       ctx.fillStyle = owned ? (!t.supplied ? '#c3cfd0' : full ? '#ffd27a' : '#ffffff') : '#b9c9c6';
       ctx.fillText(text, p.x, p.y + 0.5);
       if (sign) {
-        figureSign(ctx, t.beast, signX, p.y, sign, PALETTE_HEX[game.factions[t.owner].color]);
+        figureSign(ctx, kind, signX, p.y, sign, PALETTE_HEX[game.factions[t.owner].color]);
         signs.set(t.id, { x: signX, y: p.y, r: sign });
+        drawn.push({ x: signX, y: p.y, r: sign });
       }
       if (t.order) {
         // Small dot: this field is saving up for a building.
@@ -233,7 +267,10 @@ export class Overlay {
       ctx.stroke();
       ctx.fillStyle = '#06141b';
       ctx.fillText(text, px, py + 0.5);
-      if (sign) figureSign(ctx, beast, px - w / 2 - sign * 0.45, py, sign, color);
+      if (sign) {
+        figureSign(ctx, beast, px - w / 2 - sign * 0.45, py, sign, color);
+        drawn.push({ x: px - w / 2 - sign * 0.45, y: py, r: sign });
+      }
     };
 
     // Besiegers: one number per kingdom and field, at the edge where most of them stand.
@@ -267,7 +304,7 @@ export class Overlay {
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
       badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, null, a.beast || null);
     }
-    this.stats = { plates: plates.length, dropped };
+    this.stats = { plates: plates.length, dropped, signs: drawn };
 
     // Refused orders: the reason floats up from the field for a moment.
     for (const n of ui.notices || []) {

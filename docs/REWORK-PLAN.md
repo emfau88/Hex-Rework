@@ -912,8 +912,10 @@ spielt (er behandelt sie wie andere Felder der Wildnis).
 ### Nachtrag: lesbarer (19.11.2026)
 
 Deine Rückmeldung: Der Troll sieht mit Höhle und Feuer gut aus, ist aber sehr schwer zu lesen. Gemessen ist ein
-Feld am PC (1280 × 720) 58 bis 70 Bildpunkte breit, am Handy (375 × 812) nur 36 bis 47. Größere Felder allein
-helfen nicht, weil das Spiel die ganze Insel immer auf den Bildschirm einpasst. Deshalb ist die Figur selbst
+Feld in einer echten Partie am PC (1280 × 720) 73 bis 96 Bildpunkte breit, am Handy (375 × 812) nur 36 bis 47.
+(Zuerst stand hier „58 bis 70“ für den PC: das war in der Figurenschau gemessen, wo die Leiste links Platz
+wegnimmt. Berichtigt in Abschnitt 18.) Größere Felder allein helfen nicht, weil das Spiel die ganze Insel
+immer auf den Bildschirm einpasst. Deshalb ist die Figur selbst
 lesbarer gemacht, nur im Bild, an Regeln und Zahlen ändert sich nichts:
 
 - **Ein großer Troll statt drei kleiner:** auf einem Feld anderthalbmal so groß wie vorher, ein zweiter erst
@@ -941,12 +943,19 @@ Bildschirmgröße und ganz nah (größter Zoom, 2,6-fach).
 
 | | PC, Mission 1 | PC, vier Reiche | Handy, vier Reiche |
 |---|---|---|---|
-| Feld (Breite) | 70 | 58 | 39 |
-| Soldat (Höhe) | 11 | 9 | 6 |
-| Troll (Höhe) | 19 | 16 | 10 |
-| Burg, Turm (Höhe) | 21 | 18 | 12 |
-| Haus vom Hof (Höhe) | 7 | 6 | 4 |
+| Feld (Breite) | 89 | 81 | 39 |
+| Soldat (Höhe) | 14 | 12 | 6 |
+| Troll (Höhe) | 24 | 22 | 10 |
+| Burg, Turm (Höhe) | 27 | 25 | 12 |
+| Haus vom Hof (Höhe) | 9 | 8 | 4 |
 | Schrift der Zahlen | 15 | 15 | 10,5 |
+
+**Berichtigt:** Die PC-Spalten standen zuerst bei 70 und 58 Bildpunkten je Feld. Das war in der Figurenschau
+gemessen, wo die Leiste links Breite wegnimmt. Nachgemessen in echten Partien (Feldbreite am PC): Mission 1
+89, Missionen 2 und 3 je 73, vier Reiche und Zufallskarte je 81, Duell 96. Die Höhen der Figuren am PC sind
+aus der Feldbreite umgerechnet (sie wachsen genau mit dem Feld), nicht neu gemessen. Am Handy stimmte die
+Messung (Mission 1 46, Missionen 2 und 3 je 36, vier Reiche und Zufallskarte je 39, Duell 47). An der
+Einschätzung unten ändert das nichts: Die Lücke ist das Handy.
 
 Ganz nah (2,6-fach) ist alles gut zu erkennen, auch am Handy: Helmformen, Turm mit Fähnchen, Hof mit Dach
 und Acker, Ruine, Zitadelle. Die Frage ist nur der Überblick ohne Zoom.
@@ -977,13 +986,13 @@ und Acker, Ruine, Zitadelle. Die Frage ist nur der Überblick ohne Zoom.
 - Größere Felder helfen nicht (Abschnitt 17), größere Figuren nur wenig: Ein doppelt so großer Hof wäre am
   Handy 8 Punkte hoch und würde Nachbarfelder verdecken.
 
-### Vorschlag (noch nicht umgesetzt)
+### Vorschlag
 
 Eine Regel für alles: **Was die Regeln eines Felds ändert, bekommt ein Zeichen an seiner Zahl**, im selben
 Stil wie das Trollgesicht. Die 3D-Modelle bleiben, für Stimmung und für den Blick aus der Nähe.
 
 1. **Turm und Hof:** dieselben Zeichen wie auf den Bau-Knöpfen unten (Turm, Haus) links an der Zahl.
-   Größter Gewinn, kleiner Aufwand, nur Darstellung.
+   Größter Gewinn, kleiner Aufwand, nur Darstellung. **Umgesetzt**, siehe unten.
 2. **Hof besser sichtbar:** Haus etwas größer, Äcker mit dunklerem Rand, damit sie auf gelben Feldern nicht
    verschwinden. Klein.
 3. **Baustelle:** dasselbe Zeichen blass oder halb gefüllt statt des gelben Punkts. Klein.
@@ -994,3 +1003,46 @@ Risiko: Zahlen mit Zeichen sind breiter. Am Handy weichen andere Zahlen dann öf
 Kämpfen. Das lässt sich mit dem vorhandenen Messwerkzeug für verdeckte Zahlen (Abschnitt 15) vorher und
 nachher messen. Turm und Hof gibt es in den echten Missionen, die Änderung wäre also im öffentlichen Spiel
 zu sehen.
+
+### Felder größer machen? Vorerst nein
+
+Besprochen: Die Felder selbst größer zu machen ändert am Bildschirm nichts, weil das Spiel die ganze Insel
+einpasst. Mehr Platz gäbe es nur, wenn die Kamera den Gebirgsrand nicht mehr ganz zeigt. Gerechnet ist der
+Gewinn: am PC 12 bis 15 % größere Felder in den Missionen 1 bis 3, am Handy 7 bis 9 %; bei vier Reichen,
+Duell und Zufallskarte nichts, weil dort kein Rand übersteht. Entscheidung: Die Berge bleiben ganz zu sehen.
+
+### Umgesetzt: Zeichen für Turm und Hof (19.11.2026)
+
+Nur Darstellung, an Regeln und Zahlen ändert sich nichts. Das ist im öffentlichen Spiel zu sehen.
+
+- Jedes Feld eines Reichs mit fertigem **Turm** oder **Hof** trägt links an seiner Zahl ein rundes Zeichen:
+  heller Grund, Rand in der Farbe des Reichs, darin derselbe dunkle Umriss wie auf dem Bau-Knopf unten
+  (Turm mit Zinnen, Haus mit Tür). Gleiche Größe und Stelle wie das Trollgesicht.
+- Eine Baustelle behält den gelben Punkt; sie bekommt ihr Zeichen erst, wenn der Bau fertig ist.
+- Das Zeichen zählt für andere Zahlen wie die Ziffern selbst: Die Zahl der Angreifer weicht ihm aus und legt
+  sich auch im Notfall nicht darauf.
+- Das Messwerkzeug für verdeckte Zahlen (`tools/overlap-probe.js`) zählt jetzt auch Zeichen, die auf Ziffern
+  liegen.
+
+Gemessen mit dem Messwerkzeug, Computer gegen Computer, je 15 Minuten Spielzeit, Würfel 1 und 2, vorher und
+nachher dieselben Partien:
+
+| Handy (375 × 812) | Bilder mit verdeckter Zahl vorher | nachher | weggelassene Angreiferzahlen vorher | nachher |
+|---|---|---|---|---|
+| Mission 1 | 0 | 0 | 2 | 4 |
+| Mission 2 | 0 | 0 | 17 | 28 |
+| Mission 3 | 0 | 1 | 4 | 14 |
+| vier Reiche | 0 | 0 | 4 | 6 |
+| Duell | 0 | 0 | 0 | 0 |
+| zusammen | 0 von 8 458 | 1 von 8 458 | 27 von rund 5 400 | 52 von rund 5 400 |
+
+Am PC (1280 × 720; Mission 2, Mission 3, vier Reiche) vorher wie nachher: keine verdeckte Zahl, keine
+weggelassene.
+
+Der Preis also: Am Handy fehlt die Zahl der Angreifer jetzt in etwa 1 von 100 Bildern statt in 1 von 200,
+in engen Kämpfen. Rand und Ansage zeigen den Kampf dann weiter. Das eine Bild mit verdeckter Zahl: die
+Ansage „12 s“ eines Kampfs lag kurz auf dem Zeichen eines Nachbarfelds, nicht auf einer Ziffer.
+
+Tests: 80 grün, einer neu (Turm und Hof bekommen ihr Zeichen links an der Zahl, Angreiferzahlen bleiben davon
+frei). Im Browser angesehen am PC und im Handy-Format, im Überblick und vergrößert. Nicht geprüft: am echten
+Handy; ob du die Zeichen ohne Erklärung erkennst.

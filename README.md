@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8.1 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -174,6 +174,10 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ```
 
 ## Stand
+
+Stand 0.8.1 vom 19.11.2026: Felder mit Turm oder Hof tragen links an ihrer Zahl ein rundes Zeichen (Turm,
+Haus), wie die Bau-Knöpfe; so erkennt man sie auch am Handy im Überblick. Nur Darstellung, Regeln unverändert
+(Abschnitt 18 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Geprüft mit 80 Tests.
 
 Nachtrag zu Stand 0.8 (19.11.2026): die Figurenschau unter `?schau` und Ungeheuer als eigene Seite
 „Wildnis“, die Grundlage für den Figurenpool (Abschnitt 16 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)),

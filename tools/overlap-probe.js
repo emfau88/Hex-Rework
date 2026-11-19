@@ -4,9 +4,9 @@
 //   2. in the browser console:
 //        eval(await (await fetch('/tools/overlap-probe.js')).text());
 //        await __probe('m2', { seconds: 600 })
-//   bad: pictures in which digits lie on other digits. Marching troops are counted apart: their
-//   numbers travel with them and may pass over others. dropped: attackers' numbers left out for
-//   lack of room.
+//   bad: pictures in which digits (or the round signs at them) lie on other digits. Marching troops
+//   are counted apart: their numbers travel with them and may pass over others. dropped: attackers'
+//   numbers left out for lack of room. signs: signs drawn, summed over all pictures.
 window.__probe = async function probe(id, { seconds = 900, every = 1, seed } = {}) {
   const app = window.__app;
   const { MISSIONS } = await import('/src/sim/missions.js');
@@ -34,6 +34,7 @@ window.__probe = async function probe(id, { seconds = 900, every = 1, seed } = {
   let bad = 0;
   let dropped = 0;
   let sieges = 0;
+  let signs = 0;
   try {
     for (let t = 0; t < seconds && game.phase === 'running'; t += every) {
       for (let k = 0; k < every * 10; k++) game.step(0.1);
@@ -53,6 +54,11 @@ window.__probe = async function probe(id, { seconds = 900, every = 1, seed } = {
       for (const b of texts) {
         b.kind = march.some((m) => m.text === b.text && Math.abs(m.x - b.x) < 1 && Math.abs(m.y - b.y) < 1) ? 'march' : /s$|hält|holds/.test(b.text) && b.color === '#ffffff' && !/^\d+$/.test(b.text) ? 'tag' : b.color === '#06141b' ? 'siege' : 'field';
       }
+      // The round signs at the numbers (troll, tower, farm) count like digits: one lying on a number
+      // hides it just the same.
+      const drawnSigns = (ov.stats && ov.stats.signs) || [];
+      signs += drawnSigns.length;
+      for (const s of drawnSigns) texts.push({ text: 'sign', x: s.x, y: s.y, w: s.r * 2, h: s.r * 2, kind: 'sign' });
       pictures++;
       dropped += ov.stats.dropped || 0;
       sieges += texts.filter((b) => b.kind === 'siege').length;
@@ -76,5 +82,5 @@ window.__probe = async function probe(id, { seconds = 900, every = 1, seed } = {
   } finally {
     ctx.fillText = plain;
   }
-  return { id, pictures, bad, dropped, sieges, pairs, shots, end: Math.round(game.time), phase: game.phase, winner: game.winner, w: innerWidth, h: innerHeight };
+  return { id, pictures, bad, dropped, sieges, signs, pairs, shots, end: Math.round(game.time), phase: game.phase, winner: game.winner, w: innerWidth, h: innerHeight };
 };

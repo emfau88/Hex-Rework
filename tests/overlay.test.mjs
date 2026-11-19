@@ -139,3 +139,34 @@ test('the number of the attackers never covers the number of a field, even on a 
     if (spacing === 36) assert.equal(overlay.stats.dropped, 0, 'at the spacing of a real phone both numbers find room');
   }
 });
+
+test('a tower and a farm show their sign left of the number, and attackers keep clear of it', () => {
+  const game = lab({}, 0);
+  for (const t of game.tiles) if (t.passable && t.owner < 0) give(game, t, 1, 20);
+  for (const [col, row] of [[1, 1], [2, 1], [1, 0], [2, 0]]) give(game, at(game, col, row), 0, 20);
+  const tower = at(game, 2, 1);
+  const farm = at(game, 3, 1);
+  tower.building = 'tower';
+  farm.building = 'farm';
+  for (const [col, row] of [[2, 2], [3, 1], [3, 0]]) game.assault(0, at(game, col, row).id, 1);
+  for (let i = 0; i < 25; i++) game.step(0.1);
+
+  const { canvas, texts } = fakeCanvas();
+  const overlay = new Overlay(canvas);
+  overlay.resize(375, 812, 1);
+  const camera = phoneCamera(36);
+  overlay.draw(game, camera, { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1 }, 0);
+  const signs = overlay.stats.signs;
+  assert.equal(signs.length, 2, 'one sign each for the tower and the farm, none for plain fields');
+  for (const t of [tower, farm]) {
+    const p = camera.tileAnchor(t);
+    assert.ok(signs.some((s) => s.x < p.x && p.x - s.x < 25 && Math.abs(s.y - p.y) < 1), 'the sign sits at the left end of its number');
+  }
+  const box = (b) => ({ x: b.x, y: b.y, w: String(b.text).length * 6, h: Number(/(\d+)px/.exec(b.font)[1]) * 0.8 });
+  for (const a of texts.filter((b) => b.color === '#06141b').map(box)) {
+    for (const s of signs) {
+      const covers = Math.abs(a.x - s.x) * 2 < a.w + s.r * 2 - 1 && Math.abs(a.y - s.y) * 2 < a.h + s.r * 2 - 1;
+      assert.ok(!covers, "an attackers' number lies on the sign of a tower or a farm");
+    }
+  }
+});

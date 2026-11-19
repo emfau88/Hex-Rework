@@ -1,6 +1,6 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.8 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.8.1 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
@@ -15,8 +15,9 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 
 ### Lesbarkeit (aus der Gesamtprüfung, Abschnitt 18 in [REWORK-PLAN.md](REWORK-PLAN.md))
 
-- [ ] **Zeichen an der Zahl für Turm und Hof** (wie das Trollgesicht): am Handy sind beide im Überblick heute
-      nicht zu sehen · Aufwand klein · ändert das Bild der echten Missionen
+- [x] **Zeichen an der Zahl für Turm und Hof** (wie das Trollgesicht), gebaut mit Stand 0.8.1. Preis am Handy:
+      Die Zahl der Angreifer fehlt in engen Kämpfen etwa doppelt so oft wie vorher (gemessen 52 statt 27 von
+      rund 5 400)
 - [ ] Hof besser sichtbar: Haus etwas größer, Äcker mit dunklerem Rand (verschwinden sonst auf gelben Feldern)
 - [ ] Baustelle mit blassem Zeichen statt des gelben Punkts; Ruine mit eigenem Zeichen (kann warten)
 
@@ -34,6 +35,8 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 - **Kamera frei drehen.** Zahlen, Deko und Antippen gehen von einer festen Blickrichtung aus.
 - **Fertige 3D-Modelle aus Dateien.** Das Spiel kommt ohne aus und bleibt dadurch klein.
 - **Automatische Pause beim Bauen.** Die Pause mit Befehlen deckt das ab.
+- **Größere Felder durch Abschneiden des Gebirgsrands** (19.11.2026): brächte am PC 12 bis 15 %, am Handy 7 bis
+  9 % in den Missionen 1 bis 3, sonst nichts. Die Berge bleiben ganz zu sehen.
 
 ## Von dir zu prüfen
 
@@ -67,6 +70,8 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
       stört er?
 - [ ] Tasten am PC: Gehen dir S (Sturm), T (Turm) und H (Hof) leicht von der Hand?
 - [ ] Fällt dir am Handy auf, wenn die Zahl der Angreifer neben einem Kampf kurz fehlt?
+- [ ] Zeichen für Turm und Hof an der Zahl (Stand 0.8.1): Erkennst du sie ohne Erklärung, auch am Handy?
+      Stören sie, wenn viele Höfe nebeneinander liegen?
 - [ ] Safari und iPhone
 - [ ] **Figurenschau** ansehen (Link mit `?schau` am Ende, siehe README): Kommst du mit Setzen, Zeit und
       Werten zurecht, am PC und am Handy? Passt Violett als Farbe der Ungeheuer, und erkennt man sie am Fell
@@ -88,8 +93,9 @@ Stand 0.8. Die Zahlen zur Stärke der Gegner stammen aus Stand 0.7.1 (REWORK-PLA
 - [ ] Vier-Reiche-Gefecht auf „Schwer“ bleibt hart (3-Sekunden-Spieler gewinnt 33 von 60)
 - [ ] Ohne Mensch enden Partien auf „Leicht“ und „Normal“ meist nicht in 15 Minuten
 - [ ] Die Testspieler sind Programme; ob sie einem Menschen ähneln, zeigt nur dein Spieltest
-- [ ] Am Handy fehlt selten die Zahl der Angreifer, wenn neben dem Kampf kein Platz frei ist (Mission 3: 5 von
-      228 Fällen, vier Reiche: 6 von 334)
+- [ ] Am Handy fehlt selten die Zahl der Angreifer, wenn neben dem Kampf kein Platz frei ist. Seit den Zeichen
+      für Turm und Hof (Stand 0.8.1) etwa in 1 von 100 Fällen statt 1 von 200 (gemessen über fünf Karten mit je
+      zwei Würfeln: 52 statt 27 von rund 5 400)
 - [ ] Der Computer schneidet nur zufällig ab, er plant es nicht über mehrere Züge
 - [ ] Am Handy hochkant muss man im Menü weiter etwas scrollen (es ist rund 900 Punkte hoch)
 
