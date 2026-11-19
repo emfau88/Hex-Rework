@@ -12,6 +12,12 @@ nicht mehr, es zählt die Form der Front.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
+### Testversion: Rundenmodus
+
+[▶ Rundenmodus ausprobieren](https://emfau88.github.io/Hex-Rework/runden/) · Probe, in der man Zug um Zug spielt
+statt in Echtzeit: das Duell mit 3 Befehlen pro Zug. Unfertig; der Spielstand wird getrennt gespeichert. Plan und
+Messwerte: [docs/RUNDEN-PLAN.md im Zweig runden](https://github.com/emfau88/Hex-Rework/blob/runden/docs/RUNDEN-PLAN.md)
+
 ## Lokal starten
 
 | Wo | Wie |

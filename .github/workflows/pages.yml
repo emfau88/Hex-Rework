@@ -1,5 +1,10 @@
 # Runs the tests (rules and input, everything in tests/) and, if they pass, publishes the game to GitHub Pages.
 # The site contains only what the browser needs: index.html, styles.css and src/.
+#
+# Test version of the turn mode: the branch `runden` is published as well, under runden/ (see
+# docs/RUNDEN-PLAN.md on that branch). Its own tests must pass. If the branch is missing or its tests fail,
+# only the test version is left out; the real game is published all the same. A push to `runden` starts
+# this workflow on main by hand (workflow_dispatch, see .github/workflows/runden.yml on that branch).
 name: Test and deploy
 
 on:
@@ -34,6 +39,22 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html styles.css src _site/
+      - name: Fetch the test version (branch runden)
+        id: runden
+        continue-on-error: true
+        uses: actions/checkout@v7
+        with:
+          ref: runden
+          path: _runden
+      - name: Test the test version, then add it under runden/
+        if: steps.runden.outcome == 'success'
+        continue-on-error: true
+        working-directory: _runden
+        run: |
+          node --test
+          mkdir _out
+          cp -r index.html styles.css src _out/
+          mv _out ../_site/runden
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
