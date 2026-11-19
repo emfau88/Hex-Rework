@@ -84,21 +84,27 @@ Stand 0.8. Die Zahlen zur Stärke der Gegner stammen aus Stand 0.7.1 (REWORK-PLA
 Neue Inhalte, in der empfohlenen Reihenfolge. Jede neue Eigenart muss gemessen und erklärt werden; deshalb
 erst nach dem Spieltest und eine nach der anderen.
 
-Die Punkte 13 bis 16 sind ausgearbeitet in [INHALTE-PLAN.md](INHALTE-PLAN.md) (Stand 19.11.2026): Blöcke A
-bis H mit Startwerten, Missionen 4 bis 9 und „Fertig, wenn“. Vier Fragen dort sind von dir zu entscheiden.
+Die Punkte 13 bis 16 (Ungeheuer, Figurentypen, Völker) sind ausgearbeitet in [INHALTE-PLAN.md](INHALTE-PLAN.md)
+(Stand 19.11.2026). Zuerst entsteht ein **Pool von Figuren**, jede einzeln in einer Figurenschau anzusehen.
+Wo und wie sie in Missionen vorkommen, ist bewusst offen (Idee: eine Figur retten, die ab der nächsten Mission
+mitkommt). Am normalen Spiel ändert sich bis dahin nichts.
 
-- [ ] **A · Grundlage „Wildnis“:** Ungeheuer als eigene Seite, die kein Reich ist · Aufwand mittel
-- [ ] **B · Trollhöhle (13, Mission 4):** überfällt Nachbarfelder, bewacht den Hort · Aufwand mittel
-- [ ] **C · Figuren nach Ort (15):** Bogenschützen am Turm, Ritter in der Burg, Rammbock; nur Darstellung ·
-      Aufwand mittel
-- [ ] **D · Schmale Kante und Koloss (14, Mission 5):** Brücken und Furten, ein Riese als Missionsziel ·
+- [ ] **Schritt 0 · Figurenschau und Grundlage „Wildnis“:** Testinsel über einen eigenen Link; Ungeheuer
+      gehören keinem Reich · Aufwand mittel
+- [ ] **1 · Troll:** greift aus seiner Höhle das schwächste Nachbarfeld an · Aufwand klein bis mittel
+- [ ] **2 · Steinriese:** schmale Kanten, Stampfen trifft alle Angreifer; nur rundum zu fällen · Aufwand mittel
+- [ ] **3 · Wolfsrudel:** zieht umher und fällt fast leere Felder an · Aufwand mittel
+- [ ] **4 · Drache:** verbrennt mit Vorwarnung das Feld mit den meisten Truppen; wirkt gegen Stapeln · Aufwand
+      mittel
+- [ ] **5 · Ritter (Held):** zieht mit einem Trupp, stärkt dessen Angriff; kann gefangen und befreit werden ·
       Aufwand mittel bis groß
-- [ ] **E · Völker-Grundlage und Nomaden (16, Mission 6)** · Aufwand mittel
-- [ ] **F · Drache (Mission 7):** greift das Feld mit den meisten Truppen an, wirkt gegen Stapeln · Aufwand mittel
-- [ ] **G · Horde und Clans (16, Mission 8)** · Aufwand klein bis mittel je Volk
-- [ ] **H · Seeräuber (16, Mission 9)** · Aufwand groß
-- [ ] Später: Verbündeter, Nebel, Verteidigungsmission, Gegner mit Charakter, eine Fähigkeit je Reich (Rest aus
-      Bulk 7 und 8)
+- [ ] **6 · Riesenspinne:** Netze sperren Kanten · Aufwand klein bis mittel
+- [ ] **7 · Totenbeschwörer:** Gefallene stehen als Skelette wieder auf · Aufwand mittel bis groß
+- [ ] **8 · Greif:** stößt auf marschierende Truppen herab · Aufwand mittel
+- [ ] **9 · Magierin (Heldin):** Fähigkeit auf Knopfdruck mit Wartezeit · Aufwand mittel bis groß
+- [ ] **10 · Krake:** greift vom Meer aus Küstenfelder an · Aufwand klein bis mittel
+- [ ] Danach offen: Einsatz der Figuren in Szenarien, Figuren nach Ort (nur Darstellung), Völker mit eigener
+      Regel, Brücken und Furten, Verbündeter, Nebel, Gegner mit Charakter (Rest aus Bulk 7 und 8)
 - [ ] Missionen 10 bis 12 und Finale, Sterne mit eigenen Aufgaben, Tageskarte (Bulk 9)
 - [ ] Technik für die Veröffentlichung: Bündelung, robustes Speichern, Qualitätsstufen (Bulk 10)
 - [ ] Portale: Kongregate, Y8, GameMonetize; Name prüfen, Icon, Screenshots (Bulk 11)
