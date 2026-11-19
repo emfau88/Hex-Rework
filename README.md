@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.7.1 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -25,7 +25,7 @@ Zum Spielen über den Link oben braucht es das alles nicht.
 ## Die Regeln in vier Sätzen
 
 1. **Versorgung:** Ein Feld versorgt 20 Truppen, die Burg 40, die Zitadelle 30. Was darüber liegt, schwindet.
-   Eine gelbe Zahl heißt: Das Feld ist voll.
+   Ein Streifen unter der Zahl jedes eigenen Feldes zeigt, wie voll es ist. Gelb heißt: voll, es wächst nicht mehr.
 2. **Kampf an den Kanten:** Ein Kampf dauert. An jeder Feldkante kämpfen höchstens 8 Angreifer, alle
    Verteidiger wehren sich. Von drei Seiten kostet ein Angriff rund ein Drittel.
 3. **Burgen fallen durch Umzingeln:** Erst die Felder um die Burg nehmen, dann von allen Seiten stürmen.
@@ -40,17 +40,21 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
   12 Verteidiger bleiben).
 - **Sturm von allen Seiten:** ein fremdes Feld zweimal antippen. Alle eigenen Nachbarfelder greifen zugleich
   an. Nach dem ersten Tipp (am PC schon beim Überfahren mit der Maus) steht die Vorhersage für alle zusammen da.
+  Am PC schickt die Taste `S` genau diesen Sturm los, solange seine Vorhersage zu sehen ist.
 - **Senden 50 % / 100 %:** Knopf unten links, am PC auch Tasten `1` und `2`.
 - **Turm / Hof:** eigenes Feld antippen, dann bauen. Reicht es noch nicht, spart das Feld (goldener Punkt).
   Jedes weitere Gebäude derselben Art kostet mehr. Was ein Feld nicht mehr ersparen kann, gibt es nur sofort:
-  Am Knopf steht dann, ab wie vielen Truppen auf dem Feld (zum Beispiel „ab 21 Truppen“).
+  Am Knopf steht dann, ab wie vielen Truppen auf dem Feld (zum Beispiel „ab 21 Truppen“). Am PC baut die
+  Taste `T` einen Turm, `H` (englisch `F`) einen Hof: auf dem gewählten Feld oder sonst auf dem eigenen Feld
+  unter der Maus. Geht es dort nicht, steht am Feld warum.
 - **Nachschub:** schickt Truppen aus dem Hinterland an Frontfelder, die noch Platz haben.
 - **Abbrechen:** `Esc`, rechte Maustaste oder das gewählte Feld erneut antippen. Das nimmt auch einen
   Sturm zurück, der nach dem ersten Tipp bereitstand.
 - **Kampf lesen:** Bei einem Kampf färbt sich der Rand der Feldzahl von oben im Uhrzeigersinn in der Farbe
   der Angreifer. Ist er einmal herum, fällt das Feld. Greifen zwei Reiche an, teilen sie sich den gefärbten
   Teil. Betrifft dich der Kampf, steht über der Zahl, in wie vielen Sekunden das Feld fällt (der Punkt zeigt,
-  an wen) oder dass es hält.
+  an wen) oder dass es hält. Neben dem Kampf steht die Zahl der Angreifer. Ist am Handy rundherum kein Platz
+  frei, fehlt sie für den Moment, statt eine andere Zahl zu verdecken.
 - **Abgelehnte Befehle:** Wird ein Befehl nicht ausgeführt, steht kurz am Feld warum: „Zu wenig Truppen“,
   „Ziel ist voll“ oder „Kein Weg dorthin“.
 - **Karte vergrößern und verschieben:** Mausrad oder zwei Finger vergrößern. Ziehen auf fremdem oder leerem
@@ -128,7 +132,7 @@ src/audio/    erzeugte Klänge
 src/input.js  Ziehen, Tippen, Sturmbefehl
 src/main.js   Menü, Besprechung, Spielschleife, Einführung
 tests/        Tests für Regeln, Bauen, Vorhersage und Eingabe
-tools/        Messung, Testspieler, Kartenanzeige
+tools/        Messung, Testspieler, Kartenanzeige, Messung verdeckter Zahlen im Browser
 ```
 
 Keine Abhängigkeiten, keine Bild-, Modell- oder Tondateien.
@@ -144,11 +148,13 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
-Stand 0.7 vom 19.11.2026: Die Gegner sind für Menschen neu abgestimmt (Abschnitt 14 in
-[docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)); bis Stand 0.6 war selbst Mission 1 nur mit einem Befehl alle 1,5
+Stand 0.8 vom 19.11.2026: Tasten am PC für Sturm und Bauen, ein Streifen für den Füllstand eigener Felder, am
+Handy verdeckt keine Zahl mehr eine andere, Menü und Hilfe passen am PC ohne Scrollen auf 720 Punkte Höhe
+(Abschnitt 15 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.7 und 0.7.1: Die Gegner sind für
+Menschen neu abgestimmt (Abschnitt 14); bis Stand 0.6 war selbst Mission 1 nur mit einem Befehl alle 1,5
 Sekunden sicher zu gewinnen. Davor Stand 0.6: Helmformen je Reich, umfallende Figuren, weiche Schatten, Gebäude mit Zustand,
 Seitenleisten am PC (Abschnitt 13 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.5: abgelehnte
 Befehle werden rückgemeldet, Zoom und Verschieben, Meer rund um die Insel, Burgmauern (Abschnitt 12), Stand 0.4: Tempo-Schalter,
 Pause mit Befehlen, Kampfanzeige, Kampfanimation, Gebirge und Böschungen (Abschnitt 11), und Stand 0.3.1: drei
-Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 52 Tests, Messläufen und Durchläufen im
+Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 58 Tests, Messläufen und Durchläufen im
 Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

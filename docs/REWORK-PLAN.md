@@ -713,3 +713,60 @@ Offen: Ob das für dich passt, ist nicht gemessen, sondern deine nächste Rückm
 schwer“ (alle 2,2 s) und „zu leicht“ (alle 12 s) ist groß; alle 7 s ist ein begründeter Mittelwert, kein
 Beweis. Ist es weiter zu leicht, ist der nächste Schritt alle 5 bis 6 s (gemessen: Anfänger 5 s gewinnt dann
 47 von 60 in 6:47).
+
+## 15 · Tasten, Füllstand, verdeckte Zahlen, Menü (Stand 0.8, 19.11.2026)
+
+Die beiden offenen Punkte unter „Danach“ und zwei offene Schwächen aus der Roadmap. Alles ist Darstellung und
+Bedienung: An den Regeln ist nichts geändert, die Balance ist deshalb nicht neu gemessen.
+
+| Was | Stand |
+|---|---|
+| Tasten am PC | gebaut und im Browser mit echter Maus und Tastatur geprüft. `S` stürmt das fremde Feld unter der Maus, genau so, wie die Vorschau es zeigt; ohne Vorschau passiert nichts. `T` baut einen Turm, `H` (englisch `F`) einen Hof: auf dem gewählten Feld, sonst auf dem eigenen Feld unter der Maus. Geht es nicht, steht der Grund am Feld („ab 21 Truppen“, „nur auf Wiese“, „Hier nicht möglich“). Die Taste steht klein oben links auf den Bauknöpfen, dazu eine Zeile in der Hilfe; beides nur an Geräten mit Maus |
+| Füllstand | gebaut und im Bild gesehen. Unter der Zahl jedes eigenen Feldes füllt sich ein schmaler Streifen in Reichsfarbe von links, bis das Feld so viele Truppen hat, wie es versorgt. Voll: gelb wie die Zahl. Abgeschnitten: grau. Gegnerische und freie Felder haben keinen Streifen |
+| Verdeckte Zahlen am Handy | behoben, siehe unten |
+| Menü und Hilfe | auf breiten Bildschirmen zweispaltig. Bei 1280 × 720: Menü 570 statt 895 Punkte hoch, Hilfe 572 Punkte; vorher musste man bei beiden scrollen. Am Handy unverändert einspaltig |
+
+### Verdeckte Zahlen am Handy
+
+Gemessen mit einem neuen Messwerkzeug im Browser (`tools/overlap-probe.js`): Der Computer spielt auf deinem
+Platz, gezählt wird in 600 Bildern je Karte (eins pro Spielsekunde), in wie vielen Ziffern auf anderen Ziffern
+liegen. Zahlen über marschierenden Truppen zählen nicht mit: Sie reisen seit Stand 0.6 absichtlich fest mit
+ihrer Truppe und ziehen dabei über andere Zahlen hinweg.
+
+| Karte (Handy 375 × 812, „Normal“) | Bilder mit verdeckter Zahl vorher | jetzt | Angreiferzahl weggelassen |
+|---|---|---|---|
+| Mission 1 | 24 von 600 | 0 | 0 von 440 |
+| Mission 2 | 33 von 600 | 0 | 1 von 380 |
+| Mission 3 | 43 von 600 | 0 | 5 von 228 |
+| Duell | nicht gemessen | 0 | 0 von 372 |
+| Vier Reiche | nicht gemessen | 0 | 6 von 334 |
+
+Am PC (1280 × 720) lag schon vorher keine Zahl auf einer anderen (Mission 2, Mission 3, vier Reiche, je 600
+Bilder), jetzt auch nicht.
+
+- **Ursache:** Die Zahl der Angreifer weicht den Feldzahlen aus. Am Handy stehen die Felder nur gut 30 Punkte
+  auseinander; fand sie keinen freien Platz, blieb sie an ihrer Stelle liegen, oft auf einer Feldzahl.
+- **Jetzt:** Sie darf den Rand eines anderen Schildes streifen, aber nie dessen Ziffern, den Füllstreifen oder
+  den Rand eines umkämpften Feldes. Findet sie gar keinen Platz, fehlt sie in diesem Bild; Rand und Ansage
+  zeigen den Kampf weiter. Außerdem bleibt sie an ihrem Platz, solange er frei ist, statt in jedem Bild die
+  nächste Lücke zu suchen.
+- **Warum es mehr war als in Stand 0.3** (damals Mission 2: 5 von 237 Bildern): vermutet, nicht gemessen. Seit
+  Stand 0.4 brauchen Rand und Ansage an umkämpften Feldern zusätzlich Platz, und gezählt wurde anders.
+
+### Tests
+
+Sechs neue Tests, 58 insgesamt: vier für die Tasten (S nur mit Vorschau; S nimmt einen halb gegebenen
+Doppeltipp zurück; Bauen auf gewähltem Feld oder unter der Maus, nie auf fremdem; nichts, solange keine Befehle
+gehen), einer für den Streifen (halbe Truppen, halber Streifen; Burg 10 von 40 ein Viertel; voll gelb; keiner
+auf gegnerischen Feldern), einer für verdeckte Zahlen (Felder 28 Punkte auseinander). Dieser scheitert mit der
+alten Darstellung genau an der verdeckten Zahl.
+
+### Geprüft und nicht geprüft
+
+Geprüft im Browser bei 1280 × 720 mit echter Maus und Tastatur: `T` über einem eigenen Feld baut den Turm, `H`
+nimmt einen Hof in Auftrag, `S` über einem fremden Feld mit der Vorschau „4× ✓ 30“ schickt alle vier Nachbarn,
+`T` über der eigenen Burg zeigt „Hier nicht möglich“. Im Handy-Format sind Tastenbuchstaben und die Hilfezeile
+zu den Tasten ausgeblendet. Keine Fehlermeldungen.
+
+Nicht geprüft: am echten Handy; ob der Streifen dort gut zu sehen ist (er ist knapp drei Bildpunkte hoch);
+die englischen Texte nur gelesen, nicht im Bild gesehen.

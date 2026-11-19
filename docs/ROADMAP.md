@@ -1,22 +1,17 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.7.1 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.8 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
-Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut, die Punkte 5 bis 9 („Danach“) mit Stand 0.6.
-Sie stehen unter „Erledigt“.
+Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut, die Punkte 5 bis 9 („Danach“) mit Stand 0.6,
+die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen unter „Erledigt“.
 
 ## Vorab
 
-- [ ] **Dein Spieltest von Stand 0.7.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
+- [ ] **Dein Spieltest von Stand 0.8.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
 
 ## Als Nächstes
-
-### Danach
-
-- [ ] Anzeige, wie voll ein Feld ist (am Hof zeigt es seit Stand 0.6 das Getreide, sonst nur die gelbe Zahl)
-- [ ] Tastenkürzel für Sturm und Bauen
 
 ### Erst nach deinem Spieltest entscheiden
 
@@ -59,11 +54,15 @@ Sie stehen unter „Erledigt“.
 - [ ] Am echten Handy ein fremdes Feld einmal antippen: Bleibt die Vorschau stehen, und schickt erst der
       zweite Tipp los? (Seit Stand 0.3.1 geändert, nur mit nachgestellten Ereignissen getestet.)
 - [ ] Bauknöpfe ansehen: Ist „ab 21 Truppen“ unter dem Knopf verständlich?
+- [ ] Streifen unter der Zahl: Siehst du auf einen Blick, wie voll ein Feld ist? Ist er am Handy zu dünn, oder
+      stört er?
+- [ ] Tasten am PC: Gehen dir S (Sturm), T (Turm) und H (Hof) leicht von der Hand?
+- [ ] Fällt dir am Handy auf, wenn die Zahl der Angreifer neben einem Kampf kurz fehlt?
 - [ ] Safari und iPhone
 
 ## Offene Schwächen
 
-Stand 0.7, nach der Neuabstimmung für Menschen (REWORK-PLAN Abschnitt 14).
+Stand 0.8. Die Zahlen zur Stärke der Gegner stammen aus Stand 0.7.1 (REWORK-PLAN Abschnitt 14).
 
 - [ ] **Stapeln gewinnt gegen langsame Gegner wieder:** auf „Leicht“ 3 bis 24 von 60 Partien, auf „Normal“ nur
       noch in Mission 2 (5 von 60), auf „Schwer“ 0. Es dauert 7 bis 11 Minuten, etwa doppelt so lange wie
@@ -73,9 +72,10 @@ Stand 0.7, nach der Neuabstimmung für Menschen (REWORK-PLAN Abschnitt 14).
 - [ ] Vier-Reiche-Gefecht auf „Schwer“ bleibt hart (3-Sekunden-Spieler gewinnt 33 von 60)
 - [ ] Ohne Mensch enden Partien auf „Leicht“ und „Normal“ meist nicht in 15 Minuten
 - [ ] Die Testspieler sind Programme; ob sie einem Menschen ähneln, zeigt nur dein Spieltest
-- [ ] In Mission 2 und 3 überdeckt vereinzelt noch eine Zahl eine andere
+- [ ] Am Handy fehlt selten die Zahl der Angreifer, wenn neben dem Kampf kein Platz frei ist (Mission 3: 5 von
+      228 Fällen, vier Reiche: 6 von 334)
 - [ ] Der Computer schneidet nur zufällig ab, er plant es nicht über mehrere Züge
-- [ ] Das Menü ist mit der Tempo-Zeile länger als ein Bildschirm von 720 Punkten Höhe; man muss scrollen
+- [ ] Am Handy hochkant muss man im Menü weiter etwas scrollen (es ist rund 900 Punkte hoch)
 
 ## Später
 
@@ -124,5 +124,9 @@ erst nach dem Spieltest und eine nach der anderen.
 - [x] Umfallende Figuren im Kampf (Stand 0.6)
 - [x] Seitenleisten am PC: eigenes Reich, Gegner, Ereignisse (Stand 0.6)
 - [x] Zahl über marschierenden Truppen ruckelt am Handy nicht mehr (Stand 0.6)
+- [x] Streifen unter der Zahl zeigt, wie voll ein eigenes Feld ist (Stand 0.8)
+- [x] Tasten am PC: S für Sturm, T für Turm, H (englisch F) für Hof (Stand 0.8)
+- [x] Am Handy verdeckt keine Zahl mehr eine andere (Stand 0.8)
+- [x] Menü und Hilfe passen am PC ohne Scrollen auf 720 Punkte Höhe (Stand 0.8)
 - [x] Gegner für Menschen neu abgestimmt: Leicht, Normal und Schwer nach Sekunden pro Befehl; der Gegner
       wartet in der Einführung von Mission 1; langsame Testspieler im Messwerkzeug (Stand 0.7)
