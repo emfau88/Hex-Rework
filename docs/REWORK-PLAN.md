@@ -929,3 +929,68 @@ lesbarer gemacht, nur im Bild, an Regeln und Zahlen ändert sich nichts:
 Geprüft im Browser am PC und im Handy-Format, im Überblick und ganz nah, mit Warnung und Marsch; das Zeichen
 zusätzlich vergrößert Bildpunkt für Bildpunkt. Keine Fehlermeldungen, 79 Tests grün. Nicht geprüft: am echten
 Handy; ob du das Gesicht ohne Erklärung als Troll erkennst.
+
+## 18 · Gesamtprüfung: Wie gut liest man Einheiten und Gebäude? (19.11.2026)
+
+Nur angesehen und gemessen, nichts geändert. Grundlage: ein Vier-Reiche-Spiel (Computer gegen Computer,
+„Schwer“) nach 2,5 Minuten, mit Burgen, Zitadelle, 4 Türmen, 15 Höfen, Baustellen, Märschen und Kämpfen; dazu
+eine Ruine. Angesehen am PC (1280 × 720) und im Handy-Format (375 × 812), jeweils im Überblick in echter
+Bildschirmgröße und ganz nah (größter Zoom, 2,6-fach).
+
+### Gemessen: Größe auf dem Bildschirm ohne Zoom (Bildpunkte)
+
+| | PC, Mission 1 | PC, vier Reiche | Handy, vier Reiche |
+|---|---|---|---|
+| Feld (Breite) | 70 | 58 | 39 |
+| Soldat (Höhe) | 11 | 9 | 6 |
+| Troll (Höhe) | 19 | 16 | 10 |
+| Burg, Turm (Höhe) | 21 | 18 | 12 |
+| Haus vom Hof (Höhe) | 7 | 6 | 4 |
+| Schrift der Zahlen | 15 | 15 | 10,5 |
+
+Ganz nah (2,6-fach) ist alles gut zu erkennen, auch am Handy: Helmformen, Turm mit Fähnchen, Hof mit Dach
+und Acker, Ruine, Zitadelle. Die Frage ist nur der Überblick ohne Zoom.
+
+### Ergebnis je Element (Überblick ohne Zoom)
+
+| Element | PC | Handy | Wichtig fürs Spiel? |
+|---|---|---|---|
+| Farbe des Reichs auf dem Feld | sehr gut | sehr gut | ja, trägt das meiste |
+| Zahlen, Rand im Kampf, Ansage | gut | gut, aber sie füllen das Bild | ja |
+| Soldaten | kleine Figuren | nur Punkte; Helme nicht zu sehen | wenig: Farbe und Zahl sagen alles |
+| Burg | gut | gut (grauer Block mit großer Zahl) | ja |
+| Zitadelle | gut (gold) | gut | ja |
+| Turm | erkennbar am Fähnchen | **kaum zu sehen** | ja: +60 % Deckung |
+| Hof | **schwach**: Haus winzig | **nicht zu sehen**; auf gelben Feldern (Solar) gehen die goldenen Äcker ganz unter | ja: mehr Nachschub |
+| Baustelle | Gerüst und gelber Punkt an der Zahl | nur der Punkt | mittel |
+| Ruine | grauer Schutt, ähnlich einer Burg | grauer Fleck | mittel: gibt Deckung |
+| Wald, Hügel | gut | erkennbar an Bäumen und hellem Boden | ja |
+| Truppen auf dem Marsch | Zahl darüber | Zahl darüber | ja |
+| Troll (seit Abschnitt 17) | gut, mit Zeichen | Zeichen gut, Figur klein | ja |
+
+### Einschätzung
+
+- Was für Entscheidungen zählt, steht heute fast ganz in **Farbe und Zahl**. Das funktioniert auch am Handy.
+- Die Figuren und Gebäude sind im Überblick vor allem Stimmung. Das ist bei Soldaten in Ordnung.
+- **Turm und Hof** ändern aber die Regeln eines Felds (Deckung, Nachschub) und sind am Handy im Überblick nicht
+  zu sehen. Das ist die größte Lücke.
+- Größere Felder helfen nicht (Abschnitt 17), größere Figuren nur wenig: Ein doppelt so großer Hof wäre am
+  Handy 8 Punkte hoch und würde Nachbarfelder verdecken.
+
+### Vorschlag (noch nicht umgesetzt)
+
+Eine Regel für alles: **Was die Regeln eines Felds ändert, bekommt ein Zeichen an seiner Zahl**, im selben
+Stil wie das Trollgesicht. Die 3D-Modelle bleiben, für Stimmung und für den Blick aus der Nähe.
+
+1. **Turm und Hof:** dieselben Zeichen wie auf den Bau-Knöpfen unten (Turm, Haus) links an der Zahl.
+   Größter Gewinn, kleiner Aufwand, nur Darstellung.
+2. **Hof besser sichtbar:** Haus etwas größer, Äcker mit dunklerem Rand, damit sie auf gelben Feldern nicht
+   verschwinden. Klein.
+3. **Baustelle:** dasselbe Zeichen blass oder halb gefüllt statt des gelben Punkts. Klein.
+4. **Ruine:** eigenes Zeichen (Deckung). Klein, aber selten im Spiel; kann warten.
+5. Nicht empfohlen: größere Soldaten, Helme vergrößern, größere Felder.
+
+Risiko: Zahlen mit Zeichen sind breiter. Am Handy weichen andere Zahlen dann öfter aus oder fehlen in engen
+Kämpfen. Das lässt sich mit dem vorhandenen Messwerkzeug für verdeckte Zahlen (Abschnitt 15) vorher und
+nachher messen. Turm und Hof gibt es in den echten Missionen, die Änderung wäre also im öffentlichen Spiel
+zu sehen.

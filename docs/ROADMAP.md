@@ -13,6 +13,13 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 
 ## Als Nächstes
 
+### Lesbarkeit (aus der Gesamtprüfung, Abschnitt 18 in [REWORK-PLAN.md](REWORK-PLAN.md))
+
+- [ ] **Zeichen an der Zahl für Turm und Hof** (wie das Trollgesicht): am Handy sind beide im Überblick heute
+      nicht zu sehen · Aufwand klein · ändert das Bild der echten Missionen
+- [ ] Hof besser sichtbar: Haus etwas größer, Äcker mit dunklerem Rand (verschwinden sonst auf gelben Feldern)
+- [ ] Baustelle mit blassem Zeichen statt des gelben Punkts; Ruine mit eigenem Zeichen (kann warten)
+
 ### Erst nach deinem Spieltest entscheiden
 
 - [ ] **10 · Längere Kämpfe** · nur wenn „Ruhig“ nicht reicht. Ändert die Balance und muss neu gemessen werden.
