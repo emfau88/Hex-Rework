@@ -25,8 +25,14 @@ export const CAMPAIGN = [
     par: 300,
     seed: 11,
     aiDelay: 8,
-    // A patient teacher: slow, never storms the player's castle early, and does not answer every siege.
-    ai: { think: 2.2, margin: 1.4, sides: 2, reinforce: 2, frontKeep: 5, rushAfter: 240, incomeMul: 0.9 },
+    // A patient teacher on every strength: attacks from two sides at most and wants a wide margin.
+    // How fast it decides and grows is set per strength, a little gentler than elsewhere.
+    ai: { margin: 1.4, sides: 2, reinforce: 2, frontKeep: 5 },
+    aiBy: {
+      easy: { think: 14, incomeMul: 0.6, rushAfter: 600 },
+      normal: { think: 12, incomeMul: 0.75, rushAfter: 600 },
+      hard: { think: 3, incomeMul: 0.9, rushAfter: 240 },
+    },
     // Fuller fields around the castle, so the first combined attack works right away.
     rules: { startRing: 10 },
     // The small forts (h:9) next to each castle touch two starting fields: the tutorial's practice target.
@@ -58,8 +64,8 @@ export const CAMPAIGN = [
     par: 360,
     seed: 23,
     aiDelay: 4,
-    // EMBER starts ahead and sits behind the passes, so it grows a little slower and storms late.
-    ai: { rushAfter: 210, incomeMul: 0.85 },
+    // EMBER starts ahead and sits behind the passes, so it storms late; on "hard" it also grows a little slower.
+    aiBy: { hard: { rushAfter: 210, incomeMul: 0.85 } },
     // The passes favour the defender, so the storm comes early here and forces a decision.
     rules: { stormStart: 300 },
     layout: [
@@ -94,7 +100,11 @@ export const CAMPAIGN = [
     seed: 37,
     aiDelay: 2,
     // Two hard rivals that both go for the player's castle at once leave no room to play the mission.
-    aiBy: { hard: { humanBias: 0.75, rushAfter: 180 } },
+    // Holding the citadel and its ring takes long, so the rivals decide slower here than elsewhere
+    // and the storm comes early. Two rivals that both go for the player's castle at once would
+    // leave no room to play the mission.
+    aiBy: { easy: { think: 18, incomeMul: 0.5 }, normal: { think: 16 }, hard: { think: 5, humanBias: 0.75, rushAfter: 180 } },
+    rules: { stormStart: 300 },
     layout: [
       'm  m  m  .  .  f  .  .  .  .  .  m  m',
       '  m  m  .  f  .  .  h  .  .  K1 .  m',

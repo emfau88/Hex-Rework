@@ -73,8 +73,15 @@ export const RULES = Object.freeze({
 // frontKeep  troops left behind on a field that borders a rival
 // castleKeep garrison the castle never gives away
 // rushAfter  no attack on any castle before this second
+//
+// The strengths are set for people, not for programs. What decides a match is how often a kingdom
+// gives an order: a person needs three to eight seconds for one, a program a fraction of that.
+// Measured with stand-in players (see tools/simulate.mjs):
+//   easy    for a beginner who gives an order about every 8 seconds
+//   normal  for a player who gives an order about every 5 seconds
+//   hard    for a practised player who gives an order every 2 to 3 seconds
 export const DIFFICULTY = Object.freeze({
-  easy: Object.freeze({ think: 2.6, margin: 1.4, sides: 2, waves: 0, actions: 1, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.85, humanBias: 0.6, rushAfter: 180 }),
-  normal: Object.freeze({ think: 1.6, margin: 1.18, sides: 4, waves: 1, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, incomeMul: 1, humanBias: 1, rushAfter: 100 }),
-  hard: Object.freeze({ think: 1.3, margin: 1.1, sides: 6, waves: 2, actions: 2, reinforce: 3, frontKeep: 6, castleKeep: 26, build: 0.65, incomeMul: 1, humanBias: 1.1, rushAfter: 60 }),
+  easy: Object.freeze({ think: 14, margin: 1.4, sides: 2, waves: 0, actions: 1, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, incomeMul: 0.6, humanBias: 0.6, rushAfter: 420 }),
+  normal: Object.freeze({ think: 10, margin: 1.3, sides: 3, waves: 0, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.35, incomeMul: 0.8, humanBias: 0.9, rushAfter: 300 }),
+  hard: Object.freeze({ think: 3, margin: 1.18, sides: 4, waves: 1, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, incomeMul: 1, humanBias: 1, rushAfter: 120 }),
 });

@@ -120,9 +120,24 @@ export function aiThink(game, f) {
     return Math.max(0, total - 1 - reached);
   };
 
+  // While the first mission still explains the basics, the rival waits for the player: it takes no
+  // more land once it holds one field more than the player. Somebody who reads every hint at leisure
+  // must not find a rival twice their size when the lesson is over.
+  let waits = false;
+  if (game.truce && game.human >= 0) {
+    let mine = 0;
+    let theirs = 0;
+    for (const t of tiles) {
+      if (t.owner === me) mine++;
+      else if (t.owner === game.human) theirs++;
+    }
+    waits = mine > theirs;
+  }
+
   const plans = [];
   for (const e of targets.values()) {
     const o = e.tile;
+    if (waits) continue;
     if (o.castle >= 0 && game.time < P.rushAfter) continue; // the opening belongs to expansion, not to castle rushes
     // While the first mission still explains the basics, the rival leaves the player alone:
     // no attack on the player's fields, on free land close to the player's castle or on the practice fort.

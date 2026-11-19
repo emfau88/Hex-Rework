@@ -31,6 +31,8 @@ export const SKIRMISH = [
     name: { de: 'Vier Reiche', en: 'Four Kingdoms' },
     blurb: { de: '4 Reiche · Zufallskarte', en: '4 kingdoms · random map' },
     factions: 4, halfX: 11.6, halfZ: 6.4, citadel: true, par: 420, random: true,
+    // Three rivals at once: on "hard" they decide a little slower than in a duel.
+    aiBy: { hard: { think: 5 } },
   },
 ];
 

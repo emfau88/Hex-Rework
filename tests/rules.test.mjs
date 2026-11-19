@@ -164,7 +164,11 @@ test('during the tutorial truce the rival leaves the player and the practice for
   assert.equal(attacked, 0);
   assert.equal(game.humanStats.lost, 0);
   assert.equal(fort.owner, -1);
-  assert.ok(game.stats().factions[1].tiles > 7, 'the rival still grows on its own side');
+  const land = game.stats().factions;
+  assert.ok(land[1].tiles > 7, 'the rival still grows on its own side');
+  // ... but it waits for the player: someone who reads every hint at leisure must not find a rival
+  // twice their size when the lesson is over.
+  assert.ok(land[1].tiles <= land[0].tiles + 1, `the rival holds ${land[1].tiles} fields, the player ${land[0].tiles}`);
 });
 
 test('generated islands give every kingdom exactly the same land', () => {
