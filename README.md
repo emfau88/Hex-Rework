@@ -136,5 +136,5 @@ Stand 0.6 vom 19.11.2026: Helmformen je Reich, umfallende Figuren, weiche Schatt
 Seitenleisten am PC (Abschnitt 13 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.5: abgelehnte
 Befehle werden rückgemeldet, Zoom und Verschieben, Meer rund um die Insel, Burgmauern (Abschnitt 12), Stand 0.4: Tempo-Schalter,
 Pause mit Befehlen, Kampfanzeige, Kampfanimation, Gebirge und Böschungen (Abschnitt 11), und Stand 0.3.1: drei
-Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 51 Tests, Messläufen und Durchläufen im
+Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 52 Tests, Messläufen und Durchläufen im
 Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

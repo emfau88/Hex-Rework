@@ -121,10 +121,12 @@ export class Overlay {
     this._battles(ctx, game, ui, contested, fs, plates, concerns);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
-    const badge = (x, y, text, color, ring) => {
+    // `dodge`: move to the nearest free spot. Right for numbers that stand still; a number that
+    // travels must stay with what it belongs to, or it jumps from gap to gap.
+    const badge = (x, y, text, color, ring, dodge = true) => {
       const w = Math.max(afs * 1.5, ctx.measureText(text).width + afs * 0.7);
       const h = afs + 4;
-      const [px, py] = settle(x, y, w, h);
+      const [px, py] = dodge ? settle(x, y, w, h) : [x, y];
       pill(ctx, px, py, w, h);
       ctx.fillStyle = color;
       ctx.fill();
@@ -156,12 +158,14 @@ export class Overlay {
     }
 
     // Marching armies carry their strength above them. Automatic supply columns do not: they are
-    // many and small, and nothing has to be decided about them.
+    // many and small, and nothing has to be decided about them. The number rides with the troops
+    // and does not dodge the numbers of the fields it passes: on a phone those stand so close that
+    // dodging made it jump by a whole field from one picture to the next.
     for (const a of game.armies) {
       if (a.done || a.kind === 'supply' || !concerns(a.owner, game.tiles[a.path[a.path.length - 1]])) continue;
       const pos = renderer.armyPosition(game, a);
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
-      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false);
+      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, false);
     }
     this.stats = { plates: plates.length, covered };
 

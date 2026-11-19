@@ -76,8 +76,8 @@ Versionsverwaltung. Bulk 0 bis 5 gehören zu dieser Arbeitsrunde, Bulk 6 bis 11 
 **Fertig, wenn** die Regeltests grün sind: ein Angriff von drei Seiten kostet höchstens halb so viel wie von
 einer, überfüllte und abgeschnittene Felder schwinden, eine Burg fällt nur mit ihrem Reich.
 
-**Stand: erledigt.** Inzwischen 51 Tests grün (`node --test`): 13 für die Regeln, 9 fürs Bauen, 9 für die
-Vorhersage, 20 für die Eingabe.
+**Stand: erledigt.** Inzwischen 52 Tests grün (`node --test`): 13 für die Regeln, 9 fürs Bauen, 9 für die
+Vorhersage, 20 für die Eingabe, 1 für die Zahlen im Bild.
 
 ### Bulk 2 · Gegner und Messwerkzeug
 
@@ -570,3 +570,12 @@ Nicht geprüft: die Bewegung (Umfallen, Rauch, Wachsen des Getreides) im laufend
 Flüssigkeit am echten Handy mit den zusätzlichen Schatten; ob die Helme am Handy noch zu unterscheiden sind
 (eine Figur ist dort etwa zehn Bildpunkte groß); JADE und SOLAR habe ich nicht im Bild gesehen, nur AZUR und
 EMBER.
+
+### Nachtrag · Zahl über marschierenden Truppen ruckelte am Handy
+
+Gemeldet aus deinem Test am Handy: Auf langen Wegen über mehrere Felder ruckelte und flackerte die Zahl über
+der Truppe. Ursache: Die Zahl wich den Feldzahlen aus und suchte sich in jedem Bild die nächste freie Lücke.
+Am Handy stehen die Feldzahlen so dicht, dass sie dabei von Lücke zu Lücke sprang. Ein neuer Test stellt das
+nach (Kamera in Handygröße, Weg über fünf Felder): vorher bis zu 29 Bildpunkte Sprung zwischen zwei Bildern,
+jetzt unter 3. Die Zahl reist jetzt fest über der Truppe mit und weicht nicht mehr aus; stehende Zahlen
+(Belagerer an der Kante) weichen weiter aus. Nicht geprüft: am echten Handy.
