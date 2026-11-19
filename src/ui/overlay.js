@@ -27,16 +27,26 @@ const SIGN_SHAPES = {
  * The sign of what stands on a field, next to its number: a round badge of radius `r` with a ring in
  * the colour of its side. A troll is a broad grey-green face with a heavy brow, glowing eyes and two
  * tusks; a tower and a farm show the outlines of their build buttons.
+ * `saved`: the building is only ordered and the field has saved up this share of its price. The sign
+ * is then dark with the outline drawn in light lines only, and its ring fills in the colour of the
+ * side as the troops come together; once it is closed, the building stands.
  */
-function figureSign(ctx, kind, x, y, r, side) {
+function figureSign(ctx, kind, x, y, r, side, saved = null) {
+  const planned = saved !== null;
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = kind === 'troll' ? '#b3c19d' : '#f2ead8';
+  ctx.fillStyle = planned ? 'rgba(6, 20, 27, 0.86)' : kind === 'troll' ? '#b3c19d' : '#f2ead8';
   ctx.fill();
   ctx.lineWidth = Math.max(1.6, r * 0.24);
-  ctx.strokeStyle = side;
+  ctx.strokeStyle = planned ? 'rgba(255, 255, 255, 0.3)' : side;
   ctx.stroke();
+  if (planned && saved > 0) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.min(1, saved) * Math.PI * 2);
+    ctx.strokeStyle = side;
+    ctx.stroke();
+  }
   const shape = SIGN_SHAPES[kind];
   if (shape) {
     const k = r / 20;
@@ -45,9 +55,16 @@ function figureSign(ctx, kind, x, y, r, side) {
     ctx.beginPath();
     shape.points.forEach(([u, v], i) => (i ? ctx.lineTo(px(u), py(v)) : ctx.moveTo(px(u), py(v))));
     ctx.closePath();
-    ctx.fillStyle = '#22323a';
-    ctx.fill();
-    if (shape.door) {
+    if (planned) {
+      ctx.lineWidth = Math.max(1, r * 0.12);
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#d9d2c4';
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = '#22323a';
+      ctx.fill();
+    }
+    if (shape.door && !planned) {
       const [u, v, w, h] = shape.door;
       ctx.fillStyle = '#f2ead8';
       ctx.fillRect(px(u), py(v), w * k, h * k);
@@ -182,7 +199,9 @@ export class Overlay {
       if (fought) contested.push({ t, p, w, h });
       // What changes the rules of a field shows its sign on the left end of the plate: a figure (a
       // troll), a tower or a farm. So it can be told at a glance even where the model itself is small.
-      const kind = owned ? t.beast || t.building || null : null;
+      // A building that is only ordered shows its sign in outline, with how much is saved up.
+      const kind = owned ? t.beast || t.building || t.order || null : null;
+      const saved = kind && !t.beast && !t.building ? t.units / (t.orderCost + 1) : null;
       const sign = kind ? h * 0.52 : 0;
       const signX = p.x - w / 2 - sign * 0.45;
       // A contested field carries a rim around its number; other plates keep clear of all of it.
@@ -226,16 +245,9 @@ export class Overlay {
       ctx.fillStyle = owned ? (!t.supplied ? '#c3cfd0' : full ? '#ffd27a' : '#ffffff') : '#b9c9c6';
       ctx.fillText(text, p.x, p.y + 0.5);
       if (sign) {
-        figureSign(ctx, kind, signX, p.y, sign, PALETTE_HEX[game.factions[t.owner].color]);
+        figureSign(ctx, kind, signX, p.y, sign, PALETTE_HEX[game.factions[t.owner].color], saved);
         signs.set(t.id, { x: signX, y: p.y, r: sign });
         drawn.push({ x: signX, y: p.y, r: sign });
-      }
-      if (t.order) {
-        // Small dot: this field is saving up for a building.
-        ctx.beginPath();
-        ctx.arc(p.x + w / 2 - 1, p.y - h / 2 + 1, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = '#f2c36b';
-        ctx.fill();
       }
     }
 

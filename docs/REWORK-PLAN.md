@@ -994,8 +994,9 @@ Stil wie das Trollgesicht. Die 3D-Modelle bleiben, für Stimmung und für den Bl
 1. **Turm und Hof:** dieselben Zeichen wie auf den Bau-Knöpfen unten (Turm, Haus) links an der Zahl.
    Größter Gewinn, kleiner Aufwand, nur Darstellung. **Umgesetzt**, siehe unten.
 2. **Hof besser sichtbar:** Haus etwas größer, Äcker mit dunklerem Rand, damit sie auf gelben Feldern nicht
-   verschwinden. Klein.
-3. **Baustelle:** dasselbe Zeichen blass oder halb gefüllt statt des gelben Punkts. Klein.
+   verschwinden. Klein. **Umgesetzt**, siehe unten.
+3. **Baustelle:** dasselbe Zeichen blass oder halb gefüllt statt des gelben Punkts. Klein. **Umgesetzt**,
+   siehe unten.
 4. **Ruine:** eigenes Zeichen (Deckung). Klein, aber selten im Spiel; kann warten.
 5. Nicht empfohlen: größere Soldaten, Helme vergrößern, größere Felder.
 
@@ -1046,3 +1047,26 @@ Ansage „12 s“ eines Kampfs lag kurz auf dem Zeichen eines Nachbarfelds, nich
 Tests: 80 grün, einer neu (Turm und Hof bekommen ihr Zeichen links an der Zahl, Angreiferzahlen bleiben davon
 frei). Im Browser angesehen am PC und im Handy-Format, im Überblick und vergrößert. Nicht geprüft: am echten
 Handy; ob du die Zeichen ohne Erklärung erkennst.
+
+### Umgesetzt: Hof besser sichtbar, Zeichen für die Baustelle (Stand 0.8.2, 19.11.2026)
+
+Nur Darstellung, an Regeln und Zahlen ändert sich nichts. Im öffentlichen Spiel zu sehen.
+
+- **Hof:** Das Haus ist rund ein Drittel größer (0,40 statt 0,32 hoch, 0,44 statt 0,34 breit) und steht ein
+  wenig weiter hinten, damit die Soldaten davor Platz behalten. Die Äcker liegen jetzt auf einem Beet aus
+  dunkler Erde. Dessen Rand und die Furchen zwischen den Reihen trennen den Acker vom Land drumherum, auch
+  auf den gelben Feldern von Solar, wo die goldenen Äcker vorher ganz untergingen. Rauch und Schatten sind
+  mitgewachsen.
+- **Baustelle:** statt des gelben Punkts oben rechts an der Zahl dasselbe Zeichen wie für das fertige
+  Gebäude, aber umgekehrt: dunkler Grund, Haus oder Turm nur als heller Umriss. Sein Ring füllt sich in der
+  Farbe des Reichs, so wie das Feld die Truppen für den Bau zusammenspart. Ist der Ring zu, steht das Gebäude,
+  und das Zeichen wird hell.
+
+Gemessen mit dem Messwerkzeug, dieselben zehn Partien wie oben, am Handy: keine verdeckte Zahl; weggelassene
+Angreiferzahlen 52 von rund 5 400, genauso viele wie mit Stand 0.8.1. Das Zeichen der Baustelle kostet also
+nichts zusätzlich.
+
+Angesehen im Browser am PC (nah, Hof auf Solar-Gelb und auf Jade-Grün, Baustelle mit fast vollem Ring) und im
+Handy-Format (Zeichen vergrößert, Bildpunkt für Bildpunkt). 80 Tests grün; der Test für die Zeichen prüft jetzt
+auch die Baustelle. Nicht geprüft: am echten Handy; ob du das Umriss-Zeichen ohne Erklärung als „wird gebaut“
+liest.

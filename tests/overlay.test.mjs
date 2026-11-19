@@ -140,7 +140,7 @@ test('the number of the attackers never covers the number of a field, even on a 
   }
 });
 
-test('a tower and a farm show their sign left of the number, and attackers keep clear of it', () => {
+test('a tower, a farm and a building site show their sign left of the number, and attackers keep clear of it', () => {
   const game = lab({}, 0);
   for (const t of game.tiles) if (t.passable && t.owner < 0) give(game, t, 1, 20);
   for (const [col, row] of [[1, 1], [2, 1], [1, 0], [2, 0]]) give(game, at(game, col, row), 0, 20);
@@ -150,6 +150,9 @@ test('a tower and a farm show their sign left of the number, and attackers keep 
   farm.building = 'farm';
   for (const [col, row] of [[2, 2], [3, 1], [3, 0]]) game.assault(0, at(game, col, row).id, 1);
   for (let i = 0; i < 25; i++) game.step(0.1);
+  const site = at(game, 1, 0);
+  site.order = 'farm'; // saving up for a farm
+  site.orderCost = 20;
 
   const { canvas, texts } = fakeCanvas();
   const overlay = new Overlay(canvas);
@@ -157,8 +160,8 @@ test('a tower and a farm show their sign left of the number, and attackers keep 
   const camera = phoneCamera(36);
   overlay.draw(game, camera, { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1 }, 0);
   const signs = overlay.stats.signs;
-  assert.equal(signs.length, 2, 'one sign each for the tower and the farm, none for plain fields');
-  for (const t of [tower, farm]) {
+  assert.equal(signs.length, 3, 'one sign each for the tower, the farm and the building site, none for plain fields');
+  for (const t of [tower, farm, site]) {
     const p = camera.tileAnchor(t);
     assert.ok(signs.some((s) => s.x < p.x && p.x - s.x < 25 && Math.abs(s.y - p.y) < 1), 'the sign sits at the left end of its number');
   }

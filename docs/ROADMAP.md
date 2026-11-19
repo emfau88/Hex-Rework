@@ -1,6 +1,6 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.8.1 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.8.2 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
@@ -18,8 +18,10 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 - [x] **Zeichen an der Zahl für Turm und Hof** (wie das Trollgesicht), gebaut mit Stand 0.8.1. Preis am Handy:
       Die Zahl der Angreifer fehlt in engen Kämpfen etwa doppelt so oft wie vorher (gemessen 52 statt 27 von
       rund 5 400)
-- [ ] Hof besser sichtbar: Haus etwas größer, Äcker mit dunklerem Rand (verschwinden sonst auf gelben Feldern)
-- [ ] Baustelle mit blassem Zeichen statt des gelben Punkts; Ruine mit eigenem Zeichen (kann warten)
+- [x] Hof besser sichtbar: Haus ein Drittel größer, Äcker auf dunklem Beet (Stand 0.8.2)
+- [x] Baustelle: Zeichen als heller Umriss auf dunklem Grund, der Ring füllt sich mit dem Ersparten, statt des
+      gelben Punkts (Stand 0.8.2)
+- [ ] Ruine mit eigenem Zeichen (kann warten)
 
 ### Erst nach deinem Spieltest entscheiden
 
@@ -72,6 +74,8 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 - [ ] Fällt dir am Handy auf, wenn die Zahl der Angreifer neben einem Kampf kurz fehlt?
 - [ ] Zeichen für Turm und Hof an der Zahl (Stand 0.8.1): Erkennst du sie ohne Erklärung, auch am Handy?
       Stören sie, wenn viele Höfe nebeneinander liegen?
+- [ ] Baustelle (Stand 0.8.2): Liest du das Umriss-Zeichen mit dem Ring als „wird gebaut, so weit gespart“?
+      Siehst du den größeren Hof jetzt auch auf gelbem Land?
 - [ ] Safari und iPhone
 - [ ] **Figurenschau** ansehen (Link mit `?schau` am Ende, siehe README): Kommst du mit Setzen, Zeit und
       Werten zurecht, am PC und am Handy? Passt Violett als Farbe der Ungeheuer, und erkennt man sie am Fell

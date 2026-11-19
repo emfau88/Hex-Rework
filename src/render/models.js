@@ -248,7 +248,7 @@ export function citadel(m, t, rot = 0) {
   }
 }
 
-export const BUILD_AT = { tower: [-0.24, -0.26], farm: [0.2, -0.3] };
+export const BUILD_AT = { tower: [-0.24, -0.26], farm: [0.21, -0.33] };
 
 /** Watchtower: +60 % defence on its field. */
 export function tower(m, t) {
@@ -273,6 +273,8 @@ export function tower(m, t) {
   m.box(x + 0.2, y + 0.42, z, 0.012, 0.1, 0.035, DARK);
 }
 
+const FURROW = lin('#4a3626');
+
 /** Farm: more troops per second on its field. */
 export function farm(m, t) {
   const x = t.x + BUILD_AT.farm[0];
@@ -280,7 +282,8 @@ export function farm(m, t) {
   const y = t.height;
   const wall = lin('#d8c7a6');
   const roof = lin('#a4543c');
-  const w = 0.34, d = 0.26, h = 0.17, r = 0.15;
+  // A third bigger than at first: in the overview on a phone the house was hardly to be seen.
+  const w = 0.44, d = 0.32, h = 0.21, r = 0.19;
   m.box(x, y, z, w, h, d, wall);
   const A = [x - w / 2 - 0.02, y + h, z - d / 2 - 0.02], B = [x + w / 2 + 0.02, y + h, z - d / 2 - 0.02];
   const C = [x + w / 2 + 0.02, y + h, z + d / 2 + 0.02], D = [x - w / 2 - 0.02, y + h, z + d / 2 + 0.02];
@@ -289,10 +292,11 @@ export function farm(m, t) {
   m.quad(B, A, R0, R1, scale3(roof, 0.86));
   m.tri(A, D, R0, wall, 0, [-1, 0, 0]);
   m.tri(C, B, R1, wall, 0, [1, 0, 0]);
-  m.box(x, y, z + d / 2 + 0.005, 0.07, 0.11, 0.012, DOOR);
-  // Field strips and a haystack in front of the house.
-  for (let i = 0; i < 3; i++) m.box(t.x - 0.36 + i * 0.13, y + 0.004, t.z - 0.32, 0.09, 0.022, 0.4, lin(i % 2 ? '#c9a941' : '#dcc056'), 0.5);
-  m.cyl(x + 0.27, y, z + 0.14, 0.085, 0, 0.15, 6, lin('#e2c765'));
+  m.box(x, y, z + d / 2 + 0.005, 0.09, 0.14, 0.012, DOOR);
+  // A bed of dark ploughed earth under the crop (drawn by the renderer, it grows with the field):
+  // its rim and furrows keep the field apart from the land around it, even on golden land.
+  m.box(t.x - 0.23, y + 0.002, t.z - 0.32, 0.39, 0.02, 0.47, FURROW);
+  m.cyl(x + 0.31, y, z + 0.17, 0.085, 0, 0.15, 6, lin('#e2c765'));
 }
 
 /** Building site while a field is still saving up for its building. */

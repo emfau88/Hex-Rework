@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8.1 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8.2 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -42,7 +42,8 @@ Wer eine Burg erobert, bekommt das ganze Reich. Fällt die eigene Burg, ist die 
   an. Nach dem ersten Tipp (am PC schon beim Überfahren mit der Maus) steht die Vorhersage für alle zusammen da.
   Am PC schickt die Taste `S` genau diesen Sturm los, solange seine Vorhersage zu sehen ist.
 - **Senden 50 % / 100 %:** Knopf unten links, am PC auch Tasten `1` und `2`.
-- **Turm / Hof:** eigenes Feld antippen, dann bauen. Reicht es noch nicht, spart das Feld (goldener Punkt).
+- **Turm / Hof:** eigenes Feld antippen, dann bauen. Reicht es noch nicht, spart das Feld (dunkles Zeichen an der Zahl,
+  sein Ring füllt sich; ist er zu, steht das Gebäude).
   Jedes weitere Gebäude derselben Art kostet mehr. Was ein Feld nicht mehr ersparen kann, gibt es nur sofort:
   Am Knopf steht dann, ab wie vielen Truppen auf dem Feld (zum Beispiel „ab 21 Truppen“). Am PC baut die
   Taste `T` einen Turm, `H` (englisch `F`) einen Hof: auf dem gewählten Feld oder sonst auf dem eigenen Feld
@@ -174,6 +175,10 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ```
 
 ## Stand
+
+Stand 0.8.2 vom 19.11.2026: Der Hof ist besser zu sehen (größeres Haus, Äcker auf dunklem Beet), und eine
+Baustelle zeigt statt des gelben Punkts ihr Zeichen als Umriss mit einem Ring, der sich mit dem Ersparten
+füllt. Nur Darstellung (Abschnitt 18 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)).
 
 Stand 0.8.1 vom 19.11.2026: Felder mit Turm oder Hof tragen links an ihrer Zahl ein rundes Zeichen (Turm,
 Haus), wie die Bau-Knöpfe; so erkennt man sie auch am Handy im Überblick. Nur Darstellung, Regeln unverändert

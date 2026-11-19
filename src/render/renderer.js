@@ -730,7 +730,7 @@ export class DioramaRenderer {
       else if (t.building === 'farm') {
         const fx = t.x + models.BUILD_AT.farm[0];
         const fz = t.z + models.BUILD_AT.farm[1];
-        shadeDisc(shade, fx, y + 0.006, fz, 0.36, 0.64);
+        shadeDisc(shade, fx, y + 0.006, fz, 0.44, 0.64);
         // The farm's crop shows how full its field is: it grows from green shoots to ripe gold as
         // the garrison fills up, and stands dry while the field is cut off. Smoke rises while the
         // farm is supplied.
@@ -741,7 +741,7 @@ export class DioramaRenderer {
           for (let i = 0; i < 3; i++) {
             const k = (bt * 0.3 + i / 3 + t.id * 0.17) % 1;
             const r = 0.028 + k * 0.045;
-            m.cyl(fx + 0.08 + k * 0.1, y + 0.33 + k * 0.42, fz - 0.02, r, r * 0.7, 0.05, 6, scale3(SMOKE, 1 - k * 0.25), 0.1);
+            m.cyl(fx + 0.1 + k * 0.1, y + 0.41 + k * 0.42, fz - 0.02, r, r * 0.7, 0.05, 6, scale3(SMOKE, 1 - k * 0.25), 0.1);
           }
         }
       }
