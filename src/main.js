@@ -1,8 +1,10 @@
 // App shell: screens, HUD, game loop. The rules live in src/sim, the picture in src/render.
 
 import { Game } from './sim/game.js';
+import { TurnGame } from './sim/turns.js';
 import { CAMPAIGN, MISSIONS, SHOWCASE } from './sim/missions.js';
 import { SKIRMISH } from './sim/maps.js';
+import { TurnPlay } from './ui/turnplay.js';
 import { DioramaRenderer } from './render/renderer.js';
 import { PALETTE_HEX } from './render/models.js';
 import { Overlay } from './ui/overlay.js';
@@ -21,6 +23,9 @@ const star = '<svg><use href="#i-star"/></svg>';
 const SPEEDS = { calm: 0.75, normal: 1, fast: 1.3 };
 const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
 const FREE_PLAY = SKIRMISH.filter((m) => m.random);
+// Turn mode (branch runden): the duel, played turn by turn. `parTurns` is its goal for the second star.
+const TURN_DUEL = Object.freeze({ ...SKIRMISH.find((m) => m.id === 'duel'), id: 'duel-turns', turnMode: true, parTurns: 30 });
+const ALL_MISSIONS = [...MISSIONS, TURN_DUEL];
 // Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
 // fast the time runs there.
 const LAB_TOOLS = ['order', 'troll', 'wild', 'own', 'rival', 'free'];
@@ -66,6 +71,8 @@ class App {
     this.events = []; // what happened lately, for the panel on wide screens: { at, html, bad }
     this.eventsShown = '';
     this.lab = null; // the figure showcase while it is open: { tool, amount, speed, paused, inspect }
+    this.turns = null; // turn mode: the commands, the bar and the playback of the rivals' moves
+    this.flashTimer = 0;
 
     this.buildMenu();
     this.bind();
@@ -104,6 +111,15 @@ class App {
     $('#panel-own').hidden = !panels || Boolean(this.lab);
     $('#panel-rivals').hidden = !panels;
     this.el.toggleAttribute('data-lab', Boolean(this.lab));
+    this.el.toggleAttribute('data-turns', Boolean(this.turns));
+    $('#turnbar').hidden = !(this.turns && mode === 'play');
+    $('#how-turns').hidden = !this.turns;
+    $('#how-time').hidden = Boolean(this.turns);
+    // Turn mode has no pause: the sheet is the help.
+    const head = $('#pause-title');
+    head.dataset.t = this.turns ? 'options' : 'pause';
+    head.textContent = i18n.t(head.dataset.t);
+    if (this.turns && mode === 'play') this.turns.hud();
     $('#lab').hidden = !this.lab || behindSheet;
     $('#btn-pause use').setAttribute('href', mode === 'pause' ? '#i-play' : '#i-pause');
     this.ui.showNumbers = !behindSheet;
@@ -124,6 +140,7 @@ class App {
     this.clearTimers();
     this.select(-1);
     this.lab = null;
+    this.turns = null;
     this.mission = null;
     this.tutorial = null;
     this.ui.human = -1;
@@ -161,7 +178,8 @@ class App {
     this.lab = null;
     this.mission = mission;
     this.seed = seed ?? (mission.random ? (Math.random() * 1e9) | 0 : mission.seed);
-    this.game = new Game({
+    const Rules = mission.turnMode ? TurnGame : Game;
+    this.game = new Rules({
       mission,
       seed: this.seed,
       difficulty: this.store.difficulty,
@@ -170,8 +188,10 @@ class App {
       autoSupply: this.store.supply,
       wide: this.wide(),
     });
+    this.turns = mission.turnMode ? new TurnPlay(this) : null;
     this.ui.human = 0;
     this.ui.assault = null;
+    this.ui.turnPreview = null;
     this.events = [];
     this.alarmAt = -100;
     this.holdWarnAt = -100;
@@ -186,8 +206,19 @@ class App {
       // The new rule of the mission stays on screen for the opening.
       this.setHint(i18n.pick(mission.lesson));
       this.later(16000, () => this.setHint(''));
-    } else this.setHint('');
+    } else if (this.turns) this.flash(i18n.t('turnFirst'), 9000);
+    else this.setHint('');
     this.banner(i18n.t(`intro${this.game.factions.length}`), '#f2c36b', 2600);
+  }
+
+  /** A hint that goes away by itself after `ms`, unless another one replaces it. */
+  flash(text, ms) {
+    this.setHint(text);
+    clearTimeout(this.flashTimer);
+    const shown = $('#hint').textContent;
+    this.flashTimer = setTimeout(() => {
+      if ($('#hint').textContent === shown) this.setHint('');
+    }, ms);
   }
 
   // ------------------------------------------------------- figure showcase
@@ -203,6 +234,7 @@ class App {
     this.select(-1);
     const before = this.lab;
     this.lab = { tool: before?.tool ?? 'order', amount: before?.amount ?? 20, speed: before?.speed ?? 1, paused: false, inspect: -1 };
+    this.turns = null;
     this.mission = SHOWCASE;
     this.tutorial = null;
     this.game = new Game({ mission: SHOWCASE, human: 0, playerColor: this.store.color, wide: this.wide() });
@@ -366,7 +398,8 @@ class App {
   }
 
   goalLabels(mission) {
-    return [i18n.t('goalWin'), i18n.t('goalTime', { t: clock(mission.par) }), i18n.t('goalHold', { n: mission.loseLimit ?? 3 })];
+    const second = mission.turnMode ? i18n.t('goalTurns', { n: mission.parTurns }) : i18n.t('goalTime', { t: clock(mission.par) });
+    return [i18n.t('goalWin'), second, i18n.t('goalHold', { n: mission.loseLimit ?? 3 })];
   }
 
   // ------------------------------------------------------------------- menu
@@ -396,6 +429,7 @@ class App {
       const blurb = open ? i18n.pick(m.blurb) : i18n.t('locked');
       return `<button data-mission="${m.id}" class="${open ? '' : 'locked'}"><span class="no">${no}</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${blurb}</span></span>${open ? stars : ''}</button>`;
     }).join('');
+    $('#turnplay').innerHTML = `<button data-mission="${TURN_DUEL.id}"><span class="no">${star}</span><span class="txt"><span class="name">${i18n.t('turnDuelName')}</span><span class="blurb">${i18n.t('turnDuelBlurb')}</span></span></button>`;
     $('#skirmish').innerHTML = FREE_PLAY.map(
       (m) => `<button data-mission="${m.id}"><span class="no">?</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}</span></span></button>`,
     ).join('');
@@ -437,11 +471,14 @@ class App {
     const pick = (e) => {
       const b = e.target.closest('button');
       if (!b) return;
-      const mission = MISSIONS.find((m) => m.id === b.dataset.mission);
+      const mission = ALL_MISSIONS.find((m) => m.id === b.dataset.mission);
       if (mission && this.unlocked(mission)) this.openMission(mission);
     };
     $('#missions').addEventListener('click', pick);
     $('#skirmish').addEventListener('click', pick);
+    $('#turnplay').addEventListener('click', pick);
+    $('#btn-undo').addEventListener('click', () => this.undo());
+    $('#btn-endturn').addEventListener('click', () => this.endMove());
     $('#btn-start').addEventListener('click', () => this.pending && this.startMission(this.pending));
     $('#btn-back').addEventListener('click', () => this.setMode('menu'));
     $('#btn-sound').addEventListener('click', () => {
@@ -538,7 +575,8 @@ class App {
 
     window.addEventListener('resize', () => this.resize());
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden || this.mode !== 'play') return;
+      // In turn mode nothing runs while the person is away, so there is nothing to pause.
+      if (!document.hidden || this.mode !== 'play' || this.turns) return;
       if (this.lab) {
         this.lab.paused = true;
         this.refreshLab();
@@ -552,6 +590,14 @@ class App {
         e.preventDefault();
         this.lab.paused = !this.lab.paused; // in the showcase the space bar stops and starts the time
         this.refreshLab();
+      } else if (this.turns && e.key === 'Enter' && this.mode === 'play') {
+        e.preventDefault();
+        this.endMove(); // ends the move, or skips the rivals' moves
+      } else if (this.turns && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && this.mode === 'play') {
+        e.preventDefault();
+        this.undo();
+      } else if (this.turns && e.key.toLowerCase() === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey && this.mode === 'play') {
+        this.undo();
       } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause' || this.mode === 'options')) {
         e.preventDefault();
         this.togglePause();
@@ -588,14 +634,41 @@ class App {
         if (!rivals.hidden && rivals.offsetWidth) right = w - rivals.offsetLeft;
       } else top = lab.offsetTop + lab.offsetHeight;
     }
-    this.renderer.setInsets(top, playing ? $('#bottom').offsetHeight - 12 : 0, left, right);
+    // In turn mode the bar with the move stands above the buttons and the island keeps clear of it.
+    const bar = $('#turnbar');
+    const below = playing ? $('#bottom').offsetHeight - 12 + (this.turns && !bar.hidden ? bar.offsetHeight + 4 : 0) : 0;
+    this.renderer.setInsets(top, below, left, right);
   }
 
   // --------------------------------------------------------------- commands
 
   /** Orders are taken while the match runs and during the planning pause. */
   canCommand() {
+    if (this.turns) return this.mode === 'play' && this.turns.myMove();
     return (this.mode === 'play' || this.mode === 'pause') && this.game.phase === 'running' && this.ui.human >= 0;
+  }
+
+  /** Milliseconds for the second tap of a combined attack. Turn mode has no clock, so more. */
+  tapWindow() {
+    return this.turns ? 10000 : 2500;
+  }
+
+  /** Turn mode: takes back the last command of this move. */
+  undo() {
+    if (!this.turns || this.mode !== 'play') return;
+    this.input.cancel();
+    if (this.turns.undo()) this.sfx.play('select');
+    else if (this.turns.myMove()) this.flash(i18n.t('noUndo'), 2500);
+    this.updateHud(true);
+  }
+
+  /** Turn mode: ends the move; while the rivals move, the same button plays the rest at once. */
+  endMove() {
+    if (!this.turns || this.mode !== 'play') return;
+    this.input.cancel();
+    if (this.turns.busy) this.turns.skip();
+    else this.turns.endMove(this.last);
+    this.updateHud(true);
   }
 
   /**
@@ -604,7 +677,8 @@ class App {
    * there has buttons of its own.
    */
   togglePause() {
-    if (this.lab) this.setMode(this.mode === 'play' ? 'options' : 'play');
+    // The showcase and the turn mode need no planning pause: the button opens the sheet.
+    if (this.lab || this.turns) this.setMode(this.mode === 'play' ? 'options' : 'play');
     else if (this.mode === 'play') this.setMode('pause');
     else if (this.mode === 'pause' || this.mode === 'options') this.setMode('play');
   }
@@ -623,6 +697,13 @@ class App {
 
   order(from, to) {
     if (from < 0 || to < 0) return;
+    if (this.turns) {
+      const problem = this.canCommand() ? this.turns.order(from, to, this.ui.sendFraction) : null;
+      if (problem) this.refuse(problem === 'commands' ? from : to, problem);
+      this.select(-1);
+      this.updateHud(true);
+      return;
+    }
     const problem = this.game.sendProblem(this.ui.human, from, to, this.ui.sendFraction);
     if (problem) this.refuse(from, problem);
     else this.game.send(this.ui.human, from, to, this.ui.sendFraction);
@@ -633,6 +714,12 @@ class App {
   assault(target) {
     if (!this.canCommand() || target < 0) return;
     this.select(-1);
+    if (this.turns) {
+      const problem = this.turns.assault(target, this.ui.sendFraction);
+      if (problem) this.refuse(target, problem);
+      this.updateHud(true);
+      return;
+    }
     // Refused only if not a single neighbour has troops to spare.
     if (!this.game.assault(this.ui.human, target, this.ui.sendFraction)) this.refuse(target, 'troops');
   }
@@ -644,7 +731,13 @@ class App {
   build(type, id) {
     if (!this.canCommand() || id < 0) return;
     const human = this.ui.human;
+    if (this.turns && this.game.commandsLeft < 1) {
+      this.say(id, i18n.t('noCommands'));
+      return;
+    }
     if (this.game.build(human, id, type)) {
+      // Turn mode: the next tap is a new command, not an order from the field just built on.
+      if (this.turns) this.select(-1);
       this.updateHud(true);
       return;
     }
@@ -658,7 +751,7 @@ class App {
 
   /** An order was not carried out: say why, for a moment, at the field it was about. */
   refuse(tile, problem) {
-    const key = problem === 'troops' ? 'noTroops' : problem === 'full' ? 'targetFull' : 'noPath';
+    const key = problem === 'troops' ? 'noTroops' : problem === 'full' ? 'targetFull' : problem === 'commands' ? 'noCommands' : 'noPath';
     this.say(tile, i18n.t(key));
   }
 
@@ -682,6 +775,8 @@ class App {
       // In the figure showcase the time is set on its panel.
       this.ui.pace = this.lab ? (this.lab.paused ? 0 : this.lab.speed) : this.ui.human >= 0 ? this.pace() : 1;
       if (this.mode === 'play' || this.mode === 'menu' || this.mode === 'brief') game.step(dt * this.ui.pace);
+      // Turn mode: the rivals' moves play back on screen while the options sheet is closed.
+      if (this.turns && this.mode === 'play') this.turns.update(now);
       for (const e of game.drainEvents()) this.onEvent(e, now);
 
       const ui = this.ui;
@@ -697,6 +792,9 @@ class App {
         const sources = this.canCommand() ? game.flankers(ui.human, ui.assault.target) : [];
         ui.assault = sources.length ? { target: ui.assault.target, sources } : null;
       }
+      // Turn mode: the double tap shows exactly what it will do, worked out with the rules.
+      ui.turnPreview = this.turns && ui.assault ? this.turns.preview(ui.assault.target, ui.sendFraction) : null;
+      ui.noCommands = Boolean(this.turns && game.commandsLeft < 1);
       if (this.tutorial) this.runTutorial(now);
       if (ui.notices.length) ui.notices = ui.notices.filter((n) => now - n.at < 1.8 && n.tile < game.tiles.length);
 
@@ -748,6 +846,7 @@ class App {
         break;
       case 'repel':
         if (mine(e.owner)) this.sfx.play('lost', 0.6);
+        else if (this.turns && mine(e.defender)) this.note(i18n.t('evTurnHeld', { name: name(e.owner) }));
         break;
       case 'build':
         if (mine(e.owner)) {
@@ -783,7 +882,8 @@ class App {
         break;
       case 'defeat':
         // Monsters that take the player's castle do not win: nobody does (`by` is -1).
-        if (e.by >= 0) this.banner(i18n.t('wins', { name: name(e.by) }), null, 4000);
+        if (this.turns && game.reason === 'turns') this.banner(i18n.t('turnLimit'), '#ff8d7f', 4000);
+        else if (e.by >= 0) this.banner(i18n.t('wins', { name: name(e.by) }), null, 4000);
         else this.banner(i18n.t('wildWins'), '#ff8d7f', 4000);
         this.later(500, () => this.sfx.play('defeat'));
         this.later(2400, () => this.showResult(false));
@@ -874,8 +974,9 @@ class App {
     view.hidden = !(this.renderer.zoom > 1.01);
     view.setAttribute('aria-label', i18n.t('viewReset'));
     view.title = i18n.t('viewReset');
-    $('#clock').textContent = clock(game.time);
+    $('#clock').textContent = this.turns ? i18n.t('turnLabel', { n: game.turn }) : clock(game.time);
     $('#clock').classList.toggle('storm', game.storm);
+    if (this.turns) this.turns.hud();
     $('#share-bar').innerHTML = stats.factions.map((f) => `<i style="width:${((f.tiles / stats.playable) * 100).toFixed(1)}%;background:${PALETTE_HEX[f.color]}"></i>`).join('');
     $('#share-legend').innerHTML = stats.factions
       .map((f) => `<span class="${f.alive ? '' : 'out'}${f.id === human ? ' you' : ''}" style="color:${PALETTE_HEX[f.color]}">${this.nameOf(game.factions[f.id])} ${f.tiles}</span>`)
@@ -895,7 +996,9 @@ class App {
       const option = sel && human >= 0 ? game.buildOption(human, sel.id, type) : { state: 'no', cost: human >= 0 ? game.buildCost(type, human) : 0, need: 0 };
       const state = option.state;
       const why = state === 'short' ? i18n.t('buildShort', { n: option.need }) : state === 'never' ? i18n.t('buildNever') : state === 'ground' ? i18n.t('buildGround') : '';
-      btn.disabled = state !== 'now' && state !== 'save' && state !== 'saving';
+      // In turn mode building is a command: only in the own move and while commands are left.
+      const turnBlocked = this.turns && (!this.turns.myMove() || game.commandsLeft < 1);
+      btn.disabled = turnBlocked || (state !== 'now' && state !== 'save' && state !== 'saving');
       btn.classList.toggle('ready', state === 'now');
       btn.classList.toggle('saving', state === 'saving');
       btn.classList.toggle('blocked', Boolean(why));
@@ -907,7 +1010,7 @@ class App {
   /** Remembers an event for the panel on wide screens. `html` may carry coloured kingdom names. */
   note(html, bad = false) {
     if (this.ui.human < 0) return;
-    this.events.push({ at: clock(this.game.time), html, bad });
+    this.events.push({ at: this.turns ? `Z${this.game.turn}` : clock(this.game.time), html, bad });
     if (this.events.length > 5) this.events.shift();
   }
 
@@ -922,13 +1025,13 @@ class App {
     let farms = 0;
     for (const t of game.tiles) {
       if (t.owner !== human) continue;
-      if (t.units < game.cap(t)) growth += game.income(t); // a full field grows no further
+      if (t.units < game.cap(t)) growth += this.turns ? game.turnIncome(t) : game.income(t); // a full field grows no further
       if (t.building === 'tower') towers++;
       else if (t.building === 'farm') farms++;
     }
     $('#own-fields').textContent = me.tiles;
     $('#own-troops').textContent = Math.round(me.units);
-    $('#own-growth').textContent = `+${growth.toFixed(1)}/s`;
+    $('#own-growth').textContent = `+${growth.toFixed(1)}${this.turns ? i18n.t('perTurn') : '/s'}`;
     $('#own-towers').textContent = towers;
     $('#own-farms').textContent = farms;
     $('#rivals').innerHTML = stats.factions
@@ -947,7 +1050,8 @@ class App {
     const game = this.game;
     const m = this.mission;
     const stats = game.humanStats;
-    const goals = [won, won && game.time <= m.par, won && stats.lost <= (m.loseLimit ?? 3)];
+    const fast = m.turnMode ? game.turn <= m.parTurns : game.time <= m.par;
+    const goals = [won, won && fast, won && stats.lost <= (m.loseLimit ?? 3)];
     const got = goals.filter(Boolean).length;
     if (won && !m.random) {
       this.store.done[m.id] = true;
@@ -961,11 +1065,13 @@ class App {
     const byHold = game.reason === 'hold';
     const lostTo = game.factions[game.winner];
     $('#result-sub').textContent = won ? i18n.t(byHold ? 'victoryHold' : 'victorySub')
+      : game.reason === 'turns' ? i18n.t('defeatTurns', { n: game.T.turnLimit })
       : !lostTo ? i18n.t('defeatWild')
       : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: lostTo.name });
     const labels = this.goalLabels(m);
     $('#result-stars').innerHTML = goals.map((g, i) => `<div class="${g ? 'got' : ''}">${star}<span>${labels[i]}</span></div>`).join('');
-    $('#result-stats').innerHTML = `<div><b>${clock(game.time)}</b>${i18n.t('time')}</div><div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;
+    const spent = this.turns ? `<div><b>${Math.min(game.turn, game.T.turnLimit)}</b>${i18n.t('turnsStat')}</div>` : `<div><b>${clock(game.time)}</b>${i18n.t('time')}</div>`;
+    $('#result-stats').innerHTML = `${spent}<div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;
     const hasNext = won && CAMPAIGN.indexOf(m) >= 0 && CAMPAIGN.indexOf(m) < CAMPAIGN.length - 1;
     $('#btn-next').hidden = !hasNext;
     $('#btn-retry').classList.toggle('primary', !hasNext);

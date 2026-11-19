@@ -1,7 +1,7 @@
 // Turn mode (branch runden): rules of a move, commands, preview, undo and whole matches.  node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TurnGame, aiTurn } from '../src/sim/turns.js';
+import { TurnGame, aiTurn, aiNext, runCommand } from '../src/sim/turns.js';
 import { MISSIONS } from '../src/sim/missions.js';
 import { TURN_RULES } from '../src/sim/rules.js';
 import { LAB, at, give } from './lab.mjs';
@@ -135,6 +135,29 @@ test('with the fields behind, an attack through a single edge gets through', () 
   const preview = g.preview(0, target.id, parts);
   assert.ok(preview.won);
   assert.ok(preview.plan.every((p) => p.from === front.id), 'both fight at the one edge');
+  give(g, at(g, 0, 2), 1, 3); // now a rival stands next to the field behind
+  assert.equal(g.assaultParts(0, target.id, 1, true).length, 1, 'a field behind that faces a rival of its own stays');
+});
+
+test('a computer move given command by command is the same move', () => {
+  const play = (stepwise) => {
+    const g = new TurnGame({ mission: duel, seed: 4321, human: -1, wide: true });
+    for (let k = 0; k < 24 && g.phase === 'running'; k++) {
+      const f = g.factions[g.current];
+      if (stepwise) {
+        const memo = {};
+        for (let c = aiNext(g, f, memo); c && runCommand(g, f.id, c); c = aiNext(g, f, memo));
+        g.shipSupply();
+        g.deliver();
+        g.passOn();
+      } else {
+        aiTurn(g, f);
+        g.endTurn();
+      }
+    }
+    return state(g);
+  };
+  assert.equal(play(true), play(false));
 });
 
 test('moving troops: any distance through own land, at once, up to what the field takes', () => {

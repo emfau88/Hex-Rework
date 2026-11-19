@@ -1,9 +1,9 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.3 vom 19.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
-Alle offenen Fragen aus Entwurf 0.1 sind entschieden (Abschnitt 4). Schritt 2 ist gebaut und gemessen: Der
-Rundenkern läuft ohne Grafik, die Messwerte stehen in Abschnitt 10. Zwei Regeln haben sich dabei geändert
-(Nachschub am Zugende, ein Befehl im ersten Zug).
+Entwurf 0.4 vom 19.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Alle offenen Fragen aus Entwurf 0.1 sind entschieden (Abschnitt 4). Schritt 2 ist gebaut und gemessen
+(Abschnitt 10). Schritt 3 ist gebaut: Das Duell läuft im Browser Zug um Zug, an PC und Handy geprüft
+(Abschnitt 11). Noch nicht online; das braucht dein Okay (Schritt 4).
 
 ## 1 · Worum es geht
 
@@ -174,7 +174,7 @@ Zu jedem Schritt steht, wann er fertig ist. Den Aufwand habe ich geschätzt, nic
 | 0 | Zweig `runden` und dieser Plan | Plan liegt vor | erledigt |
 | 1 | Regeln festlegen | du hast die offenen Fragen beantwortet, Entwurf 0.2 steht | erledigt |
 | 2 | Rundenkern ohne Grafik: Regeln, Gegner mit 3 Befehlen, Tests, Messwerkzeug „Computer gegen Computer“ | Partien auf dem Duell dauern 20 bis 35 Züge; wer beginnt, gewinnt höchstens 55 %; Leicht, Normal und Schwer sind klar verschieden | gebaut, Abnahme nur zum Teil erreicht (Abschnitt 10) |
-| 3 | Spielbar im Browser auf der Duell-Karte: Zugleiste, Befehle mit Vorschau, Rückgängig, Gegnerzüge im Zeitraffer, Liste der Ereignisse; PC und Handy | eine Partie läuft im Browser ohne Fehler durch, an beiden Bildschirmen geprüft | 2 bis 3 Sitzungen |
+| 3 | Spielbar im Browser auf der Duell-Karte: Zugleiste, Befehle mit Vorschau, Rückgängig, Gegnerzüge im Zeitraffer, Liste der Ereignisse; PC und Handy | eine Partie läuft im Browser ohne Fehler durch, an beiden Bildschirmen geprüft | erledigt (Abschnitt 11) |
 | 4 | Testversion online, Link in der README | der Link öffnet die Testversion; das echte Spiel und dein Spielstand sind unverändert | 1 Sitzung |
 | 5 | Dein Spieltest | du hast die Fragen unten beantwortet | deine Zeit |
 | 6 | **Entscheidung:** (a) Runden wird das Spiel, (b) beide Modi bleiben, (c) verwerfen | | |
@@ -327,3 +327,72 @@ Züge, Mehrspieler.
 - Ein Mensch spielt anders als die Testspieler. Wie lang deine Partien werden, zeigt erst Schritt 5.
 - Ein Ausgleich für den Zweiten (etwa ein paar Truppen mehr zum Start) könnte den Vorteil des Beginners weiter
   drücken. Das lohnt sich erst, wenn Gegner gegen Gegner wichtig wird, etwa mit drei Reichen.
+
+## 11 · Schritt 3 im Browser (19.11.2026)
+
+### Was es gibt
+
+- **Menü:** neuer Abschnitt „Rundenmodus · Test“ mit „Duell in Runden“ (Zufallskarte, 2 Reiche). Oben im Menü
+  steht „Testversion · Rundenmodus“ mit einem Link zum echten Spiel.
+- **Zugleiste über den Knöpfen:**
+  - In deinem Zug: „Dein Zug · Noch 3 Befehle“, ein Punkt pro Befehl, der Pfeil zum Zurücknehmen und „Zug
+    beenden“. Der Knopf leuchtet, wenn keine Befehle mehr übrig sind.
+  - Während die Gegner ziehen: „Ember zieht · Befehl 1 von 3“ und „Überspringen“.
+- **Befehle wie im Echtzeitspiel:**
+  - Der erste Tipp auf ein fremdes Feld zeigt Pfeile von allen Feldern, die mitmachen, und das genaue Ergebnis:
+    ✓ und wie viele einziehen, oder ✗ und wie viele Verteidiger bleiben. Der zweite Tipp greift an. Dafür hast
+    du 10 Sekunden (im Echtzeitspiel 2,5).
+  - Ziehen von einem eigenen Feld: auf ein fremdes greift nur dieses Feld an, auf ein eigenes verschiebt es.
+  - Bauen mit den Knöpfen oder mit T und H.
+  - Ohne Befehle bleibt der Pfeil grau, und am Feld steht „Keine Befehle mehr“.
+- **Tasten am PC:** Z oder Strg+Z nimmt zurück, Enter beendet den Zug (oder überspringt die Gegner).
+- **Gegnerzüge im Zeitraffer:**
+  - Zuerst marschiert dein Nachschub. Dann spielt jeder Gegner seine Befehle einzeln: Seine Truppen laufen zur
+    Kante, erst dort wird gekämpft.
+  - Danach kommt „Zug 4 · du bist dran“ und eine Zeile pro Gegner, etwa „Ember: 2 Felder genommen (1 von dir)“.
+  - Die Zeilen stehen auch rechts in der Ereignisliste, mit Zugnummer (Z3).
+- **Pause-Knopf:** öffnet die Hilfe mit den Regeln für Runden. Eine Pause gibt es nicht, weil nichts von allein
+  läuft.
+- **Ergebnis:** Sterne für den Sieg, für „in höchstens 30 Zügen“ und für „höchstens 3 Felder verloren“. Gezählt
+  werden Züge statt Zeit. Die 30 Züge sind geschätzt, nicht gemessen.
+- **Eigener Speicher** `hexwars_runden_v1`. Geprüft: Die Testversion schreibt nur unter ihrem eigenen Schlüssel.
+
+### Wie geprüft
+
+- **Bildschirme:** im eingebauten Browser am PC (1280 × 800) und im Handyformat (375 × 812).
+- **Abläufe:** Menü, Start, Vorschau, Angriff, Verschieben, Bauen, „keine Befehle mehr“, Rückgängig per Knopf und
+  Taste, Zug beenden per Knopf und Enter, Gegnerzug, Überspringen, Hilfe, Ergebnis.
+- **Drei ganze Partien bis zum Ende, ohne Fehlermeldung:**
+  - zwei Siege, in Zug 13 und 15. Ein kleines Skript gab die Befehle über dieselben Wege wie dein Tippen;
+  - eine Niederlage. Ich habe nur „Zug beenden“ gedrückt, die Burg fiel in Zug 53.
+- **Neue Tests** (`tests/turnplay.test.mjs`): Gegnerzüge im Zeitraffer und übersprungene Gegnerzüge enden auf genau
+  demselben Brett wie die direkte Rechnung. Alle 98 Tests sind grün.
+
+### Beim Prüfen geändert
+
+- **Zweiter Tipp:** 10 statt 2,5 Sekunden im Rundenmodus. Mit 2,5 Sekunden verfiel der erste Tipp, während man die
+  Vorschau las.
+- **Nach dem Bauen ist kein Feld mehr ausgewählt.** Vorher wurde der nächste Tipp auf ein fremdes Feld zu einem
+  Angriff nur von dem gerade bebauten Feld. Im Test waren das 2 Mann, verloren, und ein Befehl war weg.
+- **„Zug beenden“ wartet eine Sekunde, wenn du wieder dran bist.** Kurz davor heißt derselbe Knopf noch
+  „Überspringen“. Ein Tipp, der dafür gedacht war und zu spät kam, beendete sonst deinen eigenen Zug. Genau das ist
+  im Test passiert.
+- **Kürzere Texte in der Zugleiste,** damit sie aufs Handy passen.
+
+### Nicht geprüft
+
+- **Das Tempo des Zeitraffers.** Beim Test war die Browser-Ansicht ausgeblendet, und dann zeichnet der Browser
+  keine Bilder. Ich habe die Wiedergabe deshalb in Schritten angetrieben und einzelne Bilder angesehen.
+  - Ein Angriff dauert 0,8 Sekunden, bei „Ruhig“ 1,1 und bei „Schnell“ 0,5.
+  - Ob sich das gut anfühlt, zeigt dein Spieltest.
+- **Ein echtes Handy.** Geprüft ist nur das Handyformat im Browser.
+
+### Aufgefallen
+
+- **Marschierende Gegner sind klein** (gesehen): 8 Mann sind 2 Figuren, wie im Echtzeitspiel. Ob man ihnen gut
+  folgen kann, zeigt dein Spieltest.
+- **Wer nur abwartet, hält lange durch** (gemessen, eine Partie auf Normal):
+  - Ab Zug 17 hatte der Computer 48 Felder, ich nur noch 4.
+  - Diese letzten 4 Felder mit der Burg griff er bis Zug 53 nicht an („wartet ab“).
+  - Das ist dieselbe Schwäche wie bei den eingeschlossenen Burgen in Abschnitt 10. Für deinen Spieltest ist sie
+    unwichtig, für „Schwer“ später schon.

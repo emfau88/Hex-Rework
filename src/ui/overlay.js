@@ -556,7 +556,8 @@ export class Overlay {
       wins = !fc.holds && fc.winner === ui.human;
       text = wins ? `✓ ${Math.max(1, Math.floor(fc.left))}` : `✗ ${Math.ceil(fc.left)}`;
     }
-    const color = amount < 1 ? '#9fb0b3' : wins ? '#fff3c4' : '#ff9a8c';
+    // Turn mode: without a command left the arrow stays grey, whatever it would do.
+    const color = amount < 1 || ui.noCommands ? '#9fb0b3' : wins ? '#fff3c4' : '#ff9a8c';
     this._arrow(ctx, pts, color, 4.5);
 
     const end = pts[pts.length - 1];
@@ -579,6 +580,10 @@ export class Overlay {
     const a = ui.assault;
     const target = game.tiles[a.target];
     if (target.owner === ui.human) return;
+    if (ui.turnPreview) {
+      this._turnAssault(ctx, game, renderer, ui, fs, target);
+      return;
+    }
     const extra = [];
     for (const id of a.sources) {
       const units = game.sendAmount(id, ui.sendFraction);
@@ -593,6 +598,38 @@ export class Overlay {
 
     const end = renderer.project(target.x, target.height + renderer.lift(target.id) + 0.06, target.z);
     const text = `${a.sources.length}× ${wins ? `✓ ${Math.max(1, Math.floor(fc.left))}` : `✗ ${Math.ceil(fc.left)}`}`;
+    ctx.font = `800 ${fs + 2}px ${FONT}`;
+    const w = ctx.measureText(text).width + 18;
+    const h = fs + 12;
+    const y = end.y - 34;
+    pill(ctx, end.x, y, w, h);
+    ctx.fillStyle = 'rgba(6, 20, 27, 0.92)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.fillText(text, end.x, y + 0.5);
+  }
+
+  /**
+   * Turn mode: the double tap shows the attack the rules will settle. An arrow from every field that
+   * joins (those right behind come through their edge), and the outcome: ✓ and the garrison that
+   * moves in, or ✗ and what is left of the defenders.
+   */
+  _turnAssault(ctx, game, renderer, ui, fs, target) {
+    const { res, none } = ui.turnPreview;
+    const wins = Boolean(res && res.won);
+    const color = !res || none ? '#9fb0b3' : wins ? '#fff3c4' : '#ff9a8c';
+    ctx.globalAlpha = 0.85;
+    if (res) for (const p of res.plan) this._arrow(ctx, this._points(game, renderer, p.path), color, 3);
+    else for (const id of ui.assault.sources) this._arrow(ctx, this._points(game, renderer, [id, target.id]), color, 3);
+    ctx.globalAlpha = 1;
+
+    const end = renderer.project(target.x, target.height + renderer.lift(target.id) + 0.06, target.z);
+    const count = res ? res.plan.length : ui.assault.sources.length;
+    const result = !res ? '✗' : wins ? `✓ ${Math.max(1, Math.floor(res.left))}` : `✗ ${Math.ceil(res.left)}`;
+    const text = `${count}× ${result}`;
     ctx.font = `800 ${fs + 2}px ${FONT}`;
     const w = ctx.measureText(text).width + 18;
     const h = fs + 12;

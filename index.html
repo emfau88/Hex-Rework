@@ -21,6 +21,7 @@
     <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.6l5 4V5.5l-5 4z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0110 0v2h1.5v10h-13V10zm2.2 0h5.6V8a2.8 2.8 0 00-5.6 0z" fill="currentColor"/></symbol>
     <symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 6L4 11l5 5M4.5 11H14a5.5 5.5 0 010 11h-3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -78,6 +79,14 @@
     <button id="btn-options" data-t="options"></button>
   </div>
 
+  <!-- Turn mode: whose move, the commands left, undo, and end move (while the rivals move: skip). -->
+  <div id="turnbar" hidden>
+    <div class="txt"><b id="turn-title"></b><span id="turn-sub"></span></div>
+    <span id="turn-pips"></span>
+    <button id="btn-undo" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
+    <button id="btn-endturn" class="primary"></button>
+  </div>
+
   <div id="banner" aria-live="polite"></div>
   <div id="hint"></div>
 
@@ -113,6 +122,7 @@
         <svg class="crown"><use href="#i-crown"/></svg>
         <h1>ONE CROWN</h1>
         <p class="tag" data-t="tagline"></p>
+        <p class="testflag"><b data-t="testFlag"></b> · <a href="https://emfau88.github.io/Hex-Rework/" data-t="testBack"></a></p>
       </div>
       <!-- One column on a phone; two side by side on wide screens, so the menu fits without scrolling. -->
       <div class="cols">
@@ -123,6 +133,8 @@
           <div id="missions" class="missions"></div>
         </div>
         <div class="col">
+          <h2 data-t="turnSection"></h2>
+          <div id="turnplay" class="missions"></div>
           <h2 data-t="skirmish"></h2>
           <div id="skirmish" class="missions"></div>
           <h2 data-t="difficulty"></h2>
@@ -157,8 +169,17 @@
 
   <section id="pause" class="sheet" hidden>
     <div class="card">
-      <h1 class="sheet-title" data-t="pause"></h1>
-      <ul class="how">
+      <h1 id="pause-title" class="sheet-title" data-t="pause"></h1>
+      <ul id="how-turns" class="how" hidden>
+        <li data-t="turnHow1"></li>
+        <li data-t="turnHow2"></li>
+        <li data-t="turnHow3"></li>
+        <li data-t="turnHow4"></li>
+        <li data-t="turnHow5"></li>
+        <li data-t="turnHow6"></li>
+        <li data-t="turnHow7" class="pc"></li>
+      </ul>
+      <ul id="how-time" class="how">
         <li data-t="how1"></li>
         <li data-t="how2"></li>
         <li data-t="how3"></li>
@@ -168,7 +189,7 @@
         <li data-t="how7"></li>
         <li data-t="how8" class="pc"></li>
       </ul>
-      <h2 data-t="tempo"></h2>
+      <h2 id="tempo-head" data-t="tempo"></h2>
       <div class="seg speed"></div>
       <div class="actions">
         <button id="btn-resume" class="primary" data-t="resume"></button>

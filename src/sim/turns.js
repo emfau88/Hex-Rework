@@ -135,7 +135,8 @@ export class TurnGame extends Game {
     }
     this.history = [];
     // Whoever begins may give fewer commands in the very first move, against the edge of moving first.
-    this.commandsLeft = this.turn === 1 && this.current === this.starter && T.firstCommands != null ? T.firstCommands : T.commands;
+    this.commandsMax = this.turn === 1 && this.current === this.starter && T.firstCommands != null ? T.firstCommands : T.commands;
+    this.commandsLeft = this.commandsMax;
     this.entry = { turn: this.turn, owner: f.id, growth: [], supply: [], commands: [] };
     this.log.push(this.entry);
 
@@ -153,17 +154,37 @@ export class TurnGame extends Game {
       if (t.units !== before) this.entry.growth.push({ tile: t.id, units: t.units - before });
     }
 
-    if (T.supplyAt !== 'end') this._shipSupply(f);
+    if (T.supplyAt === 'start') {
+      this._ship(f);
+      this.deliver();
+    }
   }
 
-  /** Supply: the real-time rules decide what goes where; here it arrives at once. */
-  _shipSupply(f) {
-    if (!f.autoSupply || !f.alive) return;
+  /** Supply: the real-time rules decide what goes where. The columns stay in `armies` until deliver(). */
+  _ship(f) {
+    if (!f.autoSupply || !f.alive || this.phase !== 'running') return [];
     this._autoSupply(f);
+    for (const a of this.armies) this.entry.supply.push({ from: a.path[0], to: a.path[a.path.length - 1], units: a.units, path: a.path });
+    return this.armies.slice();
+  }
+
+  /**
+   * End of the move, first half: the supply columns set out and are returned, still on their way, so
+   * the screen can show them marching. No more commands after this. deliver() lets them arrive.
+   */
+  shipSupply() {
+    this.history = [];
+    this.commandsLeft = 0;
+    return this.T.supplyAt === 'end' ? this._ship(this.factions[this.current]) : [];
+  }
+
+  /** Every column on its way arrives at once. */
+  deliver() {
     for (const a of this.armies) {
       const dst = this.tiles[a.path[a.path.length - 1]];
+      if (dst.owner !== a.owner) continue; // cannot happen while nobody else moves; kept safe
       dst.units = Math.min(this.cap(dst) + this.R.overfill, dst.units + a.units);
-      this.entry.supply.push({ from: a.path[0], to: dst.id, units: a.units, path: a.path });
+      this.events.push({ type: 'arrive', owner: a.owner, tile: dst.id, units: a.units, kind: a.kind });
     }
     this.armies = [];
   }
@@ -186,11 +207,19 @@ export class TurnGame extends Game {
     }
   }
 
-  /** Ends the move of the current kingdom; the next living one begins. Unused commands lapse. */
+  /** Ends the move of the current kingdom: supply, then the next living one begins. Unused commands lapse. */
   endTurn() {
     if (this.phase !== 'running') return false;
+    this.shipSupply();
+    this.deliver();
+    return this.passOn();
+  }
+
+  /** End of the move, second half (after shipSupply and deliver): the next living kingdom begins. */
+  passOn() {
+    if (this.phase !== 'running') return false;
     this.history = [];
-    if (this.T.supplyAt === 'end') this._shipSupply(this.factions[this.current]);
+    this.armies = [];
     let next = this.current;
     for (let i = 0; i < this.kingdoms; i++) {
       next = (next + 1) % this.kingdoms;
@@ -218,8 +247,9 @@ export class TurnGame extends Game {
 
   /**
    * Every own field next to `target` attacks with half (0.5) or all but one (1) of its troops. With
-   * `rear`, the own fields right behind them follow through their edges (the castle stays home).
-   * A front that touches a field from one side only can be broken that way.
+   * `rear`, the own fields right behind them follow through their edges. The castle stays home, and
+   * so does a field behind that faces a rival itself. A front that touches a field from one side only
+   * can be broken that way.
    */
   assaultParts(owner, target, fraction, rear = false) {
     const out = [];
@@ -230,10 +260,12 @@ export class TurnGame extends Game {
       if (units >= 1) out.push({ origin: n, units });
     }
     if (rear) {
+      // A field behind that faces a rival of its own keeps its troops for that front.
+      const facesRival = (r) => r.neighbors.some((k) => this.tiles[k].owner >= 0 && this.tiles[k].owner !== owner && k !== target);
       for (const n of flank) {
         for (const m of this.tiles[n].neighbors) {
           const r = this.tiles[m];
-          if (used.has(m) || r.owner !== owner || r.castle >= 0) continue;
+          if (used.has(m) || r.owner !== owner || r.castle >= 0 || facesRival(r)) continue;
           used.add(m);
           const units = this.sendAmount(m, fraction);
           if (units >= 1) out.push({ origin: m, units });
@@ -438,16 +470,43 @@ export class TurnGame extends Game {
  * asked for one attack at a time.
  */
 export function aiTurn(game, f = game.factions[game.current]) {
+  const memo = {};
+  for (;;) {
+    const cmd = aiNext(game, f, memo);
+    if (!cmd || !runCommand(game, f.id, cmd)) break;
+  }
+}
+
+/**
+ * The next command of a computer kingdom in its move, without giving it, or null when it is done.
+ * `memo` is an empty object at the start of the move and is passed again for every further command.
+ * Giving the commands one at a time with runCommand plays exactly the move aiTurn plays.
+ *   { type: 'attack', target, parts }   or   { type: 'build', tile, building }
+ */
+export function aiNext(game, f, memo) {
   const me = f.id;
   const P = f.ai;
-  if (game.current !== me || game.phase !== 'running') return;
-  if (game.rng.next() < P.build) buildSomething(game, f);
-  for (let guard = 0; guard < 12 && game.canCommand(me); guard++) {
-    const plan = planAttack(game, f);
-    if (plan && game.attack(me, plan.target, plan.parts)) continue;
-    if (P.idleBuild && buildSomething(game, f)) continue;
-    break;
+  if (game.current !== me || !game.canCommand(me)) return null;
+  if (!memo.started) {
+    memo.started = true;
+    memo.guard = 0;
+    if (game.rng.next() < P.build) {
+      const b = chooseBuild(game, f);
+      if (b) return b;
+    }
   }
+  if (memo.guard++ >= 12) return null;
+  const plan = planAttack(game, f);
+  if (plan && game.preview(me, plan.target, plan.parts)) return { type: 'attack', ...plan };
+  if (P.idleBuild) return chooseBuild(game, f);
+  return null;
+}
+
+/** Gives a command as aiNext describes it. Returns false if the game refused it. */
+export function runCommand(game, owner, cmd) {
+  if (cmd.type === 'attack') return Boolean(game.attack(owner, cmd.target, cmd.parts));
+  if (cmd.type === 'build') return game.build(owner, cmd.tile, cmd.building);
+  return false;
 }
 
 /** The single best attack the planner finds right now, as {target, parts}, or null. */
@@ -471,6 +530,12 @@ export function planAttack(game, f) {
 
 /** A tower where a rival threatens, else a farm in the hinterland, if one can be paid right now. */
 export function buildSomething(game, f) {
+  const b = chooseBuild(game, f);
+  return b ? game.build(f.id, b.tile, b.building) : false;
+}
+
+/** The building buildSomething would order, as a command, or null. */
+export function chooseBuild(game, f) {
   const me = f.id;
   const tiles = game.tiles;
   const ring = new Set(tiles[f.castle].neighbors);
@@ -504,6 +569,7 @@ export function buildSomething(game, f) {
       }
     }
   }
-  const pick = tower ? [tower, 'tower'] : farm ? [farm, 'farm'] : null;
-  return pick ? game.build(me, pick[0].id, pick[1]) : false;
+  if (tower) return { type: 'build', tile: tower.id, building: 'tower' };
+  if (farm) return { type: 'build', tile: farm.id, building: 'farm' };
+  return null;
 }

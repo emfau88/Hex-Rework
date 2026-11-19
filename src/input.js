@@ -230,7 +230,9 @@ export function attachInput(el, app, clock = () => performance.now()) {
       const now = clock();
       const plan = assaultAt(d.id);
       const shown = ui.assault && ui.assault.target === d.id;
-      if (plan && shown && armed.id === d.id && now - armed.at < DOUBLE_TAP) {
+      // The app may give more time for the second tap (turn mode: nothing presses there).
+      const span = app.tapWindow ? app.tapWindow() : DOUBLE_TAP;
+      if (plan && shown && armed.id === d.id && now - armed.at < span) {
         disarm();
         ui.assault = null;
         app.assault(d.id);

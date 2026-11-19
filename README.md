@@ -10,8 +10,9 @@ Echtzeit-Strategie auf einer plastischen Hex-Insel. Nachfolger von HEXFRONT mit 
 nicht mehr, es zählt die Form der Front.
 
 - **Zweig `runden`:** Probe für einen Rundenmodus (Zug um Zug statt Echtzeit). Plan, Regeln und Messwerte:
-  [docs/RUNDEN-PLAN.md](docs/RUNDEN-PLAN.md). Der Rundenkern steht in `src/sim/turns.js` und läuft bisher nur ohne
-  Grafik; messen mit `node tools/simulate-turns.mjs`.
+  [docs/RUNDEN-PLAN.md](docs/RUNDEN-PLAN.md). Die Regeln stehen in `src/sim/turns.js`, die Bedienung im Browser in
+  `src/ui/turnplay.js`. Spielen: `node serve.mjs 4181`, im Menü „Rundenmodus · Test“ → „Duell in Runden“. Messen
+  mit `node tools/simulate-turns.mjs`.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
