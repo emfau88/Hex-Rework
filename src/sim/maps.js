@@ -246,18 +246,20 @@ function place(tiles, wide) {
 //   .  plain      f  forest     h  hill      m  mountain    w  water     c  citadel
 //   K0 castle of kingdom 0 (the player), K1, K2 … rivals            -  no field
 //   a digit after the letter gives the field to that kingdom:  .1  h2
+//   !  after the letter gives the field to the monsters (the wilds):  .!:20   h!:30
 //   +  tower, *  farm (after the owner):  .1+   .0*
 //   :n sets the garrison:  h:12   .1+:15   K1:30
 
 const TERRAIN = { '.': 'plain', p: 'plain', f: 'forest', h: 'hill', m: 'mountain', w: 'water', c: 'citadel', K: 'plain' };
 // Free land is not free: a neutral field costs a real attack, so the opening is a choice of where to grow.
 const NEUTRAL_UNITS = { plain: 8, forest: 9, hill: 12, citadel: 30 };
-const TOKEN = /^([.pfhmwcK])(\d)?([+*])?(?::(\d+))?$/;
+const TOKEN = /^([.pfhmwcK])(\d|!)?([+*])?(?::(\d+))?$/;
 
 export function buildAuthored(mission, seed, wide = true) {
   const tiles = [];
   const lookup = new Map();
   const castles = [];
+  const wild = []; // fields of the monsters; the game hands them to their side
   let citadel = -1;
 
   mission.layout.forEach((line, row) => {
@@ -269,7 +271,10 @@ export function buildAuthored(mission, seed, wide = true) {
       const id = tiles.length;
       const t = { id, q, r: row, x: SQ3 * (q + row / 2), z: 1.5 * row, n2: 0, terrain: TERRAIN[m[1]], scenery: false, castle: -1 };
       initTile(t);
-      const owner = m[2] === undefined ? -1 : Number(m[2]);
+      const monsters = m[2] === '!';
+      const owner = m[2] === undefined || monsters ? -1 : Number(m[2]);
+      if (monsters && (m[1] === 'K' || !t.passable)) throw new Error(`Karte ${mission.id}: Ungeheuer auf "${token}" in Zeile ${row + 1}`);
+      if (monsters) wild.push(id);
       if (m[1] === 'K') {
         if (owner < 0) throw new Error(`Karte ${mission.id}: Burg ohne Reich in Zeile ${row + 1}`);
         t.castle = owner;
@@ -297,5 +302,5 @@ export function buildAuthored(mission, seed, wide = true) {
   for (let i = 0; i < castles.length; i++) if (castles[i] === undefined) throw new Error(`Karte ${mission.id}: Burg ${i} fehlt`);
 
   link(tiles, lookup);
-  return { tiles, castles, citadel, seed, ...place(tiles, wide) };
+  return { tiles, castles, citadel, wild, seed, ...place(tiles, wide) };
 }

@@ -278,6 +278,39 @@ test('T, H and F build on the selected field, or else on the own field under the
   assert.equal(b.input.key('x'), false, 'other keys are left alone');
 });
 
+test('in the figure showcase a tap with a placing tool sets troops, and a drag still moves the map', () => {
+  const b = bench();
+  const places = [];
+  const inspects = [];
+  let placing = true;
+  b.app.placing = () => placing;
+  b.app.place = (id) => places.push(id);
+  b.app.inspect = (id) => inspects.push(id);
+
+  b.fire('pointermove', b.target);
+  assert.equal(b.app.ui.assault, null, 'no preview of an attack while a tap sets troops');
+  b.tap(b.left);
+  b.tap(b.target);
+  b.tap(b.target);
+  assert.deepEqual(places, [b.left, b.target, b.target], 'own or foreign: every tap sets troops');
+  assert.equal(b.app.ui.selected, -1, 'nothing is selected');
+  assert.deepEqual(b.log.assaults, [], 'and two taps send nobody');
+  assert.deepEqual(b.log.orders, []);
+  assert.deepEqual(inspects, [b.left, b.target, b.target], 'the panel learns of every tapped field');
+
+  b.fire('pointerdown', b.left);
+  b.fire('pointermove', b.left + 30);
+  b.fire('pointerup', b.left + 30);
+  assert.equal(places.length, 3, 'a drag sets nothing');
+  assert.equal(b.log.pans.length, 1, 'it moves the map');
+
+  placing = false; // back to "orders": the board plays as usual
+  b.tap(b.target);
+  b.tap(b.target);
+  assert.deepEqual(b.log.assaults, [b.target]);
+  assert.equal(places.length, 3);
+});
+
 test('the keys do nothing while no orders are taken', () => {
   const b = bench();
   b.fire('pointermove', b.target);

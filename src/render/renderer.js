@@ -208,7 +208,7 @@ export class DioramaRenderer {
     this.width = 1;
     this.height = 1;
     this.dpr = 1;
-    this.insets = { top: 0, bottom: 0 };
+    this.insets = { top: 0, bottom: 0, left: 0, right: 0 };
     this.camera = { azimuth: MAP_ANGLE, elevation: 0.84 };
     // The player's view into the fitted picture: zoom 1 shows the whole island, pan is the offset of
     // the centre in view units. Both are kept inside the fitted picture.
@@ -309,10 +309,11 @@ export class DioramaRenderer {
 
   // ------------------------------------------------------------------ setup
 
-  /** Bars of the HUD that cover the canvas; the island is fitted between them. */
-  setInsets(top, bottom) {
-    if (this.insets.top === top && this.insets.bottom === bottom) return;
-    this.insets = { top, bottom };
+  /** Bars and panels of the HUD that cover the canvas; the island is fitted between them. */
+  setInsets(top, bottom, left = 0, right = 0) {
+    const s = this.insets;
+    if (s.top === top && s.bottom === bottom && s.left === left && s.right === right) return;
+    this.insets = { top, bottom, left, right };
     this._fit();
   }
 
@@ -409,7 +410,7 @@ export class DioramaRenderer {
     if (!this.game) return;
     const a = this.camera.azimuth;
     const pad = 8;
-    const availW = Math.max(40, this.width - pad * 2);
+    const availW = Math.max(40, this.width - this.insets.left - this.insets.right - pad * 2);
     const availH = Math.max(40, this.height - this.insets.top - this.insets.bottom - pad * 2);
 
     // Tilt: as flat as the diorama look allows on wide screens; on tall phone screens the camera
@@ -431,8 +432,8 @@ export class DioramaRenderer {
     this.fitUnitsPerPx = unitsPerPx;
     const halfW = (unitsPerPx * this.width) / 2;
     const halfH = (unitsPerPx * this.height) / 2;
-    const cx = (l + r) / 2;
-    // Shift the island into the free area between the bars.
+    // Shift the island into the free area between the bars and panels.
+    const cx = (l + r) / 2 - ((this.insets.left - this.insets.right) / 2) * unitsPerPx;
     const cy = (b + t) / 2 + ((this.insets.top - this.insets.bottom) / 2) * unitsPerPx;
     this.view = view;
     this.frame = { cx, cy, halfW, halfH };

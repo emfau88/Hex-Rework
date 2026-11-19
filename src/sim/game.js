@@ -9,6 +9,8 @@ import { buildMap } from './maps.js';
 import { aiThink } from './ai.js';
 
 export const FACTION_NAMES = ['AZUR', 'EMBER', 'JADE', 'SOLAR'];
+// Palette index of the wilds (see PALETTE in render/models.js); the kingdoms use 0 to 3.
+export const WILD_COLOR = 4;
 
 export class Game {
   /**
@@ -50,6 +52,14 @@ export class Game {
     // Seconds each kingdom has held the citadel securely so far; `time` is the current holder's total.
     this.hold = { owner: -1, time: 0, secure: false, times: map.castles.map(() => 0) };
 
+    // The wilds: monsters that belong to no kingdom. They attack anyone and anyone may attack them,
+    // they fight by the same rules at the edges, and they can neither win nor lose. Their fields
+    // neither grow nor wither. Their side comes after the kingdoms and only exists on maps that have
+    // monsters, so every other match runs exactly as before. Their fields are handed out first, so
+    // no kingdom starts on them.
+    this.wild = mission.wild || map.wild?.length ? map.castles.length : -1;
+    for (const id of map.wild || []) this.tiles[id].owner = this.wild;
+
     const diff = DIFFICULTY[difficulty] || DIFFICULTY.normal;
     const first = human >= 0 ? playerColor : this.seed % 4;
     const colors = [first, ...[0, 1, 2, 3].filter((c) => c !== first)];
@@ -75,7 +85,8 @@ export class Game {
         alive: true,
         castle: tileId,
         human: isHuman,
-        autoSupply: isHuman ? autoSupply : true,
+        // In the figure showcase nobody ships troops by himself: what was set stays where it was set.
+        autoSupply: mission.sandbox ? false : isHuman ? autoSupply : true,
         ai,
         incomeMul: isHuman ? 1 : ai.incomeMul,
         thinkEvery: ai.think * (mission.aiSlow || 1),
@@ -83,7 +94,31 @@ export class Game {
         supplyAt: 1 + this.rng.next() * 0.9,
       };
     });
+    // The kingdoms are the first entries of `factions`; only they can win or lose.
+    this.kingdoms = this.factions.length;
+    if (this.wild >= 0) {
+      this.factions.push({
+        id: this.wild,
+        color: WILD_COLOR,
+        name: 'WILD',
+        wild: true,
+        alive: true,
+        castle: -1,
+        human: false,
+        autoSupply: false,
+        ai: null,
+        incomeMul: 1,
+        thinkEvery: Infinity,
+        thinkAt: Infinity,
+        supplyAt: Infinity,
+      });
+    }
     this._supply();
+  }
+
+  /** Whether `owner` is the side of the monsters. */
+  isWild(owner) {
+    return owner >= 0 && owner === this.wild;
   }
 
   // ---------------------------------------------------------------- queries
@@ -112,7 +147,7 @@ export class Game {
   /** Troops per second. With `potential`, what the field would yield if owned and supplied. */
   income(t, potential = false) {
     if (!t.passable) return 0;
-    if (!potential && (t.owner < 0 || !t.supplied)) return 0;
+    if (!potential && (t.owner < 0 || !t.supplied || t.owner === this.wild)) return 0;
     const R = this.R;
     let v = t.castle >= 0 ? R.income.castle : R.income[t.terrain] ?? R.income.plain;
     if (t.building === 'farm') v += R.farmBonus;
@@ -239,7 +274,8 @@ export class Game {
     const F = this.frontage();
     const cap = this.cap(t);
     const room = cap + R.overfill;
-    const owned = t.owner >= 0;
+    // Kingdom fields grow, crowd and wither during the battle; free land and monsters do not.
+    const owned = t.owner >= 0 && t.owner !== this.wild;
     const grow = owned && t.supplied ? this.income(t) : 0;
     let D = t.units;
 
@@ -481,6 +517,23 @@ export class Game {
     return true;
   }
 
+  /**
+   * Figure showcase only: sets a field to `owner` (-1 free land, a kingdom or the wilds) with
+   * `units` troops, as if it had always been so. Castles stay as they are. Returns false if refused.
+   */
+  place(owner, tileId, units) {
+    const t = this.tiles[tileId];
+    const side = owner >= 0 ? this.factions[owner] : null;
+    if (!this.mission.sandbox || !t || !t.passable || t.castle >= 0 || (owner >= 0 && !side?.alive)) return false;
+    if (t.order && t.owner !== owner) this._dropOrder(t);
+    t.owner = owner;
+    t.units = Math.max(owner >= 0 ? 1 : 0, Math.floor(units));
+    t.siegeFrom = t.units;
+    t.lastCapture = this.time;
+    this._supply();
+    return true;
+  }
+
   _dropOrder(t) {
     t.order = null;
     t.orderCost = 0;
@@ -521,9 +574,9 @@ export class Game {
       this.events.push({ type: 'storm' });
     }
 
-    // Growth, crowding and withering.
+    // Growth, crowding and withering. Free land and monsters keep their numbers.
     for (const t of tiles) {
-      if (t.owner < 0) continue;
+      if (t.owner < 0 || t.owner === this.wild) continue;
       t.units = this._drift(t.units, t.supplied, this.cap(t), t.supplied ? this.income(t) : 0);
       if (t.order && t.units >= t.orderCost + 1) this._complete(t);
     }
@@ -566,23 +619,26 @@ export class Game {
     if (this.objective.type === 'hold') {
       const c = tiles[this.objective.tile];
       const hold = this.hold;
-      if (c.owner !== hold.owner) {
+      // Monsters on the citadel run no clock: for the kingdoms it is as good as free.
+      const holder = c.owner === this.wild ? -1 : c.owner;
+      if (holder !== hold.owner) {
         if (hold.owner >= 0 && hold.time > 0) this.events.push({ type: 'holdlost', owner: hold.owner });
-        hold.owner = c.owner;
-        hold.time = c.owner >= 0 ? hold.times[c.owner] : 0;
+        hold.owner = holder;
+        hold.time = holder >= 0 ? hold.times[holder] : 0;
       }
-      hold.secure = c.owner >= 0 && !c.pools.length && c.neighbors.every((n) => !tiles[n].passable || tiles[n].owner === c.owner);
+      hold.secure = holder >= 0 && !c.pools.length && c.neighbors.every((n) => !tiles[n].passable || tiles[n].owner === holder);
       if (hold.secure) {
-        hold.time = hold.times[c.owner] += dt;
+        hold.time = hold.times[holder] += dt;
         if (hold.time >= this.objective.seconds) {
-          this._finish(c.owner, 'hold');
+          this._finish(holder, 'hold');
           return;
         }
       }
     }
 
-    for (let k = 0; k < this.factions.length; k++) {
-      const f = this.factions[(k + this.ticks) % this.factions.length];
+    // Only the kingdoms think and ship supply, in turns that do not depend on the wilds.
+    for (let k = 0; k < this.kingdoms; k++) {
+      const f = this.factions[(k + this.ticks) % this.kingdoms];
       if (!f.alive) continue;
       if (f.autoSupply && this.time >= f.supplyAt) {
         f.supplyAt = this.time + R.supplyInterval;
@@ -673,9 +729,13 @@ export class Game {
     return true;
   }
 
-  /** A castle fell: its whole kingdom changes hands. */
+  /**
+   * A castle fell: its whole kingdom changes hands. Monsters that take a castle rule no kingdom:
+   * its land falls free, each field with what is left of its troops.
+   */
   _conquer(fallen, by, castleTile) {
     const loser = this.factions[fallen];
+    const heir = by === this.wild ? -1 : by;
     loser.alive = false;
     castleTile.castle = -1;
     castleTile.ruin = true;
@@ -686,7 +746,7 @@ export class Game {
     for (const t of this.tiles) {
       if (t.pools.length) t.pools = t.pools.filter((p) => p.owner !== fallen);
       if (t.owner !== fallen) continue;
-      t.owner = by;
+      t.owner = heir;
       t.units = Math.max(1, Math.floor(t.units * this.R.conquestKeep));
       t.lastCapture = this.time;
       t.order = null;
@@ -696,13 +756,15 @@ export class Game {
     for (const x of this.armies) if (x.owner === fallen) x.done = true;
     this.events.push({ type: 'kingdom', fallen, by, tile: castleTile.id, tiles: flipped });
 
-    const alive = this.factions.filter((f) => f.alive);
-    if (this.human >= 0 && fallen === this.human) this._finish(by, 'castle');
-    else if (alive.length === 1) this._finish(alive[0].id, 'castle');
+    const alive = this.factions.filter((f) => f.alive && !f.wild);
+    if (this.human >= 0 && fallen === this.human) this._finish(heir, 'castle');
+    else if (alive.length <= 1) this._finish(alive.length ? alive[0].id : -1, 'castle');
   }
 
+  /** `winner` is -1 if monsters took the player's castle and no kingdom won. */
   _finish(winner, reason) {
-    if (this.phase !== 'running') return;
+    // The figure showcase never ends: it is a place to watch, not to win.
+    if (this.phase !== 'running' || this.mission.sandbox) return;
     this.phase = 'finished';
     this.winner = winner;
     this.reason = reason;
@@ -715,7 +777,7 @@ export class Game {
     const tiles = this.tiles;
     for (const t of tiles) t.supplied = false;
     for (const f of this.factions) {
-      if (!f.alive) continue;
+      if (!f.alive || f.wild) continue;
       const home = tiles[f.castle];
       if (home.owner !== f.id) continue;
       const queue = [home.id];
@@ -730,6 +792,8 @@ export class Game {
         }
       }
     }
+    // Monsters need no castle: their fields never count as cut off.
+    if (this.wild >= 0) for (const t of tiles) if (t.owner === this.wild) t.supplied = true;
     // A field without a link to its castle cannot save up, so its order lapses on the spot.
     for (const t of tiles) if (t.order && !t.supplied) this._dropOrder(t);
   }

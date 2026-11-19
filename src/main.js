@@ -1,7 +1,7 @@
 // App shell: screens, HUD, game loop. The rules live in src/sim, the picture in src/render.
 
 import { Game } from './sim/game.js';
-import { CAMPAIGN, MISSIONS } from './sim/missions.js';
+import { CAMPAIGN, MISSIONS, SHOWCASE } from './sim/missions.js';
 import { SKIRMISH } from './sim/maps.js';
 import { DioramaRenderer } from './render/renderer.js';
 import { PALETTE_HEX } from './render/models.js';
@@ -21,6 +21,12 @@ const star = '<svg><use href="#i-star"/></svg>';
 const SPEEDS = { calm: 0.75, normal: 1, fast: 1.3 };
 const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
 const FREE_PLAY = SKIRMISH.filter((m) => m.random);
+// Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
+// fast the time runs there.
+const LAB_TOOLS = ['order', 'wild', 'own', 'rival', 'free'];
+const LAB_AMOUNTS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 99];
+const LAB_SPEEDS = [0.25, 0.5, 1, 3];
+const LAB_SPEED_LABEL = { 0.25: '¼×', 0.5: '½×', 1: '1×', 3: '3×' };
 
 class App {
   constructor() {
@@ -59,6 +65,7 @@ class App {
     this.tutorial = null;
     this.events = []; // what happened lately, for the panel on wide screens: { at, html, bad }
     this.eventsShown = '';
+    this.lab = null; // the figure showcase while it is open: { tool, amount, speed, paused, inspect }
 
     this.buildMenu();
     this.bind();
@@ -66,6 +73,8 @@ class App {
     this.applyLanguage();
     this.resize();
     this.startAttract();
+    // The figure showcase has its own link and is not in the menu: …/index.html?schau
+    if (new URLSearchParams(location.search).has('schau')) this.startLab();
     requestAnimationFrame((ms) => this.frame(ms));
   }
 
@@ -89,10 +98,13 @@ class App {
     $('#pausebar').hidden = mode !== 'pause';
     $('#pause').hidden = mode !== 'options';
     $('#result').hidden = mode !== 'result';
-    // The side panels belong to a running or paused match of the player.
+    // The side panels belong to a running or paused match of the player. In the figure showcase its
+    // own panel takes the place of the one on the left.
     const panels = (mode === 'play' || mode === 'pause') && this.ui.human >= 0;
-    $('#panel-own').hidden = !panels;
+    $('#panel-own').hidden = !panels || Boolean(this.lab);
     $('#panel-rivals').hidden = !panels;
+    this.el.toggleAttribute('data-lab', Boolean(this.lab));
+    $('#lab').hidden = !this.lab || behindSheet;
     $('#btn-pause use').setAttribute('href', mode === 'pause' ? '#i-play' : '#i-pause');
     this.ui.showNumbers = !behindSheet;
     this.resize();
@@ -111,6 +123,7 @@ class App {
   startAttract() {
     this.clearTimers();
     this.select(-1);
+    this.lab = null;
     this.mission = null;
     this.tutorial = null;
     this.ui.human = -1;
@@ -145,6 +158,7 @@ class App {
     this.clearTimers();
     this.sfx.unlock();
     this.select(-1);
+    this.lab = null;
     this.mission = mission;
     this.seed = seed ?? (mission.random ? (Math.random() * 1e9) | 0 : mission.seed);
     this.game = new Game({
@@ -174,6 +188,153 @@ class App {
       this.later(16000, () => this.setHint(''));
     } else this.setHint('');
     this.banner(i18n.t(`intro${this.game.factions.length}`), '#f2c36b', 2600);
+  }
+
+  // ------------------------------------------------------- figure showcase
+
+  /**
+   * Figure showcase (link ?schau): a test island on which monsters and troops are set by hand. The
+   * time can be stopped, slowed down and stepped; the panel shows the values of the field last tapped.
+   * The tool, the number of troops and the pace stay when it is started again.
+   */
+  startLab() {
+    this.clearTimers();
+    this.sfx.unlock();
+    this.select(-1);
+    const before = this.lab;
+    this.lab = { tool: before?.tool ?? 'order', amount: before?.amount ?? 20, speed: before?.speed ?? 1, paused: false, inspect: -1 };
+    this.mission = SHOWCASE;
+    this.tutorial = null;
+    this.game = new Game({ mission: SHOWCASE, human: 0, playerColor: this.store.color, wide: this.wide() });
+    this.ui.human = 0;
+    this.ui.assault = null;
+    this.ui.tutorialPath = null;
+    this.ui.tutorialMark = null;
+    this.events = [];
+    this.buildLab();
+    this.setMode('play');
+    this.setHint('');
+    this.updateHud(true);
+  }
+
+  /** Side that a tap sets with this tool: -1 free land, null for "orders". */
+  labOwner(tool) {
+    const game = this.game;
+    return tool === 'wild' ? game.wild : tool === 'own' ? this.ui.human : tool === 'rival' ? 1 - this.ui.human : tool === 'free' ? -1 : null;
+  }
+
+  /** Whether a tap on the board sets troops instead of giving orders. */
+  placing() {
+    return Boolean(this.lab && this.lab.tool !== 'order' && this.canCommand());
+  }
+
+  /** The panel's buttons. The kingdoms are named after the colours of this showcase. */
+  buildLab() {
+    const game = this.game;
+    $('#lab-tools').innerHTML = LAB_TOOLS.map((tool) => {
+      const owner = this.labOwner(tool);
+      const f = owner >= 0 ? game.factions[owner] : null;
+      const label = f && !f.wild ? f.name : i18n.t(`lab_${tool}`);
+      const dot = owner === null ? '' : `<i style="--c:${f ? PALETTE_HEX[f.color] : '#b9c9c6'}"></i>`;
+      return `<button data-tool="${tool}">${dot}${label}</button>`;
+    }).join('');
+    $('#lab-time').innerHTML = [
+      `<button data-time="pause" aria-label="${i18n.t('pause')}"><svg><use href="#i-pause"/></svg></button>`,
+      ...LAB_SPEEDS.map((s) => `<button data-time="${s}">${LAB_SPEED_LABEL[s]}</button>`),
+      `<button data-time="step">${i18n.t('labStep')}</button>`,
+    ].join('');
+    this.refreshLab();
+  }
+
+  refreshLab() {
+    const lab = this.lab;
+    if (!lab) return;
+    for (const b of document.querySelectorAll('#lab-tools button')) b.classList.toggle('on', b.dataset.tool === lab.tool);
+    for (const b of document.querySelectorAll('#lab-time button')) {
+      if (b.dataset.time === 'pause') {
+        b.classList.toggle('on', lab.paused);
+        b.querySelector('use').setAttribute('href', lab.paused ? '#i-play' : '#i-pause');
+      } else if (b.dataset.time !== 'step') b.classList.toggle('on', !lab.paused && Number(b.dataset.time) === lab.speed);
+    }
+    $('#lab-amount').textContent = lab.amount;
+    this.updateLabInfo();
+  }
+
+  /** A tap with a placing tool: the field gets that side and the chosen number of troops. */
+  place(id) {
+    const lab = this.lab;
+    if (!lab || id < 0 || !this.canCommand()) return;
+    const t = this.game.tiles[id];
+    lab.inspect = id;
+    if (!t.passable) return;
+    if (t.castle >= 0) {
+      this.say(id, i18n.t('labCastleNo'));
+      return;
+    }
+    if (this.game.place(this.labOwner(lab.tool), id, lab.amount)) this.sfx.play('build', 0.5);
+    this.updateLabInfo();
+  }
+
+  /** Every tap on a field: the showcase shows its values. */
+  inspect(id) {
+    if (!this.lab || id < 0) return;
+    this.lab.inspect = id;
+    this.updateLabInfo();
+  }
+
+  /** The field whose values the panel shows: the selected one, the one previewed, else the last tapped. */
+  labTile() {
+    const ui = this.ui;
+    if (ui.selected >= 0) return ui.selected;
+    if (ui.assault) return ui.assault.target;
+    return this.lab.inspect;
+  }
+
+  updateLabInfo() {
+    const lab = this.lab;
+    if (!lab) return;
+    const game = this.game;
+    const el = $('#lab-info');
+    const id = this.labTile();
+    const t = id >= 0 ? game.tiles[id] : null;
+    if (!t || !t.passable) {
+      const html = `<p>${i18n.t('labHint')}</p>`;
+      if (el.innerHTML !== html) el.innerHTML = html;
+      return;
+    }
+    const f = t.owner >= 0 ? game.factions[t.owner] : null;
+    const who = f ? `<b style="color:${PALETTE_HEX[f.color]}">${this.nameOf(f)}</b>` : `<b>${i18n.t('labFreeLand')}</b>`;
+    const ground = t.castle >= 0 ? i18n.t('labCastle') : i18n.t(`ground_${t.terrain}`);
+    const n = Math.floor(t.units + 1e-6);
+    const cover = `×${game.defense(t).toFixed(2)}`;
+    // Attackers at the edges: from how many sides and how many in all.
+    const foes = t.pools.filter((p) => p.owner !== t.owner);
+    const sides = new Set(foes.map((p) => p.from)).size;
+    const sideText = sides === 1 ? i18n.t('labSide1') : i18n.t('labSides', { n: sides });
+    const rows = [];
+    if (f && f.wild) {
+      rows.push([i18n.t('labStrength'), n]);
+      rows.push([i18n.t('labAttack'), i18n.t('labNone')]);
+      rows.push([i18n.t('labReach'), '–']);
+      rows.push([i18n.t('labCover'), cover]);
+      rows.push([i18n.t('labPlan'), sides ? i18n.t('labPlanDefend', { sides: sideText }) : i18n.t('labPlanHold')]);
+    } else {
+      rows.push([i18n.t('panelTroops'), f ? `${n} / ${game.cap(t)}` : n]);
+      const growth = !f ? i18n.t('labNoGrowth') : !t.supplied ? i18n.t('labCut') : t.units >= game.cap(t) - 0.01 ? i18n.t('full') : `+${game.income(t).toFixed(2)}/s`;
+      rows.push([i18n.t('panelGrowth'), growth]);
+      rows.push([i18n.t('labCover'), cover]);
+      if (sides) {
+        const units = Math.round(foes.reduce((s, p) => s + p.units, 0));
+        rows.push([i18n.t('labFight'), i18n.t('labFightText', { sides: sideText, u: units })]);
+      }
+    }
+    const html = `<div>${who} · ${ground}</div><dl>${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+    if (el.innerHTML !== html) el.innerHTML = html;
+  }
+
+  /** Name of a side as shown on screen; the wilds are named in the player's language. */
+  nameOf(f) {
+    return f.wild ? i18n.t('wildName') : f.name;
   }
 
   /** Wide screens get a landscape island, phones in portrait a tall one. */
@@ -283,7 +444,7 @@ class App {
       else document.documentElement.requestFullscreen?.().catch(() => {});
     });
 
-    const again = () => this.startMission(this.mission, this.mission.random ? this.seed : undefined);
+    const again = () => (this.lab ? this.startLab() : this.startMission(this.mission, this.mission.random ? this.seed : undefined));
     $('#btn-view').addEventListener('click', () => this.renderer.resetView());
     $('#btn-pause').addEventListener('click', () => this.togglePause());
     $('#btn-continue').addEventListener('click', () => this.setMode('play'));
@@ -323,14 +484,56 @@ class App {
       });
     }
 
+    // Figure showcase: tool, number of troops, time.
+    $('#lab-tools').addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b || !this.lab) return;
+      this.input.cancel(); // a selection or an armed attack belongs to the tool before
+      this.lab.tool = b.dataset.tool;
+      this.sfx.play('select');
+      this.refreshLab();
+    });
+    for (const b of document.querySelectorAll('#lab [data-step]')) {
+      b.addEventListener('click', () => {
+        if (!this.lab) return;
+        const i = LAB_AMOUNTS.indexOf(this.lab.amount) + Number(b.dataset.step);
+        this.lab.amount = LAB_AMOUNTS[Math.max(0, Math.min(LAB_AMOUNTS.length - 1, i))];
+        this.refreshLab();
+      });
+    }
+    $('#lab-time').addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      const lab = this.lab;
+      if (!b || !lab) return;
+      const what = b.dataset.time;
+      if (what === 'pause') lab.paused = !lab.paused;
+      else if (what === 'step') {
+        // One second forward, then it stands still again.
+        lab.paused = true;
+        if (this.game.phase === 'running') this.game.step(1);
+      } else {
+        lab.speed = Number(what);
+        lab.paused = false;
+      }
+      this.refreshLab();
+    });
+
     window.addEventListener('resize', () => this.resize());
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.mode === 'play') this.setMode('pause');
+      if (!document.hidden || this.mode !== 'play') return;
+      if (this.lab) {
+        this.lab.paused = true;
+        this.refreshLab();
+      } else this.setMode('pause');
     });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         // Drops the selection, the preview and a combined attack that was armed by a first tap.
         this.input.cancel();
+      } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && this.lab && this.mode === 'play') {
+        e.preventDefault();
+        this.lab.paused = !this.lab.paused; // in the showcase the space bar stops and starts the time
+        this.refreshLab();
       } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause' || this.mode === 'options')) {
         e.preventDefault();
         this.togglePause();
@@ -354,7 +557,20 @@ class App {
     this.renderer.resize(w, h, dpr);
     this.overlay.resize(w, h, dpr);
     const playing = this.el.dataset.mode === 'play';
-    this.renderer.setInsets(playing ? $('#top').offsetHeight - 6 : 0, playing ? $('#bottom').offsetHeight - 12 : 0);
+    let top = playing ? $('#top').offsetHeight - 6 : 0;
+    let left = 0;
+    let right = 0;
+    const lab = $('#lab');
+    if (playing && this.lab && !lab.hidden) {
+      // The showcase panel stands beside the island on wide screens and above it on phones. Beside it,
+      // the island also keeps clear of the panel on the right.
+      if (lab.offsetWidth < w * 0.5) {
+        left = lab.offsetLeft + lab.offsetWidth;
+        const rivals = $('#panel-rivals');
+        if (!rivals.hidden && rivals.offsetWidth) right = w - rivals.offsetLeft;
+      } else top = lab.offsetTop + lab.offsetHeight;
+    }
+    this.renderer.setInsets(top, playing ? $('#bottom').offsetHeight - 12 : 0, left, right);
   }
 
   // --------------------------------------------------------------- commands
@@ -364,9 +580,14 @@ class App {
     return (this.mode === 'play' || this.mode === 'pause') && this.game.phase === 'running' && this.ui.human >= 0;
   }
 
-  /** Pause button, space bar and P: into the planning pause and back into the match. */
+  /**
+   * Pause button, space bar and P: into the planning pause and back into the match. In the figure
+   * showcase the button opens the sheet with help, restart and the way back to the menu; the time
+   * there has buttons of its own.
+   */
   togglePause() {
-    if (this.mode === 'play') this.setMode('pause');
+    if (this.lab) this.setMode(this.mode === 'play' ? 'options' : 'play');
+    else if (this.mode === 'play') this.setMode('pause');
     else if (this.mode === 'pause' || this.mode === 'options') this.setMode('play');
   }
 
@@ -440,7 +661,8 @@ class App {
       // The renderer must know the current match before any of its events arrive.
       if (this.renderer.game !== game) this.renderer.setGame(game);
       // The player's matches run at the chosen pace; the match behind the menu always at full speed.
-      this.ui.pace = this.ui.human >= 0 ? this.pace() : 1;
+      // In the figure showcase the time is set on its panel.
+      this.ui.pace = this.lab ? (this.lab.paused ? 0 : this.lab.speed) : this.ui.human >= 0 ? this.pace() : 1;
       if (this.mode === 'play' || this.mode === 'menu' || this.mode === 'brief') game.step(dt * this.ui.pace);
       for (const e of game.drainEvents()) this.onEvent(e, now);
 
@@ -474,7 +696,7 @@ class App {
     const game = this.game;
     const human = this.ui.human;
     this.renderer.onEvent(e, game, now);
-    const name = (id) => `<span style="color:${PALETTE_HEX[game.factions[id].color]}">${game.factions[id].name}</span>`;
+    const name = (id) => (id >= 0 ? `<span style="color:${PALETTE_HEX[game.factions[id].color]}">${this.nameOf(game.factions[id])}</span>` : '');
     const quiet = this.mode === 'play' ? 1 : 0;
 
     // In the menu match there is no human (-1); neutral fields are -1 as well, so compare with care.
@@ -533,7 +755,9 @@ class App {
         } else this.later(6000, () => this.mode === 'menu' && this.startAttract());
         break;
       case 'defeat':
-        this.banner(i18n.t('wins', { name: name(e.by) }), null, 4000);
+        // Monsters that take the player's castle do not win: nobody does (`by` is -1).
+        if (e.by >= 0) this.banner(i18n.t('wins', { name: name(e.by) }), null, 4000);
+        else this.banner(i18n.t('wildWins'), '#ff8d7f', 4000);
         this.later(500, () => this.sfx.play('defeat'));
         this.later(2400, () => this.showResult(false));
         break;
@@ -574,8 +798,14 @@ class App {
     const game = this.game;
     const text = $('#goal-text');
     const bar = $('#goal-bar');
+    if (this.lab) {
+      text.textContent = i18n.t('labTitle');
+      text.style.color = '';
+      bar.hidden = true;
+      return;
+    }
     if (game.objective.type !== 'hold') {
-      const left = game.factions.filter((f) => f.alive && f.id !== this.ui.human).length;
+      const left = game.factions.filter((f) => f.alive && !f.wild && f.id !== this.ui.human).length;
       text.textContent = i18n.t('goalConquer', { n: left });
       text.style.color = '';
       bar.hidden = true;
@@ -621,10 +851,11 @@ class App {
     $('#clock').classList.toggle('storm', game.storm);
     $('#share-bar').innerHTML = stats.factions.map((f) => `<i style="width:${((f.tiles / stats.playable) * 100).toFixed(1)}%;background:${PALETTE_HEX[f.color]}"></i>`).join('');
     $('#share-legend').innerHTML = stats.factions
-      .map((f) => `<span class="${f.alive ? '' : 'out'}${f.id === human ? ' you' : ''}" style="color:${PALETTE_HEX[f.color]}">${f.name} ${f.tiles}</span>`)
+      .map((f) => `<span class="${f.alive ? '' : 'out'}${f.id === human ? ' you' : ''}" style="color:${PALETTE_HEX[f.color]}">${this.nameOf(game.factions[f.id])} ${f.tiles}</span>`)
       .join('');
     this.updateGoal();
     this.updatePanels(stats);
+    if (this.lab) this.updateLabInfo();
 
     if (!force && this.ui.selected < 0) return;
     $('#send-value').textContent = this.ui.sendFraction >= 1 ? '100 %' : '50 %';
@@ -657,7 +888,7 @@ class App {
   updatePanels(stats) {
     const game = this.game;
     const human = this.ui.human;
-    if (human < 0 || $('#panel-own').hidden) return;
+    if (human < 0 || $('#panel-rivals').hidden) return; // in the showcase only the one on the right is shown
     const me = stats.factions[human];
     let growth = 0;
     let towers = 0;
@@ -675,7 +906,7 @@ class App {
     $('#own-farms').textContent = farms;
     $('#rivals').innerHTML = stats.factions
       .filter((f) => f.id !== human)
-      .map((f) => `<div class="${f.alive ? '' : 'out'}"><b style="color:${PALETTE_HEX[f.color]}">${f.name}</b><span>${f.tiles} · ${Math.round(f.units)}</span></div>`)
+      .map((f) => `<div class="${f.alive ? '' : 'out'}"><b style="color:${PALETTE_HEX[f.color]}">${this.nameOf(game.factions[f.id])}</b><span>${f.tiles} · ${Math.round(f.units)}</span></div>`)
       .join('');
     const html = this.events.map((e) => `<li class="${e.bad ? 'bad' : ''}"><time>${e.at}</time><span>${e.html}</span></li>`).join('');
     if (html !== this.eventsShown) {
@@ -701,7 +932,10 @@ class App {
     title.textContent = i18n.t(won ? 'victory' : 'defeat');
     title.className = `sheet-title big ${won ? 'win' : 'loss'}`;
     const byHold = game.reason === 'hold';
-    $('#result-sub').textContent = won ? i18n.t(byHold ? 'victoryHold' : 'victorySub') : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: game.factions[game.winner]?.name ?? '' });
+    const lostTo = game.factions[game.winner];
+    $('#result-sub').textContent = won ? i18n.t(byHold ? 'victoryHold' : 'victorySub')
+      : !lostTo ? i18n.t('defeatWild')
+      : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: lostTo.name });
     const labels = this.goalLabels(m);
     $('#result-stars').innerHTML = goals.map((g, i) => `<div class="${g ? 'got' : ''}">${star}<span>${labels[i]}</span></div>`).join('');
     $('#result-stats').innerHTML = `<div><b>${clock(game.time)}</b>${i18n.t('time')}</div><div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;

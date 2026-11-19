@@ -4,8 +4,9 @@
 import { TAU, lin, scale3, normalize } from './glutil.js';
 import { hash } from '../sim/rng.js';
 
-export const PALETTE = ['#28b3f3', '#ee594d', '#76c954', '#e7bb3c'].map(lin);
-export const PALETTE_HEX = ['#36bfff', '#ff665c', '#77d864', '#f4c24e'];
+// The four kingdoms, then violet for the wilds (the monsters, see Game.wild).
+export const PALETTE = ['#28b3f3', '#ee594d', '#76c954', '#e7bb3c', '#9a5ce8'].map(lin);
+export const PALETTE_HEX = ['#36bfff', '#ff665c', '#77d864', '#f4c24e', '#bc8cff'];
 export const NEUTRAL = {
   plain: lin('#7f9d75'),
   forest: lin('#698969'),
@@ -441,6 +442,11 @@ export function soldier(m) {
   m.tile = 3; // SOLAR: a wide-brimmed kettle hat
   m.cyl(0, 0.452, 0, 0.14, 0.14, 0.018, 8, steel);
   m.cyl(0, 0.47, 0, 0.07, 0.035, 0.05, 8, steel);
+  m.tile = 4; // the wilds: a shaggy pelt over head and back, with two pointed ears
+  const fur = lin('#2b2433');
+  m.box(0, 0.418, -0.012, 0.15, 0.075, 0.15, fur, 0, 0, 0.35);
+  m.box(0, 0.24, -0.066, 0.18, 0.21, 0.03, fur, 0, 0, 0.35);
+  for (const side of [-1, 1]) m.cyl(side * 0.05, 0.49, -0.012, 0.032, 0, 0.08, 4, fur, 0, Math.PI / 4, true, 0.35);
   m.tile = -1;
 }
 

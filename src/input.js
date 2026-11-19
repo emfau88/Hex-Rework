@@ -8,6 +8,9 @@
 //                    fingers, moves the map.
 //   Keys (PC):       S storms the foreign field under the mouse, as its preview shows; T builds a
 //                    tower, H or F a farm, on the selected field or else the own field under the mouse.
+//   Showcase:        in the figure showcase a tool may set troops instead (app.placing): then a tap
+//                    hands the field to that side (app.place) and a drag only moves the map. Every
+//                    tap on a field also tells the app which field to describe (app.inspect).
 //
 // The first tap on a foreign field arms the combined attack; only a second tap on the same field
 // sends it. Whatever happens in between disarms it again: a cancel, another action, the preview
@@ -42,6 +45,8 @@ export function attachInput(el, app, clock = () => performance.now()) {
     app.select(-1);
   };
 
+  const placing = () => Boolean(app.placing && app.placing());
+
   const position = (e) => {
     const r = el.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -60,6 +65,11 @@ export function attachInput(el, app, clock = () => performance.now()) {
     ui.dragPath = null;
     const id = app.renderer.pick(p.x, p.y);
     under = id;
+    if (placing()) {
+      ui.assault = null; // a tap sets troops here, so there is nothing to preview
+      disarm();
+      return;
+    }
     if (ui.selected < 0 || !ui.targets) {
       // Nothing selected: over a foreign field, preview the combined attack of all neighbours.
       ui.assault = assaultAt(id);
@@ -113,6 +123,21 @@ export function attachInput(el, app, clock = () => performance.now()) {
     const ui = app.ui;
     const p = position(e);
     const id = app.renderer.pick(p.x, p.y);
+    if (id >= 0 && app.inspect) app.inspect(id);
+    if (placing()) {
+      // Showcase tool: decided on release. A tap sets troops, a drag moves the map.
+      disarm();
+      ui.assault = null;
+      app.select(-1);
+      down = { p, id, place: true, moved: false };
+      ui.pointer = p;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is a convenience only */
+      }
+      return;
+    }
     const own = id >= 0 && app.game.tiles[id].owner === ui.human;
     const order = ui.selected >= 0 && id >= 0 && id !== ui.selected && ui.targets && ui.targets.has(id);
     down = { p, id, own, order, moved: false, wasSelected: id === ui.selected, foreign: id >= 0 && !own && !order };
@@ -183,6 +208,10 @@ export function attachInput(el, app, clock = () => performance.now()) {
     down = null;
     if (cancelled || !app.canCommand()) {
       cancel();
+      return;
+    }
+    if (d.place) {
+      if (!d.moved && d.id >= 0) app.place(d.id);
       return;
     }
     if (d.order) {

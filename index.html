@@ -57,6 +57,20 @@
     <ol id="events"></ol>
   </aside>
 
+  <!-- Figure showcase (link ?schau): monsters and troops are set by hand, the time can be stopped
+       and slowed down, and the values of the field last tapped stand below. -->
+  <aside id="lab" hidden>
+    <div id="lab-tools" class="lab-tools"></div>
+    <div class="lab-row">
+      <div class="lab-amount">
+        <span class="lab-label" data-t="panelTroops"></span>
+        <button data-step="-1" aria-label="-">−</button><b id="lab-amount">20</b><button data-step="1" aria-label="+">+</button>
+      </div>
+      <div id="lab-time" class="lab-time"></div>
+    </div>
+    <div id="lab-info" class="lab-info"></div>
+  </aside>
+
   <!-- Planning pause: the match stands still, the board stays in view and takes orders. -->
   <div id="pausebar" hidden>
     <div class="txt"><b data-t="pause"></b><span data-t="pauseHint"></span></div>

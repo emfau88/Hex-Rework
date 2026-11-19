@@ -121,3 +121,30 @@ export const CAMPAIGN = [
 
 /** Everything the menu and the balance tool can start. */
 export const MISSIONS = [...CAMPAIGN, ...SKIRMISH];
+
+/**
+ * Figure showcase: a small test island, reached only through its own link (?schau), not the menu.
+ * Here monsters and troops are set by hand and the time can be stopped and slowed down. Nothing
+ * here is a match: it never ends, the rival does not play, nobody ships supply by himself, and
+ * fields that are cut off keep their troops, so what was set stays put until it fights.
+ */
+export const SHOWCASE = {
+  id: 'schau',
+  name: { de: 'Figurenschau', en: 'Figure showcase' },
+  factions: 2,
+  sandbox: true,
+  wild: true,
+  storm: false,
+  aiDelay: Infinity,
+  rules: { cutOffDecay: 0 },
+  // One band of monsters in the middle to start with (.!:20); everything else is set by hand.
+  layout: [
+    'm  m  .  .  f  .  f  .  .  m  m',
+    '  m  .  .  .  .  .  .  .  .  m',
+    'w  .  .  .  h  .  .  .  .  .  w',
+    '  .  K0 .  .  .!:20 .  .  .  K1 .',
+    'w  .  .  .  .  .  f  .  .  .  w',
+    '  m  .  .  .  .  .  .  .  .  m',
+    'm  m  .  .  f  .  f  .  .  m  m',
+  ],
+};

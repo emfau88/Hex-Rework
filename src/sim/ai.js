@@ -71,7 +71,7 @@ export function aiThink(game, f) {
   const toCastle = new Int16Array(tiles.length).fill(-1);
   const frontier = [];
   for (const o of game.factions) {
-    if (o.alive && o.id !== me) {
+    if (o.alive && o.id !== me && !o.wild) {
       toCastle[o.castle] = 0;
       frontier.push(o.castle);
     }
@@ -100,7 +100,7 @@ export function aiThink(game, f) {
   /** How many fields of the same kingdom would lose their link to the castle if `o` fell. */
   const cutOff = (o) => {
     const rival = game.factions[o.owner];
-    if (!rival || !rival.alive || o.castle >= 0) return 0;
+    if (!rival || !rival.alive || rival.wild || o.castle >= 0) return 0; // monsters have no castle to be cut off from
     const seen = new Uint8Array(tiles.length);
     const queue = [rival.castle];
     seen[rival.castle] = 1;
