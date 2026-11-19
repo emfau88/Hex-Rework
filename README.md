@@ -2,7 +2,7 @@
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Hex-Rework/)
 
-Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.6 vom 19.11.2026.
+Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.7 vom 19.11.2026.
 
 [![Mission 3: drei Reiche kämpfen um die Zitadelle in der Mitte](docs/bilder/stand-0.3-mission-3.jpg)](https://emfau88.github.io/Hex-Rework/)
 
@@ -82,6 +82,18 @@ Mission 1 hält der Gegner bis zum letzten Schritt still.
 Dazu „Gefecht“ auf Zufallskarten: ein Duell und eine Partie mit vier Reichen. Die Inseln sind gespiegelt,
 jedes Reich startet auf genau gleichem Land.
 
+## Stärke der Gegner
+
+Entscheidend ist, wie oft ein Reich einen Befehl gibt. Ein Mensch braucht dafür drei bis acht Sekunden. Die
+Stufen sind seit Stand 0.7 danach abgestimmt:
+
+- **Leicht:** für den Einstieg. Der Gegner entscheidet etwa alle 14 Sekunden und wächst langsamer.
+- **Normal:** für Spieler, die etwa alle 5 Sekunden einen Befehl geben. Der Gegner entscheidet alle 10 Sekunden.
+- **Schwer:** für Geübte, die alle 2 bis 3 Sekunden befehlen. Der Gegner entscheidet alle 3 Sekunden.
+
+In der Einführung von Mission 1 wartet der Gegner auf dich: Er nimmt kein Land mehr, sobald er ein Feld mehr
+hat als du.
+
 ## Prüfen ohne Browser
 
 ```bash
@@ -132,7 +144,9 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 
 ## Stand
 
-Stand 0.6 vom 19.11.2026: Helmformen je Reich, umfallende Figuren, weiche Schatten, Gebäude mit Zustand,
+Stand 0.7 vom 19.11.2026: Die Gegner sind für Menschen neu abgestimmt (Abschnitt 14 in
+[docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)); bis Stand 0.6 war selbst Mission 1 nur mit einem Befehl alle 1,5
+Sekunden sicher zu gewinnen. Davor Stand 0.6: Helmformen je Reich, umfallende Figuren, weiche Schatten, Gebäude mit Zustand,
 Seitenleisten am PC (Abschnitt 13 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.5: abgelehnte
 Befehle werden rückgemeldet, Zoom und Verschieben, Meer rund um die Insel, Burgmauern (Abschnitt 12), Stand 0.4: Tempo-Schalter,
 Pause mit Befehlen, Kampfanzeige, Kampfanimation, Gebirge und Böschungen (Abschnitt 11), und Stand 0.3.1: drei

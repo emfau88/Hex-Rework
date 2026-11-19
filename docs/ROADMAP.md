@@ -1,6 +1,6 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.6 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.7 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
@@ -9,7 +9,7 @@ Sie stehen unter „Erledigt“.
 
 ## Vorab
 
-- [ ] **Dein Spieltest von Stand 0.6.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
+- [ ] **Dein Spieltest von Stand 0.7.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
 
 ## Als Nächstes
 
@@ -35,7 +35,10 @@ Sie stehen unter „Erledigt“.
 
 ## Von dir zu prüfen
 
-- [ ] Die drei Missionen am PC spielen. Verstehst du, warum ein Angriff scheitert? Ist „Normal“ zu leicht oder zu schwer?
+- [ ] **Mission 1 noch einmal spielen, auf „Normal“ und auf „Leicht“:** Ist sie jetzt zu schaffen? Ist „Normal“
+      zu leicht geworden? (Seit Stand 0.7 neu abgestimmt.)
+- [ ] Die drei Missionen am PC spielen. Verstehst du, warum ein Angriff scheitert?
+- [ ] „Schwer“ ausprobieren, sobald „Normal“ sitzt: Ist der Schritt zu groß?
 - [ ] Eine Mission auf „Ruhig“ spielen: Kommst du mit Lesen, Planen und Bauen mit? Sonst auf „Normal“ vergleichen.
 - [ ] Pause mit Befehlen ausprobieren: Hilft sie, oder zerhackt sie das Spiel?
 - [ ] Kampfanzeige: Erkennst du bei zwei Angreifern ohne Nachrechnen, wer das Feld bekommt? Ist die Ansage
@@ -60,11 +63,15 @@ Sie stehen unter „Erledigt“.
 
 ## Offene Schwächen
 
-- [ ] Mission 3 auf „Schwer“ ist sehr hart (Testspieler gewinnt 28 von 60 Partien)
-- [ ] Gefecht mit vier Reichen ist ab „Normal“ schwer (17 von 60)
-- [ ] Mission 1 dauert für den Testspieler nur 2:38 bis 2:46 (Ziel 3 bis 7 Minuten)
-- [ ] Mission 3 fährt ohne Mensch auf „Normal“ gelegentlich fest (2 bis 5 von 60, je nach Würfeln)
-- [ ] Leichte Gegner beenden untereinander keine Partie
+Stand 0.7, nach der Neuabstimmung für Menschen (REWORK-PLAN Abschnitt 14).
+
+- [ ] **Stapeln gewinnt gegen langsame Gegner wieder:** auf „Leicht“ 3 bis 24 von 60 Partien, auf „Normal“ 0 bis
+      10, auf „Schwer“ 0. Es dauert 7 bis 11 Minuten, etwa doppelt so lange wie richtiges Spielen.
+- [ ] Zwischen „Normal“ und „Schwer“ liegt ein großer Schritt (Gegner entscheidet alle 10 gegen alle 3 Sekunden)
+- [ ] Mission 3 dauert für langsame Spieler lange (Anfänger 5 s: 7:57 auf „Normal“; mit 8 s nur 25 von 60)
+- [ ] Vier-Reiche-Gefecht auf „Schwer“ bleibt hart (3-Sekunden-Spieler gewinnt 33 von 60)
+- [ ] Ohne Mensch enden Partien auf „Leicht“ und „Normal“ meist nicht in 15 Minuten
+- [ ] Die Testspieler sind Programme; ob sie einem Menschen ähneln, zeigt nur dein Spieltest
 - [ ] In Mission 2 und 3 überdeckt vereinzelt noch eine Zahl eine andere
 - [ ] Der Computer schneidet nur zufällig ab, er plant es nicht über mehrere Züge
 - [ ] Das Menü ist mit der Tempo-Zeile länger als ein Bildschirm von 720 Punkten Höhe; man muss scrollen
@@ -115,3 +122,6 @@ erst nach dem Spieltest und eine nach der anderen.
 - [x] Gebäude mit Zustand: Fahne am Turm, wachsendes Getreide und Rauch am Hof (Stand 0.6)
 - [x] Umfallende Figuren im Kampf (Stand 0.6)
 - [x] Seitenleisten am PC: eigenes Reich, Gegner, Ereignisse (Stand 0.6)
+- [x] Zahl über marschierenden Truppen ruckelt am Handy nicht mehr (Stand 0.6)
+- [x] Gegner für Menschen neu abgestimmt: Leicht, Normal und Schwer nach Sekunden pro Befehl; der Gegner
+      wartet in der Einführung von Mission 1; langsame Testspieler im Messwerkzeug (Stand 0.7)

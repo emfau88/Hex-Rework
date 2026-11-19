@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) sowie Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, Abschnitt 12) und Figuren, Gebäude und Seitenleisten (Stand 0.6, Abschnitt 13) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) sowie Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, Abschnitt 12) und Figuren, Gebäude und Seitenleisten (Stand 0.6, Abschnitt 13). Mit Stand 0.7 sind die Gegner für Menschen neu abgestimmt (Abschnitt 14); die Messwerte in Abschnitt 7 sind damit überholt · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -198,6 +198,9 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ```
 
 ## 7 · Ergebnisse (Stand 19.11.2026, Stand 0.3.1)
+
+> **Überholt durch Abschnitt 14 (Stand 0.7).** Die Zahlen hier gelten für die alten Stärken und für einen
+> Testspieler, der alle 1,5 Sekunden einen Befehl gibt. Für einen Menschen waren sie viel zu optimistisch.
 
 Gemessen mit `node tools/simulate.mjs 60` (60 Partien je Karte und Stärke, Breitbild). Die Werte vor den
 Korrekturen und der Vergleich mit anderen Würfeln stehen in Abschnitt 10.
@@ -579,3 +582,103 @@ Am Handy stehen die Feldzahlen so dicht, dass sie dabei von Lücke zu Lücke spr
 nach (Kamera in Handygröße, Weg über fünf Felder): vorher bis zu 29 Bildpunkte Sprung zwischen zwei Bildern,
 jetzt unter 3. Die Zahl reist jetzt fest über der Truppe mit und weicht nicht mehr aus; stehende Zahlen
 (Belagerer an der Kante) weichen weiter aus. Nicht geprüft: am echten Handy.
+
+## 14 · Neuabstimmung für Menschen (Stand 0.7, 19.11.2026)
+
+**Anlass:** Du fandest Mission 1 als Mensch sehr schwer. Die Messung gab dir recht. Alle bisherigen Aussagen
+(„Kampagne klar gewinnbar“) galten für einen Testspieler, der alle 1,5 Sekunden einen Befehl gibt. Ein Mensch
+braucht eher drei bis acht Sekunden.
+
+### Was die Messung vorher zeigte (Stand 0.6, „Normal“, Siege von 60)
+
+| Testspieler | Mission 1 | Mission 2 | Mission 3 |
+|---|---|---|---|
+| gründlich, Befehl alle 1,5 s (der alte Maßstab) | 60 | 60 | 58 |
+| gründlich, alle 3 s | 45 | 15 | 0 |
+| gründlich, alle 5 s | 3 | 0 | 0 |
+| Anfänger, alle 3 s | 41 | 0 | 0 |
+| Anfänger, alle 5 s | 0 | 0 | 0 |
+
+„Anfänger“ plant wie der frühere leichte Computer: höchstens zwei Seiten, keine Folgewellen, großer
+Sicherheitsabstand. „Leicht“ half in Mission 1 nicht (32 statt 45 Siege bei 3 s), weil deren Gegner auf allen
+Stufen gleich spielte. Während der geführten Schritte breitete sich der Gegner aus: nach 60 Sekunden Lesen
+hatte er 15 Felder Vorsprung, nach 120 Sekunden 26.
+
+### Was geändert ist
+
+1. **Neuer Maßstab.** `tools/simulate.mjs` misst jetzt vier Stellvertreter: „stark“ (alle 1,5 s), „3 s“,
+   „Anfänger 5 s“ und „8 s“. Ihr Können steht fest im Werkzeug und ändert sich nicht, wenn die Gegner neu
+   eingestellt werden.
+2. **Stärken für Menschen** (`src/sim/rules.js`). Entscheidend ist, wie oft der Gegner befiehlt:
+
+   | Stufe | Gegner entscheidet | Zuwachs | gedacht für |
+   |---|---|---|---|
+   | Leicht | alle 14 s (vorher 2,6 s) | 60 % (vorher 85 %) | Anfänger mit etwa 8 s pro Befehl |
+   | Normal | alle 10 s (vorher 1,6 s) | 80 % (vorher 100 %) | Spieler mit etwa 5 s pro Befehl |
+   | Schwer | alle 3 s (vorher 1,3 s, zwei Befehle) | 100 % | Geübte mit 2 bis 3 s pro Befehl |
+
+   „Schwer“ entspricht damit etwa dem früheren „Normal“, nur etwas langsamer. Das frühere „Schwer“ gibt es
+   nicht mehr.
+3. **Je Mission** (`src/sim/missions.js`): Mission 1 ist auf jeder Stufe etwas sanfter (12 s auf „Normal“).
+   Mission 3 dauert wegen des Ziels lange; ihre Gegner entscheiden noch langsamer (18 / 16 / 5 s), und der
+   Sturm beginnt nach 5 statt 7 Minuten. Im Vier-Reiche-Gefecht entscheiden die Gegner auf „Schwer“ alle 5 s.
+4. **Der Gegner wartet in der Einführung.** Solange die geführten Schritte von Mission 1 laufen, nimmt er kein
+   Land mehr, sobald er ein Feld mehr hat als du. Ein Regeltest prüft das.
+
+### Ergebnisse (60 Partien je Karte und Stufe, Siege und Median der Siegzeit)
+
+| Karte | Stufe | stark 1,5 s | 3 s | Anfänger 5 s | Anfänger 8 s | Stapel |
+|---|---|---|---|---|---|---|
+| Mission 1 | Leicht | 60 in 2:13 | 60 in 3:05 | 60 in 4:01 | 60 in 6:54 | **24** in 8:43 |
+| Mission 1 | Normal | 60 in 2:21 | 60 in 3:21 | 60 in 4:21 | 58 in 7:41 | **6** in 9:27 |
+| Mission 1 | Schwer | 60 in 2:33 | 51 in 5:08 | 0 | 0 | 0 |
+| Mission 2 | Leicht | 60 in 3:00 | 60 in 3:53 | 60 in 5:40 | 58 in 8:45 | **17** in 7:02 |
+| Mission 2 | Normal | 60 in 3:09 | 60 in 4:09 | 60 in 6:16 | 18 in 11:57 | **10** in 7:54 |
+| Mission 2 | Schwer | 60 in 3:36 | 51 in 9:21 | 0 | 0 | 0 |
+| Mission 3 | Leicht | 60 in 3:00 | 60 in 3:24 | 60 in 7:18 | 53 in 9:36 | **8** in 8:44 |
+| Mission 3 | Normal | 60 in 3:01 | 60 in 3:29 | 60 in 7:57 | 25 in 10:39 | 0 |
+| Mission 3 | Schwer | 60 in 3:59 | 40 in 11:33 | 0 | 0 | 0 |
+| Duell | Leicht | 60 in 2:14 | 60 in 2:55 | 58 in 4:06 | 57 in 7:02 | **14** in 9:26 |
+| Duell | Normal | 60 in 2:25 | 59 in 3:13 | 58 in 4:41 | 50 in 8:36 | **1** in 10:46 |
+| Duell | Schwer | 60 in 2:51 | 46 in 7:07 | 0 | 0 | 0 |
+| Vier Reiche | Leicht | 60 in 3:22 | 60 in 4:27 | 58 in 6:51 | 53 in 9:16 | **3** in 11:05 |
+| Vier Reiche | Normal | 60 in 3:45 | 60 in 5:16 | 55 in 8:05 | 25 in 11:08 | 0 |
+| Vier Reiche | Schwer | 45 in 4:36 | 33 in 8:06 | 1 | 0 | 0 |
+
+Erstes Durchspielen von Mission 1 (Anfänger 5 s, liest 20 Sekunden, Gegner hält Frieden bis die Festung fällt):
+60 von 60 auf „Leicht“ (4:20) und „Normal“ (4:40), 0 von 60 auf „Schwer“.
+
+### Abgleich
+
+| Ziel | Ergebnis |
+|---|---|
+| Mission 1: Anfänger mit 5 s gewinnt mindestens 55 von 60, mit 8 s die Mehrheit | erreicht auf „Normal“: 60 und 58 |
+| „Leicht“ ist wirklich leichter, auch in Mission 1 | erreicht: mit 8 s gewinnt der Anfänger auf „Leicht“ überall 53 bis 60 |
+| Mission 2 und 3 mit demselben Maßstab, etwas anspruchsvoller | erreicht für 5 s (60 und 60 auf „Normal“). Mit 8 s reicht „Normal“ dort nicht mehr (18 und 25), dafür ist „Leicht“ da |
+| **Stapel-Spieler bleibt bei 0** | **verfehlt auf „Leicht“, teils auf „Normal“.** Siehe unten |
+
+### Der Preis: Stapeln gewinnt gegen langsame Gegner wieder
+
+Gegen die langsamen Gegner gewinnt der Stapel-Spieler wieder: auf „Leicht“ 3 bis 24 von 60, auf „Normal“ 0 bis
+10 von 60, auf „Schwer“ weiter 0. Er braucht dafür 7 bis 11 Minuten, also etwa doppelt so lange wie der
+Anfänger, der richtig spielt, und gewinnt erst im Sturm. Der Grund: Ein Gegner, der selten befiehlt, bestraft
+die leeren Felder hinter dem Stapel nicht mehr schnell genug.
+
+Versucht und verworfen: Der Gegner verteidigt alle 3 Sekunden, auch wenn er langsam angreift. Das drückte die
+Stapel-Siege nur wenig (Mission 1 „Leicht“ 24 → 15, Mission 2 „Normal“ 10 → 7) und machte es langsamen Spielern
+deutlich schwerer (Duell „Normal“, Anfänger 8 s: 50 → 27; Vier Reiche „Normal“: 25 → 5).
+
+### Was sonst anders ist
+
+- **Partien ohne Mensch enden auf „Leicht“ und „Normal“ meist nicht mehr** in 15 Minuten (24 bis 57 von 60 ohne
+  Sieger). Langsame Gegner beenden untereinander nichts. Im Spiel fällt das nur auf, wenn man selbst nichts tut.
+- **Ein untätiger Spieler** überlebt jetzt viel länger: auf „Normal“ mindestens 10:03 (Mission 1), 6:40 (Mission
+  2), 4:24 (Mission 3).
+- **Zwischen „Normal“ und „Schwer“ liegt ein großer Schritt** (Gegner alle 10 gegen alle 3 Sekunden).
+
+### Was gemessen ist und was nur vermutet
+
+- Gemessen: alle Zahlen oben, mit dem committeten Stand.
+- Vermutet: dass die Stellvertreter einem Menschen ähneln. Sie sind Programme. „Anfänger 5 s“ passt zu deiner
+  Beschreibung, aber ein Mensch kann klüger oder ungeschickter spielen. Maßgeblich ist dein nächster Spieltest.
+- Nicht geprüft: die Stufen im Browser gespielt; Zufallskarten mit anderen Startwerten als denen der Messung.
