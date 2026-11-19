@@ -28,11 +28,13 @@ export class Overlay {
     this.offsets = [];
     for (let dx = -0.8; dx <= 0.801; dx += 0.05) for (let dy = -0.7; dy <= 0.701; dy += 0.1) this.offsets.push([dx, dy]);
     this.offsets.sort((p, q) => Math.hypot(p[0], p[1] * 1.3) - Math.hypot(q[0], q[1] * 1.3));
-    this.stats = { plates: 0, covered: 0 };
+    this.stats = { plates: 0, dropped: 0 };
     this.trace = null; // set to an array to collect plates that found no free spot (debugging)
     // Battles in progress: field -> garrison at its strongest and the last forecast of the outcome.
     this.fights = new Map();
     this.fightsOf = null;
+    // Where each besiegers' number went last time, so it stays put instead of hopping between gaps.
+    this.spots = new Map();
   }
 
   resize(width, height, dpr) {
@@ -59,23 +61,40 @@ export class Overlay {
     ctx.lineJoin = 'round';
 
     // Every number plate drawn this frame is remembered, so that later ones can dodge earlier ones.
+    // `core` is the part of a plate that must never be covered: its digits, and on the player's
+    // fields the strip below them. The plain edge of a plate may be touched when there is no other room.
     const plates = [];
-    let covered = 0;
-    const hits = (x, y, w, h) => plates.some((r) => Math.abs(r.x - x) * 2 < r.w + w && Math.abs(r.y - y) * 2 < r.h + h);
-    /** Returns a height for a plate at x where it covers no other plate; a little above or below if needed. */
-    const settle = (x, y, w, h) => {
-      // Take the nearest gap between the plates already drawn, searching a fine grid around the spot.
-      for (const [dx, dy] of this.offsets) {
-        const px = x + dx * hexPx;
-        const py = y + dy * hexPx;
-        if (hits(px, py, w + 1, h + 1)) continue;
-        plates.push({ x: px, y: py, w, h });
-        return [px, py];
+    let dropped = 0;
+    if (this.fightsOf !== game) this.spots.clear();
+    const spotsUsed = new Set();
+    const hits = (x, y, w, h, loose) =>
+      plates.some((p) => {
+        const r = (loose && p.core) || p;
+        return Math.abs(r.x - x) * 2 < r.w + w && Math.abs(r.y - y) * 2 < r.h + h;
+      });
+    /**
+     * A place near x, y for a plate, or null if there is none. It keeps the spot it had in the last
+     * picture while no digits are in the way there; otherwise it takes the nearest spot that is
+     * completely free, and failing that the nearest one that covers only the edge of other plates.
+     */
+    const settle = (x, y, w, h, key) => {
+      const last = this.spots.get(key);
+      const free = (dx, dy, loose) => !hits(x + dx * hexPx, y + dy * hexPx, w + 1, h + 1, loose);
+      let spot = last && free(last[0], last[1], true) ? last : null;
+      spot ??= this.offsets.find(([dx, dy]) => free(dx, dy, false)) ?? this.offsets.find(([dx, dy]) => free(dx, dy, true));
+      if (!spot) {
+        // No room at all: on a phone the fields stand so close that this happens in some battles. The
+        // number is left out rather than laid over another one; the rim and the tag still tell the battle.
+        dropped++;
+        if (this.trace) this.trace.push({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), near: plates.filter((r) => Math.abs(r.x - x) < 3 * w && Math.abs(r.y - y) < 3 * h).length });
+        return null;
       }
-      covered++;
-      if (this.trace) this.trace.push({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), near: plates.filter((r) => Math.abs(r.x - x) < 3 * w && Math.abs(r.y - y) < 3 * h).length });
-      plates.push({ x, y, w, h });
-      return [x, y];
+      const px = x + spot[0] * hexPx;
+      const py = y + spot[1] * hexPx;
+      plates.push({ x: px, y: py, w, h });
+      this.spots.set(key, spot);
+      spotsUsed.add(key);
+      return [px, py];
     };
 
     // Troop numbers on fields.
@@ -86,15 +105,33 @@ export class Overlay {
       const p = renderer.tileAnchor(t);
       const text = String(Math.floor(t.units + 1e-6));
       const owned = t.owner >= 0;
-      const w = Math.max(fs * 1.7, ctx.measureText(text).width + fs * 0.95);
+      const tw = ctx.measureText(text).width;
+      const w = Math.max(fs * 1.7, tw + fs * 0.95);
       const h = fs + 6;
       const fought = t.pools.some((pool) => pool.owner !== t.owner);
       if (fought) contested.push({ t, p, w, h });
-      // A contested field carries a rim around its number; other plates keep clear of it.
-      plates.push({ x: p.x, y: p.y, w: fought ? w + 9 : w, h: fought ? h + 9 : h });
+      // A contested field carries a rim around its number; other plates keep clear of all of it.
+      const top = p.y - fs * 0.45;
+      const core = fought ? null
+        : owned && t.owner === ui.human ? { x: p.x, y: (top + p.y + h / 2) / 2, w, h: p.y + h / 2 - top }
+        : { x: p.x, y: p.y, w: tw + 2, h: fs * 0.9 };
+      plates.push({ x: p.x, y: p.y, w: fought ? w + 9 : w, h: fought ? h + 9 : h, core });
       pill(ctx, p.x, p.y, w, h);
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
       ctx.fill();
+      // Amber: the field is full and feeds no more troops. Grey: cut off and withering.
+      const full = owned && t.units >= game.cap(t) - 0.01;
+      if (owned && t.owner === ui.human) {
+        // How full the player's own field is: a strip along the bottom of the plate fills from the
+        // left as the troops grow towards what the field can feed.
+        const share = Math.min(1, t.units / game.cap(t));
+        ctx.save();
+        ctx.clip();
+        const sh = Math.max(2.5, h * 0.17);
+        ctx.fillStyle = !t.supplied ? 'rgba(255, 255, 255, 0.3)' : full ? '#ffd27a' : PALETTE_HEX[game.factions[t.owner].color];
+        ctx.fillRect(p.x - w / 2, p.y + h / 2 - sh, w * share, sh);
+        ctx.restore(); // the plate's outline stays the current path for the rim below
+      }
       if (owned) {
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = t.supplied ? PALETTE_HEX[game.factions[t.owner].color] : 'rgba(255, 255, 255, 0.35)';
@@ -102,8 +139,6 @@ export class Overlay {
         ctx.stroke();
         ctx.setLineDash([]);
       }
-      // Amber: the field is full and feeds no more troops. Grey: cut off and withering.
-      const full = owned && t.units >= game.cap(t) - 0.01;
       ctx.fillStyle = owned ? (!t.supplied ? '#c3cfd0' : full ? '#ffd27a' : '#ffffff') : '#b9c9c6';
       ctx.fillText(text, p.x, p.y + 0.5);
       if (t.order) {
@@ -121,12 +156,15 @@ export class Overlay {
     this._battles(ctx, game, ui, contested, fs, plates, concerns);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
-    // `dodge`: move to the nearest free spot. Right for numbers that stand still; a number that
-    // travels must stay with what it belongs to, or it jumps from gap to gap.
-    const badge = (x, y, text, color, ring, dodge = true) => {
+    // `spot`: name under which the number keeps its place between pictures; with it, the number moves
+    // to the nearest free spot. Right for numbers that stand still. Without it the number stays with
+    // what it belongs to: one that travels would otherwise jump from gap to gap.
+    const badge = (x, y, text, color, ring, spot = null) => {
       const w = Math.max(afs * 1.5, ctx.measureText(text).width + afs * 0.7);
       const h = afs + 4;
-      const [px, py] = dodge ? settle(x, y, w, h) : [x, y];
+      const at = spot ? settle(x, y, w, h, spot) : [x, y];
+      if (!at) return;
+      const [px, py] = at;
       pill(ctx, px, py, w, h);
       ctx.fillStyle = color;
       ctx.fill();
@@ -153,9 +191,10 @@ export class Overlay {
       for (const [owner, g] of groups) {
         const pos = renderer.poolPosition(game, t, g.lead);
         const p = renderer.project(pos.x, pos.y + 0.78, pos.z);
-        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true);
+        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true, `${t.id}:${owner}`);
       }
     }
+    for (const key of this.spots.keys()) if (!spotsUsed.has(key)) this.spots.delete(key);
 
     // Marching armies carry their strength above them. Automatic supply columns do not: they are
     // many and small, and nothing has to be decided about them. The number rides with the troops
@@ -165,9 +204,9 @@ export class Overlay {
       if (a.done || a.kind === 'supply' || !concerns(a.owner, game.tiles[a.path[a.path.length - 1]])) continue;
       const pos = renderer.armyPosition(game, a);
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
-      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, false);
+      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false);
     }
-    this.stats = { plates: plates.length, covered };
+    this.stats = { plates: plates.length, dropped };
 
     // Refused orders: the reason floats up from the field for a moment.
     for (const n of ui.notices || []) {
