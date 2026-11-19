@@ -319,8 +319,7 @@ class App {
     for (const type of ['tower', 'farm']) {
       $(`#btn-${type}`).addEventListener('click', () => {
         this.input.disarm();
-        if (!this.canCommand() || this.ui.selected < 0) return;
-        if (this.game.build(this.ui.human, this.ui.selected, type)) this.updateHud(true);
+        this.build(type, this.ui.selected);
       });
     }
 
@@ -342,6 +341,8 @@ class App {
         this.ui.sendFraction = this.store.sendFraction = e.key === '1' ? 0.5 : 1;
         save();
         this.updateHud(true);
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && this.input.key(e.key)) {
+        e.preventDefault(); // S storms, T, H and F build
       }
     });
   }
@@ -397,10 +398,33 @@ class App {
     if (!this.game.assault(this.ui.human, target, this.ui.sendFraction)) this.refuse(target, 'troops');
   }
 
+  /**
+   * Tower or farm on an own field, by button or key. The button is only active when building is
+   * possible; a key can be pressed anywhere, so a refusal says why at the field.
+   */
+  build(type, id) {
+    if (!this.canCommand() || id < 0) return;
+    const human = this.ui.human;
+    if (this.game.build(human, id, type)) {
+      this.updateHud(true);
+      return;
+    }
+    const option = this.game.buildOption(human, id, type);
+    const text = option.state === 'short' ? i18n.t('buildShort', { n: option.need })
+      : option.state === 'never' ? i18n.t('buildNever')
+      : option.state === 'ground' ? i18n.t('buildGround')
+      : i18n.t('buildNo');
+    this.say(id, text);
+  }
+
   /** An order was not carried out: say why, for a moment, at the field it was about. */
   refuse(tile, problem) {
     const key = problem === 'troops' ? 'noTroops' : problem === 'full' ? 'targetFull' : 'noPath';
-    this.ui.notices.push({ tile, text: i18n.t(key), at: this.last });
+    this.say(tile, i18n.t(key));
+  }
+
+  say(tile, text) {
+    this.ui.notices.push({ tile, text, at: this.last });
     this.sfx.play('lost', 0.5);
   }
 

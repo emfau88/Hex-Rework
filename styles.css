@@ -324,6 +324,38 @@ canvas {
   color: #0b2410;
 }
 
+/* Key for the button, top left. Only where there is a keyboard and a mouse; so is the help line about keys. */
+.build .key {
+  display: none;
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  min-width: 16px;
+  padding: 1px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.how .pc {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .build .key {
+    display: block;
+  }
+
+  .how .pc {
+    display: list-item;
+  }
+}
+
 /* ------------------------------------------------------- planning pause */
 
 #pausebar {

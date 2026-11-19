@@ -28,7 +28,7 @@ function bench() {
     setPointerCapture() {},
   };
   const clock = { ms: 0 };
-  const log = { assaults: [], orders: [], zooms: [], pans: [] };
+  const log = { assaults: [], orders: [], zooms: [], pans: [], builds: [] };
   const app = {
     game,
     ui: { selected: -1, hover: -1, targets: null, dragPath: null, dragging: false, pointer: null, assault: null, human: 0, sendFraction: 1 },
@@ -55,6 +55,9 @@ function bench() {
     assault(id) {
       log.assaults.push(id);
       app.select(-1);
+    },
+    build(type, id) {
+      log.builds.push([type, id]);
     },
   };
   const input = attachInput(el, app, () => clock.ms);
@@ -228,4 +231,59 @@ test('two fingers zoom and move the map and can never send troops', () => {
   assert.deepEqual(b.log.assaults, [], 'and the attack is no longer armed');
   b.tap(b.target, one);
   assert.deepEqual(b.log.assaults, [b.target]);
+});
+
+test('the S key storms the field under the mouse, but only while its preview is on screen', () => {
+  const b = bench();
+  assert.equal(b.input.key('s'), true);
+  assert.deepEqual(b.log.assaults, [], 'no preview, no attack');
+  b.fire('pointermove', b.left); // over an own field: there is no preview
+  b.input.key('S');
+  assert.deepEqual(b.log.assaults, []);
+  b.fire('pointermove', b.target);
+  assert.equal(b.app.ui.assault.target, b.target, 'hovering shows the preview');
+  b.input.key('S');
+  assert.deepEqual(b.log.assaults, [b.target], 'the key sends exactly the attack on screen');
+  b.input.key('s');
+  assert.deepEqual(b.log.assaults, [b.target], 'a second press sends nothing until the preview is back');
+  b.fire('pointerleave', -1);
+  b.input.key('s');
+  assert.deepEqual(b.log.assaults, [b.target], 'nor after the mouse has left the board');
+});
+
+test('the S key takes back an attack armed by a first tap', () => {
+  const b = bench();
+  b.tap(b.target); // armed
+  b.fire('pointermove', b.other); // the preview moves to another field
+  b.input.key('s');
+  assert.deepEqual(b.log.assaults, [b.other], 'the key sends what is on screen now');
+  b.fire('pointermove', b.target);
+  b.tap(b.target);
+  assert.deepEqual(b.log.assaults, [b.other], 'the earlier first tap no longer counts');
+});
+
+test('T, H and F build on the selected field, or else on the own field under the mouse', () => {
+  const b = bench();
+  b.fire('pointermove', b.target);
+  b.input.key('t');
+  assert.deepEqual(b.log.builds, [], 'never on a foreign field');
+  b.fire('pointermove', b.left);
+  b.input.key('T');
+  assert.deepEqual(b.log.builds, [['tower', b.left]]);
+  b.tap(b.right); // selects the right field
+  b.fire('pointermove', b.left);
+  b.input.key('h');
+  b.input.key('f');
+  assert.deepEqual(b.log.builds.slice(1), [['farm', b.right], ['farm', b.right]], 'the selected field comes first');
+  assert.equal(b.input.key('x'), false, 'other keys are left alone');
+});
+
+test('the keys do nothing while no orders are taken', () => {
+  const b = bench();
+  b.fire('pointermove', b.target);
+  b.app.canCommand = () => false;
+  b.input.key('s');
+  b.input.key('t');
+  assert.deepEqual(b.log.assaults, []);
+  assert.deepEqual(b.log.builds, []);
 });

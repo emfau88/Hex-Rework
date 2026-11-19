@@ -6,6 +6,8 @@
 //   Cancel:          tap the selected field again, tap empty ground, Esc or the right mouse button.
 //   Zoom and pan:    mouse wheel or two fingers zoom; dragging foreign or empty ground, or two
 //                    fingers, moves the map.
+//   Keys (PC):       S storms the foreign field under the mouse, as its preview shows; T builds a
+//                    tower, H or F a farm, on the selected field or else the own field under the mouse.
 //
 // The first tap on a foreign field arms the combined attack; only a second tap on the same field
 // sends it. Whatever happens in between disarms it again: a cancel, another action, the preview
@@ -18,13 +20,15 @@ const DOUBLE_TAP = 2500; // ms the preview of a combined attack stays armed for 
  * @param {EventTarget} el   the element that receives the pointer events
  * @param {object} app       the app shell (ui state, game, renderer, select/order/assault)
  * @param {() => number} [clock]  milliseconds; replaceable for tests
- * @returns {{ cancel: () => void, disarm: () => void }}
+ * @returns {{ cancel: () => void, disarm: () => void, key: (key: string) => boolean }}
  *   cancel  drops selection, preview and the armed attack (Esc, right mouse button)
  *   disarm  only takes back the armed attack; call it for every other action of the player
+ *   key     handles S, T, H and F; true if the key was one of them
  */
 export function attachInput(el, app, clock = () => performance.now()) {
   let down = null;
   let armed = { id: -1, at: 0 };
+  let under = -1; // the field under the mouse, for the keys
 
   const disarm = () => {
     armed = { id: -1, at: 0 };
@@ -55,6 +59,7 @@ export function attachInput(el, app, clock = () => performance.now()) {
     ui.hover = -1;
     ui.dragPath = null;
     const id = app.renderer.pick(p.x, p.y);
+    under = id;
     if (ui.selected < 0 || !ui.targets) {
       // Nothing selected: over a foreign field, preview the combined attack of all neighbours.
       ui.assault = assaultAt(id);
@@ -220,10 +225,36 @@ export function attachInput(el, app, clock = () => performance.now()) {
     // Only a mouse can leave the board without lifting. A finger "leaves" every time it is lifted,
     // and that must neither hide the preview of the first tap nor take back the armed attack.
     if (down || !e || e.pointerType !== 'mouse') return;
+    under = -1;
     app.ui.assault = null;
     disarm();
   });
   el.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  return { cancel, disarm };
+  /**
+   * Keys on a PC. S sends exactly the combined attack whose preview is on screen, like the second
+   * tap; without a preview it does nothing. The building keys work like the buttons.
+   */
+  const key = (name) => {
+    const k = String(name).toLowerCase();
+    const type = k === 't' ? 'tower' : k === 'h' || k === 'f' ? 'farm' : null;
+    if (k !== 's' && !type) return false;
+    const ui = app.ui;
+    const plan = ui.assault;
+    disarm();
+    if (!app.canCommand()) return true;
+    if (k === 's') {
+      if (plan && ui.selected < 0 && app.game.tiles[plan.target].owner !== ui.human) {
+        ui.assault = null;
+        app.assault(plan.target);
+      }
+      return true;
+    }
+    const mine = (id) => id >= 0 && app.game.tiles[id].owner === ui.human;
+    const id = ui.selected >= 0 ? ui.selected : mine(under) ? under : -1;
+    if (id >= 0) app.build(type, id);
+    return true;
+  };
+
+  return { cancel, disarm, key };
 }
