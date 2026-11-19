@@ -1,6 +1,6 @@
 # Rework-Plan · HexWars Diorama („One Crown“)
 
-Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) sowie Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, Abschnitt 12) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
+Stand 19.11.2026 · Bulk 0 bis 5 und die Nachbesserungen 1 bis 5 und 9 sind umgesetzt, dazu drei Fehlerkorrekturen aus einer Fremdprüfung (Stand 0.3.1, Abschnitt 10) und Tempo, Pause, Kampfanzeige und Kartenoptik (Stand 0.4, Abschnitt 11) sowie Rückmeldung, Zoom, Meer und Burgmauern (Stand 0.5, Abschnitt 12) und Figuren, Gebäude und Seitenleisten (Stand 0.6, Abschnitt 13) · Bulk 6 ist dein Spieltest · führt den Plan in `UMSETZUNGSPLAN.md` fort
 
 ## 1 · Worum es geht
 
@@ -544,3 +544,29 @@ ein Befehl nicht ausgeführt würde. Die Balance ist deshalb nicht neu gemessen.
 
 Nicht geprüft: zwei Finger auf einem echten Handy; ob die Mauern am Handy noch zu erkennen sind (die Burg ist
 dort klein); Zufallskarten mit dem Meer im Hochformat.
+
+## 13 · Figuren, Schatten, Gebäude und Seitenleisten (Stand 0.6, 19.11.2026)
+
+Die Punkte 5 bis 9 („Danach“) aus der Roadmap. Alles ist Darstellung: An den Regeln ist nichts geändert, die
+Balance ist deshalb nicht neu gemessen, und es gibt keine neuen Tests (51 bleiben grün).
+
+| Nr. | Was | Stand |
+|---|---|---|
+| 5 | Weiche Schatten unter Figuren und Gebäuden | gebaut: ein dunkler, weicher Fleck unter jeder Figur, jedem Turm, Hof, jeder Burg und Zitadelle. Im Browser kaum auffällig, wie gewollt |
+| 6 | Figuren mit klarem Umriss | gebaut und im Browser gesehen: AZUR Kamm in Reichsfarbe, EMBER Hörner, JADE Spitzhelm, SOLAR breite Krempe. Schild und Speer gab es schon |
+| 7 | Gebäude mit Zustand | gebaut und gesehen: Fahne am Turm in Reichsfarbe; Getreide am Hof wächst mit der Besatzung von grün zu gold und steht dürr, wenn das Feld abgeschnitten ist; Rauch, solange es versorgt ist |
+| 8 | Umfallende Figuren | gebaut und als Standbild gesehen: Im Kampf kippt die letzte Figur einer Besatzung oder eines Belagerertrupps nach hinten um, während ihre Truppen fallen. Im Frieden wächst die neueste Figur wie bisher heran |
+| 9 | Seitenleisten am PC | gebaut und gesehen: oben links das eigene Reich (Felder, Truppen, Zuwachs pro Sekunde, Türme, Höfe), oben rechts die Gegner und die letzten fünf Ereignisse |
+
+- **Seitenleisten:** nur ab 1100 Punkten Breite im Querformat, in den oberen Ecken über dem Meer. Sie lassen
+  jeden Klick zur Karte durch. Ereignisse: verlorenes Feld, Angriff auf die eigene Burg, gefallenes Reich,
+  eroberte Zitadelle, fertiges Gebäude, Sturm. Eigene Eroberungen stehen nicht dort, das wären zu viele.
+- **Zuwachs** zählt nur Felder, die noch wachsen; volle Felder zählen nicht.
+- **Technik:** Jede Figur trägt jetzt ihr Reich und eine Neigung mit sich. Die Helmteile aller vier Reiche
+  stecken in einem Modell, gezeichnet wird je Figur nur der ihres Reichs. Die Schatten liegen in einem eigenen
+  Durchgang, der den Boden abdunkelt.
+
+Nicht geprüft: die Bewegung (Umfallen, Rauch, Wachsen des Getreides) im laufenden Spiel, nur Standbilder;
+Flüssigkeit am echten Handy mit den zusätzlichen Schatten; ob die Helme am Handy noch zu unterscheiden sind
+(eine Figur ist dort etwa zehn Bildpunkte groß); JADE und SOLAR habe ich nicht im Bild gesehen, nur AZUR und
+EMBER.

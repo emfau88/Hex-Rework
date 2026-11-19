@@ -1,29 +1,22 @@
 # Roadmap · To-do
 
-Stand 19.11.2026 · Spielstand 0.5 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
+Stand 19.11.2026 · Spielstand 0.6 · Einzelheiten und Messwerte in [REWORK-PLAN.md](REWORK-PLAN.md)
 
 Die Reihenfolge unter „Als Nächstes“ ist eine Empfehlung nach Priorität (Stand 19.11.2026). Der Aufwand ist
 geschätzt, nicht gemessen. Mehrere Punkte hängen an deinem Spieltest; er steht deshalb vorn.
-Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut und stehen unter „Erledigt“.
+Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut, die Punkte 5 bis 9 („Danach“) mit Stand 0.6.
+Sie stehen unter „Erledigt“.
 
 ## Vorab
 
-- [ ] **Dein Spieltest von Stand 0.5.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
+- [ ] **Dein Spieltest von Stand 0.6.** Die Fragen dazu stehen unter „Von dir zu prüfen“.
 
 ## Als Nächstes
 
 ### Danach
 
-- [ ] **5 · Weiche Schatten unter Figuren und Gebäuden** · Aufwand mittel · damit nichts schwebt
-- [ ] **6 · Figuren mit klarem Umriss** · Aufwand mittel
-  - Schild und Waffe, je Reich eine eigene Helmform statt nur einer Farbe. Hilft auch bei Farbschwäche.
-- [ ] **7 · Gebäude mit Zustand** · Aufwand mittel
-  - Fahne am Turm in Reichsfarbe, Getreide am Hof, das sichtbar wächst, Rauch. Erklärt nebenbei, was Gebäude tun.
-- [ ] **8 · Umfallende Figuren** · Aufwand klein bis mittel · heute schrumpfen sie nur
-- [ ] **9 · Seitenleisten am PC** · Aufwand mittel
-  - Links das eigene Reich (Truppen, Zuwachs, Gebäude), rechts Gegner und letzte Ereignisse.
-- [ ] Anzeige, wie voll ein Feld ist (aus der früheren Liste; heute zeigt es nur die gelbe Zahl)
-- [ ] Tastenkürzel für Sturm und Bauen (aus der früheren Liste)
+- [ ] Anzeige, wie voll ein Feld ist (am Hof zeigt es seit Stand 0.6 das Getreide, sonst nur die gelbe Zahl)
+- [ ] Tastenkürzel für Sturm und Bauen
 
 ### Erst nach deinem Spieltest entscheiden
 
@@ -54,6 +47,10 @@ Die Punkte 1 bis 4 („Zuerst machen“) sind mit Stand 0.5 gebaut und stehen un
 - [ ] Meer und Schären: Gefällt dir das besser als der leere Rand?
 - [ ] Burgmauern: Erkennst du an der Burg, von wie vielen Seiten sie offen ist, auch am Handy?
 - [ ] Abgelehnte Befehle: Reicht die kurze Meldung am Feld, oder ist sie zu schnell weg?
+- [ ] Helme: Erkennst du die Reiche am Umriss, auch am Handy?
+- [ ] Umfallende Figuren, Rauch und Getreide in Bewegung ansehen (bisher nur als Standbilder geprüft)
+- [ ] Seitenleisten am PC: Helfen sie, oder lenken sie ab? Verdecken sie etwas Wichtiges?
+- [ ] Läuft es am Handy mit den zusätzlichen Schatten noch flüssig?
 - [ ] Ton anhören
 - [ ] Am echten Handy spielen: Sind die Zahlen lesbar, trifft der Finger das richtige Feld, läuft es flüssig?
 - [ ] Am echten Handy ein fremdes Feld einmal antippen: Bleibt die Vorschau stehen, und schickt erst der
@@ -113,3 +110,8 @@ erst nach dem Spieltest und eine nach der anderen.
 - [x] Zoom und Verschieben mit Mausrad, Ziehen und zwei Fingern (Stand 0.5)
 - [x] Meer mit Schären statt leerem Rand, Strand rund um die Insel (Stand 0.5)
 - [x] Burgmauern, die fallen, wenn ein Gegner das Nachbarfeld hält (Stand 0.5)
+- [x] Weiche Schatten unter Figuren und Gebäuden (Stand 0.6)
+- [x] Eigene Helmform je Reich (Stand 0.6)
+- [x] Gebäude mit Zustand: Fahne am Turm, wachsendes Getreide und Rauch am Hof (Stand 0.6)
+- [x] Umfallende Figuren im Kampf (Stand 0.6)
+- [x] Seitenleisten am PC: eigenes Reich, Gegner, Ereignisse (Stand 0.6)
