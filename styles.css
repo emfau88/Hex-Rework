@@ -872,3 +872,116 @@ h2 {
     background: none;
   }
 }
+
+/* ---------------------------------------------------------- side panels */
+
+/* Only where there is room: wide screens. They sit in the upper corners, over the sea, and let
+   every click through to the map. */
+.panel {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  top: calc(66px + env(safe-area-inset-top));
+  width: 178px;
+  padding: 9px 12px 10px;
+  border-radius: 14px;
+  background: rgba(7, 27, 36, 0.8);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+@media (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .panel {
+    display: block;
+  }
+}
+
+#app[data-mode="menu"] .panel {
+  display: none;
+}
+
+#panel-own {
+  left: 12px;
+}
+
+#panel-rivals {
+  right: 12px;
+}
+
+.panel h3 {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.panel h3 + * + h3 {
+  margin-top: 9px;
+}
+
+.panel dl {
+  margin: 0;
+}
+
+.panel dl div,
+#rivals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel dt {
+  color: #c5d6d6;
+}
+
+.panel dd {
+  margin: 0;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+#rivals b {
+  font-weight: 800;
+}
+
+#rivals span {
+  color: #c5d6d6;
+  font-variant-numeric: tabular-nums;
+}
+
+#rivals .out {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+#events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 3px;
+  color: #c5d6d6;
+}
+
+#events li {
+  display: flex;
+  gap: 6px;
+}
+
+#events time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#events .bad {
+  color: #ffb4a8;
+}
+
+#events:empty::after {
+  content: '–';
+  color: var(--muted);
+}

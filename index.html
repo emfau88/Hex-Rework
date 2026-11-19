@@ -39,6 +39,24 @@
     <div id="clock">0:00</div>
   </header>
 
+  <!-- Side panels on wide screens: the own kingdom on the left, rivals and events on the right. -->
+  <aside id="panel-own" class="panel" hidden>
+    <h3 data-t="panelOwn"></h3>
+    <dl>
+      <div><dt data-t="panelFields"></dt><dd id="own-fields">0</dd></div>
+      <div><dt data-t="panelTroops"></dt><dd id="own-troops">0</dd></div>
+      <div><dt data-t="panelGrowth"></dt><dd id="own-growth">0</dd></div>
+      <div><dt data-t="tower"></dt><dd id="own-towers">0</dd></div>
+      <div><dt data-t="farm"></dt><dd id="own-farms">0</dd></div>
+    </dl>
+  </aside>
+  <aside id="panel-rivals" class="panel" hidden>
+    <h3 data-t="panelRivals"></h3>
+    <div id="rivals"></div>
+    <h3 data-t="panelEvents"></h3>
+    <ol id="events"></ol>
+  </aside>
+
   <!-- Planning pause: the match stands still, the board stays in view and takes orders. -->
   <div id="pausebar" hidden>
     <div class="txt"><b data-t="pause"></b><span data-t="pauseHint"></span></div>

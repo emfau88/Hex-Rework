@@ -57,6 +57,8 @@ class App {
     this.alarmAt = -100;
     this.holdWarnAt = -100;
     this.tutorial = null;
+    this.events = []; // what happened lately, for the panel on wide screens: { at, html, bad }
+    this.eventsShown = '';
 
     this.buildMenu();
     this.bind();
@@ -87,6 +89,10 @@ class App {
     $('#pausebar').hidden = mode !== 'pause';
     $('#pause').hidden = mode !== 'options';
     $('#result').hidden = mode !== 'result';
+    // The side panels belong to a running or paused match of the player.
+    const panels = (mode === 'play' || mode === 'pause') && this.ui.human >= 0;
+    $('#panel-own').hidden = !panels;
+    $('#panel-rivals').hidden = !panels;
     $('#btn-pause use').setAttribute('href', mode === 'pause' ? '#i-play' : '#i-pause');
     this.ui.showNumbers = !behindSheet;
     this.resize();
@@ -152,6 +158,7 @@ class App {
     });
     this.ui.human = 0;
     this.ui.assault = null;
+    this.events = [];
     this.alarmAt = -100;
     this.holdWarnAt = -100;
     this.ui.tutorialPath = null;
@@ -461,28 +468,38 @@ class App {
             this.alarmAt = now;
             this.sfx.play('alarm');
             this.banner(i18n.t('alarm'), '#ff8d7f', 2200);
+            this.note(i18n.t('evCastle'), true);
           }
         }
         break;
       case 'capture':
         if (mine(e.owner)) this.sfx.play('capture');
-        else if (mine(e.previous)) this.sfx.play('lost');
+        else if (mine(e.previous)) {
+          this.sfx.play('lost');
+          this.note(i18n.t('evLost', { name: name(e.owner) }), true);
+        }
         else this.sfx.play('capture', 0.22 * quiet);
         if (e.citadel) this.banner(i18n.t('citadel', { name: name(e.owner) }), null, 2200);
+        if (e.citadel && mine(e.owner)) this.note(i18n.t('evCitadel'));
         break;
       case 'repel':
         if (mine(e.owner)) this.sfx.play('lost', 0.6);
         break;
       case 'build':
-        if (mine(e.owner)) this.sfx.play('build');
+        if (mine(e.owner)) {
+          this.sfx.play('build');
+          this.note(i18n.t('evBuilt', { what: i18n.t(e.building) }));
+        }
         break;
       case 'storm':
         this.sfx.play('storm', quiet);
         this.banner(i18n.t('storm'), '#ff8d7f', 3200);
+        this.note(i18n.t('evStorm'), true);
         break;
       case 'kingdom':
         this.sfx.play('castle', quiet);
         if (game.phase === 'running') this.banner(i18n.t('falls', { name: name(e.fallen) }), null, 2600);
+        this.note(i18n.t('evKingdom', { a: name(e.fallen), b: name(e.by) }));
         break;
       case 'victory':
         this.banner(i18n.t('wins', { name: name(e.winner) }), null, 4000);
@@ -583,6 +600,7 @@ class App {
       .map((f) => `<span class="${f.alive ? '' : 'out'}${f.id === human ? ' you' : ''}" style="color:${PALETTE_HEX[f.color]}">${f.name} ${f.tiles}</span>`)
       .join('');
     this.updateGoal();
+    this.updatePanels(stats);
 
     if (!force && this.ui.selected < 0) return;
     $('#send-value').textContent = this.ui.sendFraction >= 1 ? '100 %' : '50 %';
@@ -601,6 +619,44 @@ class App {
       btn.classList.toggle('blocked', Boolean(why));
       $(`#cost-${type}`).textContent = option.cost;
       $(`#why-${type}`).textContent = why;
+    }
+  }
+
+  /** Remembers an event for the panel on wide screens. `html` may carry coloured kingdom names. */
+  note(html, bad = false) {
+    if (this.ui.human < 0) return;
+    this.events.push({ at: clock(this.game.time), html, bad });
+    if (this.events.length > 5) this.events.shift();
+  }
+
+  /** Side panels: the own kingdom in numbers, the rivals, and what happened lately. */
+  updatePanels(stats) {
+    const game = this.game;
+    const human = this.ui.human;
+    if (human < 0 || $('#panel-own').hidden) return;
+    const me = stats.factions[human];
+    let growth = 0;
+    let towers = 0;
+    let farms = 0;
+    for (const t of game.tiles) {
+      if (t.owner !== human) continue;
+      if (t.units < game.cap(t)) growth += game.income(t); // a full field grows no further
+      if (t.building === 'tower') towers++;
+      else if (t.building === 'farm') farms++;
+    }
+    $('#own-fields').textContent = me.tiles;
+    $('#own-troops').textContent = Math.round(me.units);
+    $('#own-growth').textContent = `+${growth.toFixed(1)}/s`;
+    $('#own-towers').textContent = towers;
+    $('#own-farms').textContent = farms;
+    $('#rivals').innerHTML = stats.factions
+      .filter((f) => f.id !== human)
+      .map((f) => `<div class="${f.alive ? '' : 'out'}"><b style="color:${PALETTE_HEX[f.color]}">${f.name}</b><span>${f.tiles} · ${Math.round(f.units)}</span></div>`)
+      .join('');
+    const html = this.events.map((e) => `<li class="${e.bad ? 'bad' : ''}"><time>${e.at}</time><span>${e.html}</span></li>`).join('');
+    if (html !== this.eventsShown) {
+      this.eventsShown = html;
+      $('#events').innerHTML = html;
     }
   }
 
