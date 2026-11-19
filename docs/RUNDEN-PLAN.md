@@ -3,7 +3,8 @@
 Entwurf 0.4 vom 19.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Alle offenen Fragen aus Entwurf 0.1 sind entschieden (Abschnitt 4). Schritt 2 ist gebaut und gemessen
 (Abschnitt 10). Schritt 3 ist gebaut: Das Duell läuft im Browser Zug um Zug, an PC und Handy geprüft
-(Abschnitt 11). Noch nicht online; das braucht dein Okay (Schritt 4).
+(Abschnitt 11). Seit Schritt 4 ist die Testversion online: https://emfau88.github.io/Hex-Rework/runden/
+(Abschnitt 6). Als Nächstes kommt dein Spieltest (Schritt 5).
 
 ## 1 · Worum es geht
 
@@ -175,7 +176,7 @@ Zu jedem Schritt steht, wann er fertig ist. Den Aufwand habe ich geschätzt, nic
 | 1 | Regeln festlegen | du hast die offenen Fragen beantwortet, Entwurf 0.2 steht | erledigt |
 | 2 | Rundenkern ohne Grafik: Regeln, Gegner mit 3 Befehlen, Tests, Messwerkzeug „Computer gegen Computer“ | Partien auf dem Duell dauern 20 bis 35 Züge; wer beginnt, gewinnt höchstens 55 %; Leicht, Normal und Schwer sind klar verschieden | gebaut, Abnahme nur zum Teil erreicht (Abschnitt 10) |
 | 3 | Spielbar im Browser auf der Duell-Karte: Zugleiste, Befehle mit Vorschau, Rückgängig, Gegnerzüge im Zeitraffer, Liste der Ereignisse; PC und Handy | eine Partie läuft im Browser ohne Fehler durch, an beiden Bildschirmen geprüft | erledigt (Abschnitt 11) |
-| 4 | Testversion online, Link in der README | der Link öffnet die Testversion; das echte Spiel und dein Spielstand sind unverändert | 1 Sitzung |
+| 4 | Testversion online, Link in der README | der Link öffnet die Testversion; das echte Spiel und dein Spielstand sind unverändert | erledigt (Abschnitt 6) |
 | 5 | Dein Spieltest | du hast die Fragen unten beantwortet | deine Zeit |
 | 6 | **Entscheidung:** (a) Runden wird das Spiel, (b) beide Modi bleiben, (c) verwerfen | | |
 | 7 | nur bei (a) oder (b): Missionen 1 bis 3 in Zügen, Troll in Zügen, Ritter, Feinschliff, dann Übernahme ins öffentliche Spiel | | Wochen |
@@ -214,13 +215,18 @@ oder in Zügen gespielt wird.
   > spielt statt in Echtzeit. Unfertig; der Spielstand wird getrennt gespeichert. Plan:
   > [docs/RUNDEN-PLAN.md im Zweig runden](https://github.com/emfau88/Hex-Rework/blob/runden/docs/RUNDEN-PLAN.md)
 
-- **Braucht dein Okay:**
-  - Die Erweiterung des Ablaufs und der README-Abschnitt landen auf `main`. Das ist ein Push, der das echte Spiel
-    unverändert neu veröffentlicht.
-  - Das Hochladen des Zweigs `runden` auf GitHub. Das veröffentlicht nichts, macht den Zweig aber öffentlich
-    sichtbar.
-- **Vorher schon spielbar:** auf deinem Rechner aus dem Ordner „HexWars Diorama runden“ mit `node serve.mjs 4181`,
-  am Handy im selben WLAN mit `node serve.mjs 4181 --lan`.
+- **Stand (19.11.2026, Schritt 4 erledigt):**
+  - Dein Okay kam am 19.11. Ablauf und README-Abschnitt sind auf `main`, der Zweig `runden` ist auf GitHub. Der
+    kleine Ablauf auf dem Zweig heißt `.github/workflows/runden.yml`.
+  - Geprüft nach dem Hochladen:
+    - Der Neuaufbau lief durch, die Tests des Zweigs eingeschlossen.
+    - Die Testversion öffnet sich unter `/runden/`, das Duell läuft dort bis zum zweiten Zug ohne Fehlermeldung.
+    - Das echte Spiel online ist Datei für Datei gleich wie `main` und hat keinen Rundenmodus.
+    - Dein Spielstand im echten Spiel blieb unverändert. Die Testversion schrieb nur unter ihrem eigenen
+      Schlüssel.
+  - Jedes weitere Hochladen von `runden` veröffentlicht die Seite neu; das echte Spiel geht dabei unverändert mit.
+- **Auch lokal spielbar:** aus dem Ordner „HexWars Diorama runden“ mit `node serve.mjs 4181`, am Handy im selben
+  WLAN mit `node serve.mjs 4181 --lan`.
 
 ## 7 · Technik in Kürze
 
