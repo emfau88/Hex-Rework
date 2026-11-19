@@ -90,3 +90,45 @@ export const DIFFICULTY = Object.freeze({
   normal: Object.freeze({ think: 8, margin: 1.3, sides: 3, waves: 0, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.35, incomeMul: 0.8, humanBias: 0.9, rushAfter: 300 }),
   hard: Object.freeze({ think: 3, margin: 1.18, sides: 4, waves: 1, actions: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, incomeMul: 1, humanBias: 1, rushAfter: 120 }),
 });
+
+// ------------------------------------------------------------------ turn mode (branch runden)
+//
+// The kingdoms move one after the other, each with a few commands per turn (see src/sim/turns.js and
+// docs/RUNDEN-PLAN.md). Edges, cover, supply limits and building prices are the ones above; only what
+// happened per second now happens once per turn. A turn stands for about `seconds` of the real-time
+// game: the game clock (game.time) runs on by that much per turn, so the planner of the rivals keeps
+// its sense of time.
+export const TURN_RULES = Object.freeze({
+  seconds: 8,
+  commands: 3,
+  // Troops per turn on a supplied field, added at the start of its owner's turn.
+  income: Object.freeze({ plain: 2, forest: 2, hill: 1.5, citadel: 5, castle: 6 }),
+  farmBonus: 2.5,
+  // Lost per turn on a field without a link to its castle (never below 1).
+  cutOff: 4,
+  // The automatic supply ships once per turn, so smaller loads are worth it. It ships at the end of
+  // the own move ('end'), so freshly taken fields are manned before the rival moves; shipped at the
+  // start ('start'), the same three fields changed hands every turn and matches hardly ended.
+  supplyMin: 2,
+  supplyAt: 'end',
+  // Commands of whoever begins, in the very first move only (null: as many as everybody). With 3 the
+  // kingdom that began won 63 to 68 % of the duels between equal rivals, with 1 it won 57 to 59 %
+  // (normal and hard; easy stays near 69 %).
+  firstCommands: 1,
+  // Storm: from this turn on the edges widen and cover fades, fully after `stormTurns` more.
+  stormTurn: 40,
+  stormTurns: 15,
+  // Nobody wins after this many turns.
+  turnLimit: 80,
+});
+
+// The same planner as in real time, with as many commands as a person. The strengths differ in how
+// cleverly they plan and, as in real time, in how fast the easier ones grow.
+// build      chance per turn to spend a command on a building first
+// idleBuild  spend commands that found no attack worth it on a building
+// rushAfter  no attack on any castle before this game second (turn × seconds)
+export const TURN_DIFFICULTY = Object.freeze({
+  easy: Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.15, idleBuild: false, incomeMul: 0.75, humanBias: 0.6, rushAfter: 200 }),
+  normal: Object.freeze({ margin: 1.25, sides: 3, waves: 0, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.3, idleBuild: true, incomeMul: 0.9, humanBias: 0.9, rushAfter: 96 }),
+  hard: Object.freeze({ margin: 1.12, sides: 5, waves: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, idleBuild: true, incomeMul: 1, humanBias: 1, rushAfter: 48 }),
+});

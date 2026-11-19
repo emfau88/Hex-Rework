@@ -1,7 +1,9 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.1 vom 19.11.2026 · Zweig `runden` · Nichts davon ist gebaut. Das öffentliche Spiel bleibt in Echtzeit, bis
-du entscheidest.
+Entwurf 0.3 vom 19.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Alle offenen Fragen aus Entwurf 0.1 sind entschieden (Abschnitt 4). Schritt 2 ist gebaut und gemessen: Der
+Rundenkern läuft ohne Grafik, die Messwerte stehen in Abschnitt 10. Zwei Regeln haben sich dabei geändert
+(Nachschub am Zugende, ein Befehl im ersten Zug).
 
 ## 1 · Worum es geht
 
@@ -25,8 +27,8 @@ Gemessen mit Testspielern auf „Normal“, fünf Karten, je 12 bis 20 Partien:
 - **Der Nachschub selbst arbeitet gut.** Er schickt an die richtigen Fronten, nimmt kurze Wege und erzeugt kaum
   Gegenverkehr. Daran liegt es nicht.
 
-Messwerkzeug und Rohwerte: die Skripte aus der Untersuchung vom 19.11.2026; sie sollen mit Schritt 2 als
-`tools/` ins Projekt kommen.
+Diese Werte stammen aus Skripten der Untersuchung vom 19.11.2026, die nicht im Projekt liegen. Für den Rundenmodus
+misst `tools/simulate-turns.mjs` (Abschnitt 10).
 
 ## 2 · Leitlinien
 
@@ -37,7 +39,11 @@ Messwerkzeug und Rohwerte: die Skripte aus der Untersuchung vom 19.11.2026; sie 
 5. **Der Kern bleibt:** Kampf an den Kanten, Umzingeln, Abschneiden.
 6. **Die Insel bleibt lebendig:** Märsche und Kämpfe sieht man weiter, als kurze Wiedergabe.
 
-## 3 · Regelentwurf 0.1
+## 3 · Regeln (Stand Schritt 2)
+
+Gegenüber Entwurf 0.1 geändert, beide Male wegen der Messung in Abschnitt 10:
+- Der Nachschub läuft **am Ende des eigenen Zugs**, nicht am Anfang.
+- Wer beginnt, hat im **allerersten Zug nur 1 Befehl**.
 
 ### Ablauf
 
@@ -45,16 +51,16 @@ Messwerkzeug und Rohwerte: die Skripte aus der Untersuchung vom 19.11.2026; sie 
 - Die Gegnerzüge rechnet der Computer sofort aus. Danach laufen sie als Zeitraffer, insgesamt wenige
   Sekunden. Ein Tipp überspringt die Wiedergabe.
 - **Dein Zug:**
-  1. **Zugbeginn:** Deine versorgten Felder wachsen. Dann verteilt der Nachschub deine Überschüsse an die Front.
-     Abgeschnittene Felder verlieren Truppen.
-  2. **Befehle:** bis zu 3.
-  3. **Zug beenden** (Knopf). Nicht genutzte Befehle verfallen.
+  1. **Zugbeginn:** Deine versorgten Felder wachsen. Abgeschnittene Felder verlieren Truppen.
+  2. **Befehle:** bis zu 3. Im allerersten Zug der Partie hat, wer beginnt, nur 1.
+  3. **Zug beenden** (Knopf). Nicht genutzte Befehle verfallen. Danach verteilt der Nachschub deine Überschüsse an
+     die Front, auch auf Felder, die du gerade erobert hast.
 
 ### Befehle (3 pro Zug)
 
 | Befehl | So geht es | Kostet |
 |---|---|---|
-| **Angriff** | Ziel antippen: Alle eigenen Felder daneben greifen zusammen an (wie heute „Sturm“). Mit 50 % oder 100 % ihrer Truppen. Die Vorschau zeigt das Ergebnis, der zweite Tipp bestätigt. Gilt auch für freies Land. | 1 Befehl |
+| **Angriff** | Ziel antippen: Alle eigenen Felder daneben greifen zusammen an (wie heute „Sturm“). Mit 50 % oder 100 % ihrer Truppen. Wahlweise rücken die Felder direkt dahinter mit nach und kämpfen an denselben Kanten (die Burg bleibt daheim). Die Vorschau zeigt das Ergebnis, der zweite Tipp bestätigt. Gilt auch für freies Land. | 1 Befehl |
 | **Verschieben** | Von einem eigenen Feld zu einem anderen, beliebig weit durch eigenes zusammenhängendes Land, sofort | 1 Befehl |
 | **Bauen** | Turm oder Hof auf einem eigenen Feld, sofort, bezahlt mit Truppen dieses Felds. Der Preis steigt wie heute mit jedem weiteren Gebäude. Kein Ansparen mehr: Reicht es noch nicht, wartet man einfach einen Zug. | 1 Befehl |
 | **Rückgängig** | nimmt den letzten Befehl dieses Zugs zurück | nichts |
@@ -68,8 +74,12 @@ Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, 
   - Alle Verteidiger wehren sich.
   - Deckung (Wald, Hügel, Turm, Burg) mindert ihren Verlust.
   - Wer von mehreren Seiten kommt, verliert viel weniger. Umzingeln lohnt sich also wie heute.
-- **Gewinnt der Angreifer,** ziehen die Überlebenden ins Feld, höchstens 30. **Verliert er,** sind die Angreifer
-  weg, und der Verteidiger behält, was übrig ist.
+- **Gewinnt der Angreifer,** ziehen die Überlebenden ins Feld, höchstens 30. Der Rest geht auf die Felder zurück,
+  von denen aus angegriffen wurde (soweit dort Platz ist). **Verliert er,** sind die Angreifer weg, und der
+  Verteidiger behält, was übrig ist.
+- **Nachrücken** ist nötig, wo eine Front ein Feld nur von einer Seite berührt: Von einer Seite braucht man gegen
+  ein volles Feld (20) insgesamt 30 Truppen, ein Feld hat aber höchstens 20. Eine Burg (40) braucht von drei Seiten
+  zusammen 75, von vier 64 (gerechnet).
 - **Warum sofort?** Heute dauern fast alle Kämpfe nur Sekunden, also weniger als ein Zug. Belagerungen über
   mehrere Züge bringen viel Aufwand für wenig Gewinn. Sie sind eine Option für später, etwa nur für Burgen.
 
@@ -79,10 +89,13 @@ Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, 
   Tabelle unten.
 - Grenzen wie heute: Ein Feld nährt 20 Truppen, die Zitadelle 30, die Burg 40. Was durch Verschieben darüber
   liegt (bis +10), schmilzt bis zum nächsten eigenen Zug weg.
-- **Nachschub bei Zugbeginn,** nach den heutigen Regeln:
+- **Nachschub am Zugende,** nach den heutigen Regeln:
   - Felder im Hinterland geben ihren Überschuss an Frontfelder mit Platz, Fronten zum Gegner zuerst.
   - Die Burg behält 32 Truppen, die sechs Felder um sie je 10.
   - Die Truppen kommen sofort an; man sieht sie kurz marschieren.
+  - Er verschickt schon ab 2 Truppen (heute ab 4), weil er nur einmal pro Zug läuft.
+  - **Warum am Ende?** Lief er am Anfang, bekam ein gerade erobertes Feld nichts mehr, bevor der Gegner zog. Dann
+    wechselten jeden Zug dieselben drei Felder den Besitzer, und nur 5 von 30 Partien endeten vor Zug 80.
 - **Abgeschnitten** (keine Verbindung zur eigenen Burg): Das Feld wächst nicht und verliert 4 Truppen pro Zug,
   bleibt aber bei mindestens 1.
 
@@ -108,7 +121,7 @@ Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, 
   - Schwer: umzingelt, schneidet ab, baut gezielt.
   - Dazu wie heute weniger Zuwachs auf den leichten Stufen.
 
-### Startwerte (alle werden in Schritt 2 gemessen und angepasst)
+### Werte (alle in `TURN_RULES` in `src/sim/rules.js`)
 
 | | heute (pro Sekunde) | Rundenmodus (pro Zug) |
 |---|---|---|
@@ -118,8 +131,14 @@ Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, 
 | Zuwachs Burg | 0,8 | 6 |
 | Hof zusätzlich | 0,3 | 2,5 |
 | Abgeschnitten | −0,5 | −4 |
-| Befehle | so viele man schafft | 3 |
+| Befehle | so viele man schafft | 3, im allerersten Zug für den Beginner 1 |
+| Nachschub | jede Sekunde, ab 4 Truppen | am Zugende, ab 2 Truppen |
+| Sturm | ab 420 s, voll nach 120 s | ab Zug 40, voll nach 15 Zügen |
+| Zuggrenze | keine | 80 Züge, dann gewinnt niemand |
 | Frontbreite, Schaden, Deckung, Grenzen, Baupreise | wie heute | wie heute |
+
+Ein Zug zählt für die Uhr des Spiels 8 Sekunden. Davon hängen nur die Planung der Gegner (etwa „keine Burg
+angreifen vor …“) und die Zeitstempel ab.
 
 ### Sondereinheiten (Skizze, nicht im Probebau)
 
@@ -133,21 +152,18 @@ Runden machen sie einfacher zu verstehen und abzustimmen:
   - Fällt sein Feld, wird er gefangen.
 - **Drache:** verbrennt alle 6 Züge das stärkste Feld, mit einem Zug Vorwarnung. Das hilft gegen Stapeln.
 
-## 4 · Offene Fragen an dich
+## 4 · Entschieden (19.11.2026)
 
-Zu jeder Frage steht meine Empfehlung dabei.
+Du hast alle Empfehlungen so angenommen:
 
-1. **Nacheinander oder alle gleichzeitig ziehen?** Empfehlung: nacheinander. Das ist am klarsten: Man sieht genau,
-   was der Gegner getan hat.
-2. **Wie viele Befehle pro Zug?** Empfehlung: 3, im Probebau zum Vergleich auch 2 und 4 messen.
-3. **Kampf sofort zu Ende rechnen?** Empfehlung: ja. Belagerungen erst später, falls sie fehlen.
-4. **Verschieben beliebig weit und sofort?** Empfehlung: ja. Möglich wäre auch „kommt erst nächsten Zug an“; das
-   kostet aber Übersicht.
-5. **Bauen nur, wenn die Truppen schon da sind (kein Ansparen)?** Empfehlung: ja.
-6. **Rückgängig für den letzten Befehl?** Empfehlung: ja. Die Vorschau ist ohnehin genau, man gewinnt also nichts
-   durch Ausprobieren.
-7. **Wer beginnt?** Empfehlung: du. Gemessen wird, wie groß der Vorteil des ersten Zugs ist.
-8. **Echtzeit behalten?** Empfehlung: bis zur Entscheidung (Schritt 6) ja, unverändert.
+1. **Nacheinander ziehen**, nicht gleichzeitig.
+2. **3 Befehle pro Zug.** Zum Vergleich werden auch 2 und 4 gemessen.
+3. **Kampf sofort zu Ende rechnen.** Belagerungen über mehrere Züge erst später, falls sie fehlen.
+4. **Verschieben beliebig weit und sofort** durch eigenes Land.
+5. **Bauen nur, wenn die Truppen schon da sind**, kein Ansparen.
+6. **Rückgängig für den letzten Befehl** im eigenen Zug.
+7. **Du beginnst.** Gemessen wird, wie groß der Vorteil des ersten Zugs ist.
+8. **Echtzeit bleibt** bis zur Entscheidung (Schritt 6) unverändert.
 
 ## 5 · Vorgehen in Schritten
 
@@ -156,8 +172,8 @@ Zu jedem Schritt steht, wann er fertig ist. Den Aufwand habe ich geschätzt, nic
 | Schritt | Was | Fertig, wenn | Aufwand |
 |---|---|---|---|
 | 0 | Zweig `runden` und dieser Plan | Plan liegt vor | erledigt |
-| 1 | Regeln festlegen | du hast die offenen Fragen beantwortet, Entwurf 0.2 steht | 1 Sitzung |
-| 2 | Rundenkern ohne Grafik: Regeln, Gegner mit 3 Befehlen, Tests, Messwerkzeug „Computer gegen Computer“ | Partien auf dem Duell dauern 20 bis 35 Züge; wer beginnt, gewinnt höchstens 55 %; Leicht, Normal und Schwer sind klar verschieden | 2 bis 3 Sitzungen |
+| 1 | Regeln festlegen | du hast die offenen Fragen beantwortet, Entwurf 0.2 steht | erledigt |
+| 2 | Rundenkern ohne Grafik: Regeln, Gegner mit 3 Befehlen, Tests, Messwerkzeug „Computer gegen Computer“ | Partien auf dem Duell dauern 20 bis 35 Züge; wer beginnt, gewinnt höchstens 55 %; Leicht, Normal und Schwer sind klar verschieden | gebaut, Abnahme nur zum Teil erreicht (Abschnitt 10) |
 | 3 | Spielbar im Browser auf der Duell-Karte: Zugleiste, Befehle mit Vorschau, Rückgängig, Gegnerzüge im Zeitraffer, Liste der Ereignisse; PC und Handy | eine Partie läuft im Browser ohne Fehler durch, an beiden Bildschirmen geprüft | 2 bis 3 Sitzungen |
 | 4 | Testversion online, Link in der README | der Link öffnet die Testversion; das echte Spiel und dein Spielstand sind unverändert | 1 Sitzung |
 | 5 | Dein Spieltest | du hast die Fragen unten beantwortet | deine Zeit |
@@ -236,3 +252,78 @@ oder in Zügen gespielt wird.
 
 Missionen 1 bis 3, geführte Schritte, Troll und weitere Figuren, Sterne, neue Gebäude, Belagerungen über mehrere
 Züge, Mehrspieler.
+
+## 10 · Messung Schritt 2 (19.11.2026)
+
+**So gemessen:** `node tools/simulate-turns.mjs 60`, Karte Duell, 60 Zufallskarten je Stufe.
+- Computer gegen Computer: jede Karte zweimal, damit jedes Reich einmal beginnt (120 Partien).
+- Testspieler gegen Computer: Der Testspieler beginnt, wie du. „Anfänger“ greift von höchstens zwei Seiten an
+  und will viel Vorsprung. „Kluger“ umzingelt, rückt nach und baut.
+- Zur Gegenprobe ein zweiter Satz Karten (`--shift=1`). Die Werte stehen als „erste · zweite Messung“.
+
+### Mit den Regeln aus Abschnitt 3
+
+**Computer gegen Computer**
+
+| Stufe | entschieden | Ende in Zug (10 % / Mitte / 90 %) | davon im Sturm | wer beginnt, gewinnt |
+|---|---|---|---|---|
+| Leicht | 100 · 107 von 120 | 29/41/53 · 26/42/61 | 53 · 63 | 69 % · 66 % |
+| Normal | 104 · 98 von 120 | 24/36/53 · 24/35/55 | 40 · 41 | 57 % · 63 % |
+| Schwer | 93 · 84 von 120 | 30/42/70 · 29/41/61 | 54 · 44 | 59 % · 48 % |
+
+**Testspieler gegen Computer** (Siege von 60, in Klammern der mittlere Zug des Siegs)
+
+| Stufe | Anfänger | Kluger |
+|---|---|---|
+| Leicht | 56 · 55 (26 · 24) | 59 · 59 (24 · 21) |
+| Normal | 42 · 41 (37 · 44) | 38 · 48 (25 · 23) |
+| Schwer | 6 · 11 (60 · 47) | 22 · 24 (47 · 42) |
+
+**Wofür die Computer ihre Befehle nutzen** (je Zug): Angriff 1,7 bis 2,7, Bauen 0,1 bis 0,2, Verschieben nie.
+
+### Der Weg dorthin (Normal, erste Messung)
+
+| Regel | entschieden | Ende Mitte | wer beginnt, gewinnt |
+|---|---|---|---|
+| Entwurf 0.1: Nachschub am Zuganfang (nur 15 Karten, 30 Partien) | 5 von 30 | Zug 60 | 60 % |
+| Nachschub am Zugende | 106 von 120 | Zug 35 | 68 % |
+| dazu 2 Befehle im ersten Zug | 100 von 120 | Zug 39 | 71 % |
+| dazu 1 Befehl im ersten Zug (gewählt) | 104 von 120 | Zug 36 | 57 % |
+| ohne Ausgleich, Sturm schon ab Zug 28 | 106 von 120 | Zug 33 | 69 % |
+| ohne Ausgleich, Normal rückt nach wie Schwer | 76 von 120 | Zug 43 | 58 % |
+
+### 2, 3 oder 4 Befehle (Normal, mit 1 Befehl im ersten Zug)
+
+| Befehle | entschieden | Ende Mitte | wer beginnt, gewinnt | Anfänger / Kluger siegen |
+|---|---|---|---|---|
+| 2 | 57 von 120 | Zug 53 | 49 % | 15 / 32 von 60 |
+| 3 | 104 von 120 | Zug 36 | 57 % | 42 / 38 von 60 |
+| 4 | 110 von 120 | Zug 24 | 77 % | 55 / 59 von 60 |
+
+### Abnahme von Schritt 2
+
+- **Stufen klar verschieden: erreicht.** Der Anfänger gewinnt gegen Leicht fast immer, gegen Normal etwa 2 von 3,
+  gegen Schwer selten.
+- **Dauer 20 bis 35 Züge: zum Teil.**
+  - Gegen Leicht und Normal liegen die Siege der Testspieler meist bei Zug 21 bis 44.
+  - Gleich starke Computer brauchen in der Mitte 35 bis 42 Züge, viele Partien entscheidet erst der Sturm.
+- **Wer beginnt, höchstens 55 %: nicht erreicht.** Mit 1 Befehl im ersten Zug sind es bei Normal 57 bis 63 %.
+  Weil du immer beginnst, hilft dir dieser Vorteil. Die Stufen sind mit ihm gemessen.
+
+### Was dabei aufgefallen ist (gemessen oder gerechnet)
+
+- **Gleich Starke verkeilen sich.** Haben beide gleich viele Befehle und planen gleich, pendelt die Front. Ungleiche
+  Partien sind kurz.
+- **Eingeschlossene Burgen.** In einer langen Partie hatte ein Reich ab Zug 20 alle 44 Felder voll (900 Truppen).
+  Es kam trotzdem 30 Züge lang nicht an die Burg heran: Jedes Randfeld berührte die Front nur von einer Seite.
+  Deshalb gibt es beim Angriff das Nachrücken.
+- **Die Computer verschieben nie,** sie greifen nur an und bauen.
+- **Gebaut wird selten.** Der Nachschub leert das Hinterland jeden Zug. Ein Hof (Preis 8, also 9 Truppen auf dem
+  Feld) passt deshalb fast nur auf die Felder um die Burg, die 10 behalten. Ob „kein Ansparen“ richtig ist, zeigt
+  dein Spieltest.
+
+### Vermutet, nicht gemessen
+
+- Ein Mensch spielt anders als die Testspieler. Wie lang deine Partien werden, zeigt erst Schritt 5.
+- Ein Ausgleich für den Zweiten (etwa ein paar Truppen mehr zum Start) könnte den Vorteil des Beginners weiter
+  drücken. Das lohnt sich erst, wenn Gegner gegen Gegner wichtig wird, etwa mit drei Reichen.
