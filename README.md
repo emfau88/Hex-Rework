@@ -9,6 +9,8 @@ Läuft am PC und am Handy direkt im Browser, ohne Installation. Stand 0.8.2 vom 
 Echtzeit-Strategie auf einer plastischen Hex-Insel. Nachfolger von HEXFRONT mit neuen Regeln: Stapeln reicht
 nicht mehr, es zählt die Form der Front.
 
+- **Zweig `runden`:** Probe für einen Rundenmodus (Zug um Zug statt Echtzeit). Plan und Regelentwurf:
+  [docs/RUNDEN-PLAN.md](docs/RUNDEN-PLAN.md)
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
