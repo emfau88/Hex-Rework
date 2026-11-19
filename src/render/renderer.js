@@ -14,6 +14,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
 const MAX_ZOOM = 2.6;
+const INSTANCE = 12; // floats per figure: position and turn, colour and size, tilt and kingdom
 const HEX = Math.PI / 6;
 
 const VS_PLACE = `#version 300 es
@@ -24,6 +25,7 @@ layout(location=2) in vec4 aColor;
 layout(location=3) in vec2 aTile;
 layout(location=4) in vec4 iPos;
 layout(location=5) in vec4 iCol;
+layout(location=6) in vec4 iExt; // x: tilt backwards, y: kingdom (palette index)
 uniform sampler2D uTiles;
 uniform float uInst;
 vec3 place(out vec3 n, out vec3 c, out float glow) {
@@ -32,6 +34,12 @@ vec3 place(out vec3 n, out vec3 c, out float glow) {
   c = aColor.rgb;
   glow = 0.0;
   if (uInst > 0.5) {
+    // Parts that belong to one kingdom only (its helmet) vanish on the figures of the others.
+    if (aTile.x > -0.5 && abs(aTile.x - iExt.y) > 0.5) p = vec3(0.0);
+    // A figure that is struck down tips over around its feet.
+    float ct = cos(iExt.x), st = sin(iExt.x);
+    p = vec3(p.x, p.y * ct - p.z * st, p.y * st + p.z * ct);
+    n = vec3(n.x, n.y * ct - n.z * st, n.y * st + n.z * ct);
     float cs = cos(iPos.w), sn = sin(iPos.w);
     p *= iCol.a;
     p = vec3(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs) + iPos.xyz;
@@ -83,6 +91,11 @@ uniform float uTexel;
 uniform float uTime;
 out vec4 outColor;
 void main() {
+  if (uGlowPass > 1.5) {
+    // Contact shadows are drawn with multiply blending: the colour is the factor.
+    outColor = vec4(vColor, 1.0);
+    return;
+  }
   if (uGlowPass > 0.5) {
     outColor = vec4(pow(max(vColor, vec3(0.0)), vec3(1.0 / 2.2)), 0.16);
     return;
@@ -155,9 +168,33 @@ const KEEP_FRONT = [[], [[0, 0.66]], [[-0.2, 0.62], [0.2, 0.62]], [[-0.34, 0.56]
 // Garrison at which the n-th figure appears (see figures). The newest figure is small at first and
 // grows with the next few troops, so a garrison visibly dwindles in battle instead of jumping.
 const FIGURE_AT = [0, 1, 5, 10, 18, 28, 40];
-function figureScale(units, index) {
-  return 0.62 + 0.38 * clamp((units - FIGURE_AT[index + 1]) / 3, 0, 1);
+function figureStrength(units, index) {
+  return clamp((units - FIGURE_AT[index + 1]) / 3, 0, 1);
 }
+const CROP_GREEN = lin('#6fae4a');
+const CROP_GOLD = lin('#e4c24c');
+const CROP_DRY = lin('#8a8468');
+const SMOKE = lin('#cfd6d4');
+const WHITE = [1, 1, 1];
+
+/** Soft dark spot on the ground (for the multiply pass): darkest in the middle, gone at the rim. */
+function shadeDisc(mesh, x, y, z, r, dark) {
+  const c = [dark, dark, dark];
+  const mid = [x, y, z];
+  let px = x + r;
+  let pz = z;
+  for (let i = 1; i <= 6; i++) {
+    const a = (i * Math.PI) / 3;
+    const qx = x + Math.cos(a) * r;
+    const qz = z + Math.sin(a) * r;
+    mesh.vertex(mid, UP, c, 0, 0);
+    mesh.vertex([px, y, pz], UP, WHITE, 0, 0);
+    mesh.vertex([qx, y, qz], UP, WHITE, 0, 0);
+    px = qx;
+    pz = qz;
+  }
+}
+const UP = [0, 1, 0];
 const smooth = (f) => f * f * (3 - 2 * f);
 const DUST = lin('#b9ac8c');
 const ARROW = lin('#efe6c8');
@@ -194,6 +231,9 @@ export class DioramaRenderer {
     this.staticVao = this._vao(this.staticBuffer);
     this.dynamicVao = this._vao(this.dynamicBuffer);
     this.glowVao = this._vao(this.glowBuffer);
+    this.shadeBuffer = gl.createBuffer();
+    this.shadeVao = this._vao(this.shadeBuffer);
+    this.shadeCount = 0;
     this.soldierVao = this._vao(this.soldierBuffer, this.instanceBuffer);
     this.staticCount = 0;
     this.dynamicCount = 0;
@@ -204,7 +244,7 @@ export class DioramaRenderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.soldierBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(man.a), gl.STATIC_DRAW);
     this.soldierCount = man.count;
-    this.instances = new Float32Array(MAX_SOLDIERS * 8);
+    this.instances = new Float32Array(MAX_SOLDIERS * INSTANCE);
     this.instanceCount = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.instances.byteLength, gl.DYNAMIC_DRAW);
@@ -253,11 +293,15 @@ export class DioramaRenderer {
     if (instanceBuffer) {
       gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
       gl.enableVertexAttribArray(4);
-      gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 32, 0);
+      const each = INSTANCE * 4;
+      gl.vertexAttribPointer(4, 4, gl.FLOAT, false, each, 0);
       gl.vertexAttribDivisor(4, 1);
       gl.enableVertexAttribArray(5);
-      gl.vertexAttribPointer(5, 4, gl.FLOAT, false, 32, 16);
+      gl.vertexAttribPointer(5, 4, gl.FLOAT, false, each, 16);
       gl.vertexAttribDivisor(5, 1);
+      gl.enableVertexAttribArray(6);
+      gl.vertexAttribPointer(6, 4, gl.FLOAT, false, each, 32);
+      gl.vertexAttribDivisor(6, 1);
     }
     gl.bindVertexArray(null);
     return vao;
@@ -620,6 +664,8 @@ export class DioramaRenderer {
   _buildDynamic(game, time, ui, bt) {
     const m = new Mesh();
     const g = new Mesh();
+    // Contact shadows under buildings and figures, so nothing seems to float above the ground.
+    const shade = (this.shade = new Mesh());
     const tiles = game.tiles;
     const HEX0 = this.hex0;
 
@@ -641,6 +687,28 @@ export class DioramaRenderer {
           const B = [t.x + Math.cos(a1) * 0.948, by + 0.024, t.z + Math.sin(a1) * 0.948];
           m.beam(A, B, 0.04, line, 1.3);
           g.beam([A[0], by + 0.03, A[2]], [B[0], by + 0.03, B[2]], 0.2, a.cur, 0);
+        }
+      }
+
+      if (t.castle >= 0 || t.ruin) shadeDisc(shade, t.x, y + 0.006, t.z, 0.8, 0.66);
+      else if (t.terrain === 'citadel') shadeDisc(shade, t.x, y + 0.006, t.z, 0.62, 0.66);
+      else if (t.building === 'tower') shadeDisc(shade, t.x + models.BUILD_AT.tower[0], y + 0.006, t.z + models.BUILD_AT.tower[1], 0.42, 0.6);
+      else if (t.building === 'farm') {
+        const fx = t.x + models.BUILD_AT.farm[0];
+        const fz = t.z + models.BUILD_AT.farm[1];
+        shadeDisc(shade, fx, y + 0.006, fz, 0.36, 0.64);
+        // The farm's crop shows how full its field is: it grows from green shoots to ripe gold as
+        // the garrison fills up, and stands dry while the field is cut off. Smoke rises while the
+        // farm is supplied.
+        const full = clamp(t.units / game.cap(t), 0, 1);
+        const crop = t.supplied ? blend3(CROP_GREEN, CROP_GOLD, full) : CROP_DRY;
+        for (let i = 0; i < 3; i++) m.box(t.x - 0.36 + i * 0.13, y + 0.022, t.z - 0.32, 0.075, 0.015 + 0.1 * full, 0.38, scale3(crop, i % 2 ? 0.92 : 1.05));
+        if (t.supplied) {
+          for (let i = 0; i < 3; i++) {
+            const k = (bt * 0.3 + i / 3 + t.id * 0.17) % 1;
+            const r = 0.028 + k * 0.045;
+            m.cyl(fx + 0.08 + k * 0.1, y + 0.33 + k * 0.42, fz - 0.02, r, r * 0.7, 0.05, 6, scale3(SMOKE, 1 - k * 0.25), 0.1);
+          }
         }
       }
 
@@ -778,12 +846,15 @@ export class DioramaRenderer {
   _buildSoldiers(game, time) {
     const d = this.instances;
     let n = 0;
-    const put = (x, y, z, rot, c, s) => {
+    const shade = this.shade;
+    const put = (x, y, z, rot, c, s, kingdom, tilt = 0) => {
       if (n >= MAX_SOLDIERS) return;
-      const o = n * 8;
+      const o = n * INSTANCE;
       d[o] = x; d[o + 1] = y; d[o + 2] = z; d[o + 3] = rot;
       d[o + 4] = c[0]; d[o + 5] = c[1]; d[o + 6] = c[2]; d[o + 7] = s;
+      d[o + 8] = tilt; d[o + 9] = kingdom; d[o + 10] = 0; d[o + 11] = 0;
       n++;
+      shadeDisc(shade, x, y + 0.004, z, 0.13 * s, 0.6);
     };
 
     for (const t of game.tiles) {
@@ -793,12 +864,17 @@ export class DioramaRenderer {
       const keep = t.castle >= 0 || t.ruin || t.terrain === 'citadel';
       const count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
       const spots = keep ? KEEP_FRONT[count] : FORMATION[count];
-      const c = scale3(PALETTE[game.factions[t.owner].color], 1.1);
+      const kingdom = game.factions[t.owner].color;
+      const c = scale3(PALETTE[kingdom], 1.1);
       const y = t.height + a.lift + 0.012;
       const foes = t.pools.length ? t.pools.filter((p) => p.owner !== t.owner) : null;
       for (let i = 0; i < spots.length; i++) {
         const wobble = hash(t.id * 5 + i);
-        const size = i === spots.length - 1 ? figureScale(t.units, i) : 1;
+        // The newest figure of a garrison: at peace it grows in, in battle it is the one that falls.
+        const strength = i === spots.length - 1 ? figureStrength(t.units, i) : 1;
+        const fighting = Boolean(foes && foes.length);
+        const size = fighting ? 1 : 0.62 + 0.38 * strength;
+        const tilt = fighting ? -(1 - strength) * 1.4 : 0;
         let x = t.x + spots[i][0];
         let z = t.z + spots[i][1];
         let rot = (wobble - 0.5) * 0.7;
@@ -818,7 +894,7 @@ export class DioramaRenderer {
           // Defenders of a higher field step down onto its bank as they strike.
           hop = (Math.abs(Math.sin(time * 14 + i * 1.7 + p.from)) * 0.03 - models.bankDrop(t, game.tiles[p.from], 0.646 + strike)) * k;
         }
-        put(x, y + hop, z, rot, c, size);
+        put(x, y + hop, z, rot, c, size, kingdom, tilt);
       }
     }
 
@@ -828,17 +904,19 @@ export class DioramaRenderer {
         const pos = this.poolPosition(game, t, p);
         const S = game.tiles[p.from];
         const ground = S.height + this.anim[S.id].lift;
-        const c = scale3(PALETTE[game.factions[p.owner].color], 1.15);
+        const kingdom = game.factions[p.owner].color;
+        const c = scale3(PALETTE[kingdom], 1.15);
         const count = Math.max(1, Math.min(4, Math.ceil(p.units / 6)));
         for (let i = 0; i < count; i++) {
           const lane = (i - (count - 1) / 2) * 0.2;
           const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
-          // The last figure of a pool shrinks as the pool is worn down.
-          const size = i === count - 1 ? 1.08 * clamp(0.55 + (p.units - (count - 1) * 6) / 6, 0.55, 1) : 1.08;
+          // The last figure of a pool goes down as the last of its troops fall.
+          const share = i === count - 1 ? clamp((p.units - (count - 1) * 6) / 6, 0, 1) : 1;
+          const tilt = -clamp(1 - share * 2.5, 0, 1) * 1.4;
           // Attackers who come down from a higher field stand on its bank.
           const y = ground - models.bankDrop(S, t, 0.666 + push);
-          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, size);
+          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, 1.08, kingdom, tilt);
         }
       }
     }
@@ -846,7 +924,8 @@ export class DioramaRenderer {
     for (const army of game.armies) {
       if (army.done) continue;
       const pos = this.armyPosition(game, army);
-      const c = scale3(PALETTE[game.factions[army.owner].color], 1.15);
+      const kingdom = game.factions[army.owner].color;
+      const c = scale3(PALETTE[kingdom], 1.15);
       const count = Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
       const fx = Math.sin(pos.angle);
       const fz = Math.cos(pos.angle);
@@ -855,14 +934,17 @@ export class DioramaRenderer {
         const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * 0.14;
         const back = row * 0.24;
         const bob = Math.abs(Math.sin(time * 11 + i * 1.7 + army.id)) * 0.04;
-        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, 1.12);
+        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, 1.12, kingdom);
       }
     }
 
     this.instanceCount = n;
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * 8));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * INSTANCE));
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.shadeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(shade.a), gl.DYNAMIC_DRAW);
+    this.shadeCount = shade.count;
   }
 
   _draw(program, shadowPass) {
@@ -944,10 +1026,17 @@ export class DioramaRenderer {
     gl.uniform1f(u.uGlowPass, 0);
     this._draw(this.main, false);
 
-    // Soft additive halo for borders, rings and the citadel.
+    // Contact shadows: darken the ground under buildings and figures.
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.depthMask(false);
+    gl.blendFunc(gl.DST_COLOR, gl.ZERO);
+    gl.uniform1f(u.uGlowPass, 2);
+    gl.uniform1f(u.uInst, 0);
+    gl.bindVertexArray(this.shadeVao);
+    gl.drawArrays(gl.TRIANGLES, 0, this.shadeCount);
+
+    // Soft additive halo for borders, rings and the citadel.
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.uniform1f(u.uGlowPass, 1);
     gl.uniform1f(u.uInst, 0);
     gl.bindVertexArray(this.glowVao);

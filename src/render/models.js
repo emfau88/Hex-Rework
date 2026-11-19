@@ -263,6 +263,10 @@ export function tower(m, t) {
     m.box(x + Math.cos(a) * 0.205, y + 0.715, z + Math.sin(a) * 0.205, 0.075, 0.075, 0.075, STONE, -a);
   }
   m.cyl(x, y + 0.715, z, 0.17, 0, 0.3, 8, BLACK, 0.12, 0, true, 0.82);
+  // Pennant in the colour of the kingdom that holds the tower.
+  m.box(x, y + 0.98, z, 0.014, 0.27, 0.014, WOOD);
+  m.box(x + 0.09, y + 1.135, z, 0.17, 0.105, 0.012, BLACK, 0, 0.55, 1.1); // bright, so it stands out against its own land
+  m.box(x + 0.09, y + 1.24, z, 0.17, 0.014, 0.014, STONE);
   m.box(x, y + 0.09, z + 0.2, 0.09, 0.18, 0.02, DOOR);
   m.box(x, y + 0.42, z + 0.2, 0.035, 0.1, 0.012, DARK);
   m.box(x + 0.2, y + 0.42, z, 0.012, 0.1, 0.035, DARK);
@@ -416,10 +420,27 @@ export function soldier(m) {
   m.box(0, 0.15, 0, 0.17, 0.2, 0.1, [0.004, 0.004, 0.004], 0, 0, 0.5);
   m.box(0, 0.35, 0, 0.1, 0.09, 0.09, lin('#e3b792'));
   m.box(0, 0.425, 0, 0.125, 0.05, 0.115, steel);
-  m.box(0, 0.475, 0, 0.05, 0.03, 0.05, steel);
   m.box(-0.07, 0.13, 0.075, 0.14, 0.19, 0.03, BLACK, 0, 0.22, 1.15);
   m.box(-0.07, 0.2, 0.092, 0.04, 0.05, 0.012, steel);
   m.box(0.115, 0.02, 0.03, 0.022, 0.62, 0.022, WOOD);
   m.cyl(0.115, 0.64, 0.03, 0.032, 0, 0.09, 4, steel);
+
+  // Every kingdom wears its own helmet, so its troops are told apart by their outline and not
+  // by colour alone. Parts tagged with a kingdom (m.tile = palette index) are only drawn on its
+  // figures; see the instancing in the renderer.
+  m.tile = 0; // AZUR: a crest from front to back, in the kingdom's colour
+  m.box(0, 0.47, 0, 0.032, 0.075, 0.14, BLACK, 0, 0.2, 1.15);
+  m.tile = 1; // EMBER: two horns
+  for (const side of [-1, 1]) {
+    m.box(side * 0.078, 0.44, 0, 0.034, 0.05, 0.034, lin('#e9dfc6'));
+    m.box(side * 0.098, 0.485, 0, 0.026, 0.06, 0.026, lin('#e9dfc6'));
+  }
+  m.box(0, 0.475, 0, 0.05, 0.03, 0.05, steel);
+  m.tile = 2; // JADE: a tall pointed helmet
+  m.cyl(0, 0.47, 0, 0.066, 0, 0.15, 6, steel);
+  m.tile = 3; // SOLAR: a wide-brimmed kettle hat
+  m.cyl(0, 0.452, 0, 0.14, 0.14, 0.018, 8, steel);
+  m.cyl(0, 0.47, 0, 0.07, 0.035, 0.05, 8, steel);
+  m.tile = -1;
 }
 
