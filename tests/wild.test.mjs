@@ -202,9 +202,13 @@ test('the figure showcase: troops are set by hand, nobody plays, and it never en
   // A field far from the castle keeps what was set: cut-off fields do not wither here.
   const far = game.tiles.filter((t) => t.passable && t.owner < 0 && t.castle < 0).at(-1);
   game.place(0, far.id, 15);
-  run(game, 60);
+  let rival = 0;
+  for (let i = 0; i < 600; i++) {
+    game.step(0.1);
+    for (const e of game.drainEvents()) if (e.type === 'send' && e.owner === 1) rival++;
+  }
   assert.equal(far.units, 15);
-  assert.equal(game.armies.length, 0, 'the rival does not play');
+  assert.equal(rival, 0, 'the rival does not play');
   game._finish(0, 'castle');
   assert.equal(game.phase, 'running');
 

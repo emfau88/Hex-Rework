@@ -13,6 +13,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
+const MAX_BEASTS = 200; // monster figures (trolls)
 const MAX_ZOOM = 2.6;
 const INSTANCE = 12; // floats per figure: position and turn, colour and size, tilt and kingdom
 const HEX = Math.PI / 6;
@@ -168,9 +169,32 @@ const KEEP_FRONT = [[], [[0, 0.66]], [[-0.2, 0.62], [0.2, 0.62]], [[-0.34, 0.56]
 // Garrison at which the n-th figure appears (see figures). The newest figure is small at first and
 // grows with the next few troops, so a garrison visibly dwindles in battle instead of jumping.
 const FIGURE_AT = [0, 1, 5, 10, 18, 28, 40];
-function figureStrength(units, index) {
-  return clamp((units - FIGURE_AT[index + 1]) / 3, 0, 1);
+function figureStrength(units, index, at = FIGURE_AT) {
+  return clamp((units - at[index + 1]) / 3, 0, 1);
 }
+// Trolls are big: fewer of them stand for a garrison, a little further apart, and in front of their cave.
+const TROLL_AT = [0, 1, 8, 18, 30];
+function trolls(units) {
+  return units < 1 ? 0 : units < 8 ? 1 : units < 18 ? 2 : units < 30 ? 3 : 4;
+}
+const TROLL_SIZE = 1;
+const TROLL_FORMATION = [
+  [],
+  [[-0.05, 0.2]],
+  [[-0.26, 0.16], [0.2, 0.28]],
+  [[-0.4, 0.06], [-0.04, 0.34], [0.34, 0.04]],
+  [[-0.46, 0.02], [-0.16, 0.36], [0.2, 0.34], [0.44, -0.06]],
+];
+// Before a cave at most three, on the left; the fire burns on the right of its mouth.
+const TROLL_FRONT = [
+  [],
+  [[-0.28, 0.48]],
+  [[-0.44, 0.34], [-0.04, 0.62]],
+  [[-0.52, 0.24], [-0.2, 0.6], [0.16, 0.72]],
+];
+const CAVE_FIRE = [0.4, 0.2];
+const FIRE = ['#ffb347', '#ff7a2e', '#ffe08a'].map(lin);
+const WOOD_DARK = lin('#4a3424');
 const CROP_GREEN = lin('#6fae4a');
 const CROP_GOLD = lin('#e4c24c');
 const CROP_DRY = lin('#8a8468');
@@ -196,6 +220,8 @@ function shadeDisc(mesh, x, y, z, r, dark) {
 }
 const UP = [0, 1, 0];
 const smooth = (f) => f * f * (3 - 2 * f);
+/** The same angle between −π and π, so that a turn goes the short way round. */
+const wrapAngle = (a) => a - TAU * Math.round(a / TAU);
 const DUST = lin('#b9ac8c');
 const ARROW = lin('#efe6c8');
 
@@ -248,6 +274,20 @@ export class DioramaRenderer {
     this.instanceCount = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.instances.byteLength, gl.DYNAMIC_DRAW);
+
+    // Monsters have figures of their own, drawn the same way from a second set of buffers.
+    this.trollBuffer = gl.createBuffer();
+    this.trollInstanceBuffer = gl.createBuffer();
+    this.trollVao = this._vao(this.trollBuffer, this.trollInstanceBuffer);
+    const troll = new Mesh();
+    models.troll(troll);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.trollBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(troll.a), gl.STATIC_DRAW);
+    this.trollCount = troll.count;
+    this.trollInstances = new Float32Array(MAX_BEASTS * INSTANCE);
+    this.trollInstanceCount = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.trollInstanceBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.trollInstances.byteLength, gl.DYNAMIC_DRAW);
 
     // Shadow map with hardware comparison (free 2×2 filtering per tap).
     const lowEnd = (navigator.hardwareConcurrency || 8) <= 4;
@@ -368,7 +408,8 @@ export class DioramaRenderer {
         if (t.building === 'tower') models.tower(m, t);
         else if (t.building === 'farm') models.farm(m, t);
         else if (t.order) models.scaffold(m, t, t.order);
-        models.scenery(m, t, game.seed, game.tiles, rot);
+        if (t.cave) models.cave(m, t);
+        else models.scenery(m, t, game.seed, game.tiles, rot);
       }
     }
     const gl = this.gl;
@@ -747,6 +788,32 @@ export class DioramaRenderer {
       if (t.terrain === 'citadel') {
         g.ring(t.x, y + 1.32 + Math.sin(time * 1.1) * 0.09, t.z, 0.23 + 0.03 * Math.sin(time * 2), 0.03, a.owner >= 0 ? a.cur : lin('#f2c966'), 0, 18);
       }
+
+      if (t.cave) shadeDisc(shade, t.x, y + 0.006, t.z - 0.36, 0.62, 0.62);
+      if (t.lair) {
+        // Fire before the cave as long as monsters live in it: two logs and flickering flames.
+        const fx = t.x + CAVE_FIRE[0];
+        const fz = t.z + CAVE_FIRE[1];
+        m.box(fx, y, fz, 0.2, 0.035, 0.045, WOOD_DARK, 0.6);
+        m.box(fx, y, fz, 0.2, 0.035, 0.045, WOOD_DARK, -0.6);
+        for (let i = 0; i < 3; i++) {
+          const flick = 0.7 + 0.3 * Math.sin(bt * (9 + i * 3) + i * 2 + t.id);
+          const ox = (i - 1) * 0.045;
+          m.cyl(fx + ox, y + 0.02, fz + (i === 1 ? 0.02 : 0), 0.05 - i * 0.008, 0, (0.13 + (i === 1 ? 0.06 : 0)) * flick, 5, FIRE[i], 1.6, bt * 2 + i);
+        }
+        g.ring(fx, y + 0.03, fz, 0.16 + 0.02 * Math.sin(bt * 11 + t.id), 0.1, FIRE[1], 0, 14);
+
+        // The marked target of the coming raid: a pulsing ring in the colour of the monsters.
+        const lair = t.lair;
+        if (lair.marked && lair.target >= 0) {
+          const T = tiles[lair.target];
+          const ty = T.height + this.anim[T.id].lift;
+          const pulse = 0.5 + 0.5 * Math.sin(bt * 6);
+          const c = PALETTE[game.factions[t.owner].color];
+          g.ring(T.x, ty + 0.05, T.z, 0.74, 0.08 + 0.05 * pulse, c, 0, 18);
+          m.ring(T.x, ty + 0.05, T.z, 0.8, 0.03, scale3(c, 1.4), 0.9 + pulse * 0.6, 24);
+        }
+      }
     }
 
     // Selection outline.
@@ -846,56 +913,77 @@ export class DioramaRenderer {
 
   _buildSoldiers(game, time) {
     const d = this.instances;
+    const td = this.trollInstances;
     let n = 0;
+    let tn = 0;
     const shade = this.shade;
-    const put = (x, y, z, rot, c, s, kingdom, tilt = 0) => {
-      if (n >= MAX_SOLDIERS) return;
-      const o = n * INSTANCE;
-      d[o] = x; d[o + 1] = y; d[o + 2] = z; d[o + 3] = rot;
-      d[o + 4] = c[0]; d[o + 5] = c[1]; d[o + 6] = c[2]; d[o + 7] = s;
-      d[o + 8] = tilt; d[o + 9] = kingdom; d[o + 10] = 0; d[o + 11] = 0;
-      n++;
-      shadeDisc(shade, x, y + 0.004, z, 0.13 * s, 0.6);
+    // `beast`: the figure is a monster of that kind (a troll) instead of a soldier.
+    const put = (x, y, z, rot, c, s, kingdom, tilt = 0, beast = null) => {
+      let o;
+      if (beast) {
+        if (tn >= MAX_BEASTS) return;
+        o = tn++ * INSTANCE;
+      } else {
+        if (n >= MAX_SOLDIERS) return;
+        o = n++ * INSTANCE;
+      }
+      const a = beast ? td : d;
+      a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = rot;
+      a[o + 4] = c[0]; a[o + 5] = c[1]; a[o + 6] = c[2]; a[o + 7] = s;
+      a[o + 8] = tilt; a[o + 9] = kingdom; a[o + 10] = 0; a[o + 11] = 0;
+      shadeDisc(shade, x, y + 0.004, z, (beast ? 0.19 : 0.13) * s, 0.6);
     };
 
     for (const t of game.tiles) {
       if (t.owner < 0 || !t.passable) continue;
       const a = this.anim[t.id];
       if (a.owner !== t.owner) continue; // still flooding
-      const keep = t.castle >= 0 || t.ruin || t.terrain === 'citadel';
-      const count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
-      const spots = keep ? KEEP_FRONT[count] : FORMATION[count];
+      const beast = t.beast;
+      const keep = t.castle >= 0 || t.ruin || t.terrain === 'citadel' || t.cave;
+      let count, spots;
+      if (beast) {
+        count = keep ? Math.min(3, trolls(t.units)) : trolls(t.units);
+        spots = keep ? TROLL_FRONT[count] : TROLL_FORMATION[count];
+      } else {
+        count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
+        spots = keep ? KEEP_FRONT[count] : FORMATION[count];
+      }
+      const scale = beast ? TROLL_SIZE : 1;
       const kingdom = game.factions[t.owner].color;
       const c = scale3(PALETTE[kingdom], 1.1);
       const y = t.height + a.lift + 0.012;
       const foes = t.pools.length ? t.pools.filter((p) => p.owner !== t.owner) : null;
+      const fighting = Boolean(foes && foes.length);
       for (let i = 0; i < spots.length; i++) {
         const wobble = hash(t.id * 5 + i);
         // The newest figure of a garrison: at peace it grows in, in battle it is the one that falls.
-        const strength = i === spots.length - 1 ? figureStrength(t.units, i) : 1;
-        const fighting = Boolean(foes && foes.length);
-        const size = fighting ? 1 : 0.62 + 0.38 * strength;
-        const tilt = fighting ? -(1 - strength) * 1.4 : 0;
+        const strength = i === spots.length - 1 ? figureStrength(t.units, i, beast ? TROLL_AT : FIGURE_AT) : 1;
+        let size = (fighting ? 1 : 0.62 + 0.38 * strength) * scale;
+        let tilt = 0;
         let x = t.x + spots[i][0];
         let z = t.z + spots[i][1];
         let rot = (wobble - 0.5) * 0.7;
         let hop = 0;
-        if (foes && foes.length) {
+        if (fighting) {
           // Under attack the garrison leaves its ranks: every figure goes to one of the edges the
           // attackers stand at, faces them and strikes out of step with them.
           const p = foes[i % foes.length];
           const pos = this.poolPosition(game, t, p);
           const mates = Math.ceil((spots.length - (i % foes.length)) / foes.length);
-          const lane = (Math.floor(i / foes.length) - (mates - 1) / 2) * 0.21;
+          const lane = (Math.floor(i / foes.length) - (mates - 1) / 2) * (beast ? 0.3 : 0.21);
           const strike = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from + 1.57)) * 0.08;
           const k = smooth(clamp((time - p.since) / 0.45, 0, 1));
           x = mix(x, pos.x + pos.dx * (0.42 - strike) - pos.dz * lane, k);
           z = mix(z, pos.z + pos.dz * (0.42 - strike) + pos.dx * lane, k);
-          rot = mix(rot, pos.angle + Math.PI, k);
+          // Turn the short way round towards the attackers.
+          rot += wrapAngle(pos.angle + Math.PI - rot) * k;
+          // Only once it stands at the edge does the newest figure start to fall.
+          tilt = -(1 - strength) * 1.4 * k;
+          size = mix((0.62 + 0.38 * strength) * scale, scale, k);
           // Defenders of a higher field step down onto its bank as they strike.
           hop = (Math.abs(Math.sin(time * 14 + i * 1.7 + p.from)) * 0.03 - models.bankDrop(t, game.tiles[p.from], 0.646 + strike)) * k;
         }
-        put(x, y + hop, z, rot, c, size, kingdom, tilt);
+        put(x, y + hop, z, rot, c, size, kingdom, tilt, beast);
       }
     }
 
@@ -907,17 +995,19 @@ export class DioramaRenderer {
         const ground = S.height + this.anim[S.id].lift;
         const kingdom = game.factions[p.owner].color;
         const c = scale3(PALETTE[kingdom], 1.15);
-        const count = Math.max(1, Math.min(4, Math.ceil(p.units / 6)));
+        // A troll stands for twice as many troops as a soldier at the edge.
+        const per = p.beast ? 12 : 6;
+        const count = Math.max(1, Math.min(p.beast ? 3 : 4, Math.ceil(p.units / per)));
         for (let i = 0; i < count; i++) {
-          const lane = (i - (count - 1) / 2) * 0.2;
+          const lane = (i - (count - 1) / 2) * (p.beast ? 0.3 : 0.2);
           const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
           // The last figure of a pool goes down as the last of its troops fall.
-          const share = i === count - 1 ? clamp((p.units - (count - 1) * 6) / 6, 0, 1) : 1;
+          const share = i === count - 1 ? clamp((p.units - (count - 1) * per) / per, 0, 1) : 1;
           const tilt = -clamp(1 - share * 2.5, 0, 1) * 1.4;
           // Attackers who come down from a higher field stand on its bank.
           const y = ground - models.bankDrop(S, t, 0.666 + push);
-          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, 1.08, kingdom, tilt);
+          put(pos.x - pos.dz * lane + pos.dx * push, y + 0.02 + bob, pos.z + pos.dx * lane + pos.dz * push, pos.angle, c, p.beast ? TROLL_SIZE : 1.08, kingdom, tilt, p.beast);
         }
       }
     }
@@ -927,20 +1017,24 @@ export class DioramaRenderer {
       const pos = this.armyPosition(game, army);
       const kingdom = game.factions[army.owner].color;
       const c = scale3(PALETTE[kingdom], 1.15);
-      const count = Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
+      const beast = army.beast || null;
+      const count = beast ? Math.max(1, Math.min(3, Math.ceil(army.units / 4))) : Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
       const fx = Math.sin(pos.angle);
       const fz = Math.cos(pos.angle);
       for (let i = 0; i < count; i++) {
         const row = Math.floor(i / 2);
-        const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * 0.14;
-        const back = row * 0.24;
-        const bob = Math.abs(Math.sin(time * 11 + i * 1.7 + army.id)) * 0.04;
-        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, 1.12, kingdom);
+        const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * (beast ? 0.2 : 0.14);
+        const back = row * (beast ? 0.32 : 0.24);
+        const bob = Math.abs(Math.sin(time * (beast ? 7 : 11) + i * 1.7 + army.id)) * 0.04;
+        put(pos.x - fx * back + fz * lane, pos.y + 0.02 + bob, pos.z - fz * back - fx * lane, pos.angle, c, beast ? TROLL_SIZE : 1.12, kingdom, 0, beast);
       }
     }
 
     this.instanceCount = n;
+    this.trollInstanceCount = tn;
     const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.trollInstanceBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, td.subarray(0, tn * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shadeBuffer);
@@ -962,6 +1056,11 @@ export class DioramaRenderer {
       gl.uniform1f(u.uInst, 1);
       gl.bindVertexArray(this.soldierVao);
       gl.drawArraysInstanced(gl.TRIANGLES, 0, this.soldierCount, this.instanceCount);
+    }
+    if (this.trollInstanceCount) {
+      gl.uniform1f(u.uInst, 1);
+      gl.bindVertexArray(this.trollVao);
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, this.trollCount, this.trollInstanceCount);
     }
   }
 

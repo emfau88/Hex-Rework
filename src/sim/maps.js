@@ -195,6 +195,9 @@ function initTile(t) {
   t.stormedAt = -100;
   t.lastBattle = -100;
   t.lastAttacker = -1;
+  t.beast = null; // kind of monster on a field of the wilds ('troll'); null for plain monsters
+  t.lair = null; // a monster lair on this field (see Game._makeLair)
+  t.cave = false; // a cave stands here; it stays when its lair has been taken
 }
 
 /** Neighbours across each of the six edges (nb, −1 where the map ends) and the existing ones (neighbors). */
@@ -247,19 +250,23 @@ function place(tiles, wide) {
 //   K0 castle of kingdom 0 (the player), K1, K2 … rivals            -  no field
 //   a digit after the letter gives the field to that kingdom:  .1  h2
 //   !  after the letter gives the field to the monsters (the wilds):  .!:20   h!:30
+//   !t a troll cave of the monsters, with its size as garrison:  .!t   .!t:40
 //   +  tower, *  farm (after the owner):  .1+   .0*
 //   :n sets the garrison:  h:12   .1+:15   K1:30
 
 const TERRAIN = { '.': 'plain', p: 'plain', f: 'forest', h: 'hill', m: 'mountain', w: 'water', c: 'citadel', K: 'plain' };
 // Free land is not free: a neutral field costs a real attack, so the opening is a choice of where to grow.
 const NEUTRAL_UNITS = { plain: 8, forest: 9, hill: 12, citadel: 30 };
-const TOKEN = /^([.pfhmwcK])(\d|!)?([+*])?(?::(\d+))?$/;
+// Lairs of the monsters, by their letter after "!".
+const LAIRS = { t: 'troll' };
+const TOKEN = /^([.pfhmwcK])(\d|![a-z]?)?([+*])?(?::(\d+))?$/;
 
 export function buildAuthored(mission, seed, wide = true) {
   const tiles = [];
   const lookup = new Map();
   const castles = [];
   const wild = []; // fields of the monsters; the game hands them to their side
+  const lairs = []; // their lairs: { id, kind, size }
   let citadel = -1;
 
   mission.layout.forEach((line, row) => {
@@ -271,10 +278,12 @@ export function buildAuthored(mission, seed, wide = true) {
       const id = tiles.length;
       const t = { id, q, r: row, x: SQ3 * (q + row / 2), z: 1.5 * row, n2: 0, terrain: TERRAIN[m[1]], scenery: false, castle: -1 };
       initTile(t);
-      const monsters = m[2] === '!';
+      const monsters = m[2] !== undefined && m[2][0] === '!';
       const owner = m[2] === undefined || monsters ? -1 : Number(m[2]);
       if (monsters && (m[1] === 'K' || !t.passable)) throw new Error(`Karte ${mission.id}: Ungeheuer auf "${token}" in Zeile ${row + 1}`);
       if (monsters) wild.push(id);
+      const lair = monsters && m[2].length > 1 ? LAIRS[m[2][1]] : null;
+      if (monsters && m[2].length > 1 && !lair) throw new Error(`Karte ${mission.id}: unbekanntes Ungeheuer "${token}" in Zeile ${row + 1}`);
       if (m[1] === 'K') {
         if (owner < 0) throw new Error(`Karte ${mission.id}: Burg ohne Reich in Zeile ${row + 1}`);
         t.castle = owner;
@@ -295,6 +304,7 @@ export function buildAuthored(mission, seed, wide = true) {
         t.units = 6;
         t.fixed = true;
       }
+      if (lair) lairs.push({ id, kind: lair, size: m[4] !== undefined ? Number(m[4]) : null });
       tiles.push(t);
       lookup.set(hexKey(q, row), id);
     });
@@ -302,5 +312,5 @@ export function buildAuthored(mission, seed, wide = true) {
   for (let i = 0; i < castles.length; i++) if (castles[i] === undefined) throw new Error(`Karte ${mission.id}: Burg ${i} fehlt`);
 
   link(tiles, lookup);
-  return { tiles, castles, citadel, wild, seed, ...place(tiles, wide) };
+  return { tiles, castles, citadel, wild, lairs, seed, ...place(tiles, wide) };
 }

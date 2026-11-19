@@ -97,6 +97,16 @@ export class Overlay {
       return [px, py];
     };
 
+    // A coming raid: an arrow from the lair to its marked target, under the numbers.
+    for (const id of game.lairs) {
+      const lair = game.tiles[id].lair;
+      if (!lair || !lair.marked || lair.target < 0) continue;
+      const pts = this._points(game, renderer, [id, lair.target]);
+      ctx.globalAlpha = 0.65 + 0.35 * Math.abs(Math.sin(time * 3));
+      this._arrow(ctx, pts, PALETTE_HEX[game.factions[game.wild].color], Math.max(3, hexPx * 0.05));
+      ctx.globalAlpha = 1;
+    }
+
     // Troop numbers on fields.
     ctx.font = `800 ${fs}px ${FONT}`;
     const contested = [];
@@ -120,7 +130,8 @@ export class Overlay {
       ctx.fillStyle = owned ? 'rgba(6, 20, 27, 0.86)' : 'rgba(6, 20, 27, 0.62)';
       ctx.fill();
       // Amber: the field is full and feeds no more troops. Grey: cut off and withering.
-      const full = owned && t.units >= game.cap(t) - 0.01;
+      // Monsters are never "full": they do not grow like kingdom fields.
+      const full = owned && t.owner !== game.wild && t.units >= game.cap(t) - 0.01;
       if (owned && t.owner === ui.human) {
         // How full the player's own field is: a strip along the bottom of the plate fills from the
         // left as the troops grow towards what the field can feed.
@@ -154,6 +165,7 @@ export class Overlay {
     // for the player's fields. Everything else is told by the soldiers themselves.
     const concerns = (owner, tile) => ui.human < 0 || owner === ui.human || tile.owner === ui.human;
     this._battles(ctx, game, ui, contested, fs, plates, concerns);
+    this._raids(ctx, game, renderer, ui, fs, plates, time);
     const afs = Math.max(10, fs - 1);
     ctx.font = `800 ${afs}px ${FONT}`;
     // `spot`: name under which the number keeps its place between pictures; with it, the number moves
@@ -309,6 +321,41 @@ export class Overlay {
       ctx.fillText(text, x + dot / 2, y + 0.5);
     }
     for (const id of this.fights.keys()) if (!live.has(id)) this.fights.delete(id);
+  }
+
+  /**
+   * Lairs: the time until the next raid sits on top of the lair's number like a cap. Once the target
+   * is marked, the cap turns violet and pulses. Nothing is shown while the lair is under attack: then
+   * nobody leaves it.
+   */
+  _raids(ctx, game, renderer, ui, fs, plates, time) {
+    const tagSize = Math.max(9, fs - 3);
+    const violet = PALETTE_HEX[game.wild >= 0 ? game.factions[game.wild].color : 4];
+    for (const id of game.lairs) {
+      const t = game.tiles[id];
+      const lair = t.lair;
+      if (!lair || game.besieged(t)) continue;
+      // No countdown while there is nobody to raid: with only free land around, nothing happens.
+      const marked = lair.marked && lair.target >= 0;
+      if (!marked && (lair.marked || game.prey(t) < 0)) continue;
+      const s = Math.max(0, Math.ceil((lair.at - game.time) / (ui.pace || 1) - 1e-6));
+      const text = i18n.t('raidIn', { s });
+      const p = renderer.tileAnchor(t);
+      ctx.font = `800 ${tagSize}px ${FONT}`;
+      const tw = ctx.measureText(text).width + tagSize * 1.1;
+      const th = tagSize + 5;
+      const x = p.x;
+      const y = p.y - (fs + 6) / 2 - th / 2 - 1;
+      plates.push({ x, y, w: tw, h: th });
+      pill(ctx, x, y, tw, th);
+      ctx.fillStyle = marked ? violet : 'rgba(6, 20, 27, 0.94)';
+      ctx.fill();
+      ctx.lineWidth = marked ? 2 + Math.abs(Math.sin(time * 4)) * 1.5 : 1.5;
+      ctx.strokeStyle = marked ? '#fff3c4' : violet;
+      ctx.stroke();
+      ctx.fillStyle = marked ? '#06141b' : '#ffffff';
+      ctx.fillText(text, x, y + 0.5);
+    }
   }
 
   /** Coloured stretches along the rim of a number plate, from the top centre clockwise. `parts`: [colour, share]. */

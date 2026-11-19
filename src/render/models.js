@@ -450,3 +450,85 @@ export function soldier(m) {
   m.tile = -1;
 }
 
+/**
+ * One troll, standing on the origin and facing +z: broad, hunched, grey-green, with a club. About a
+ * third taller than a soldier. Drawn instanced like the soldiers; the loincloth takes the colour of
+ * its side (violet for the wilds), so the side can be told by colour as for every other figure.
+ */
+export function troll(m) {
+  const skin = lin('#7d9068');
+  const shade = lin('#5d6e4d');
+  const hide = lin('#1c1420');
+  const tusk = lin('#efe6cf');
+  const knot = lin('#5b4227');
+  for (const side of [-1, 1]) {
+    m.box(side * 0.08, 0, 0, 0.11, 0.2, 0.12, shade); // thick legs
+    m.box(side * 0.08, 0, 0.035, 0.12, 0.04, 0.12, shade); // and broad feet
+  }
+  m.box(0, 0.17, 0, 0.29, 0.12, 0.18, hide, 0, 0, 0.75); // loincloth
+  m.box(0, 0.27, 0.005, 0.3, 0.2, 0.2, skin); // belly
+  m.box(0, 0.42, 0.03, 0.36, 0.13, 0.21, skin); // shoulders, hunched forward
+  m.box(0, 0.47, -0.04, 0.2, 0.1, 0.12, shade); // hump behind the head
+  m.box(0, 0.47, 0.11, 0.15, 0.13, 0.13, skin); // head, low between the shoulders
+  m.box(0, 0.585, 0.12, 0.16, 0.03, 0.11, shade); // heavy brow
+  m.box(0, 0.5, 0.185, 0.045, 0.06, 0.04, shade); // nose
+  for (const side of [-1, 1]) {
+    m.box(side * 0.04, 0.47, 0.18, 0.022, 0.045, 0.022, tusk); // tusks
+    m.box(side * 0.038, 0.555, 0.177, 0.026, 0.017, 0.01, lin('#ffd36b'), 0, 0.7); // glowing eyes
+    m.box(side * 0.088, 0.525, 0.1, 0.03, 0.05, 0.03, skin); // ears
+  }
+  // Left arm hangs down to the knee; the right one drags the club along the ground.
+  m.box(-0.215, 0.13, 0.04, 0.095, 0.33, 0.1, skin);
+  m.box(-0.215, 0.08, 0.05, 0.11, 0.08, 0.11, shade);
+  m.box(0.215, 0.19, 0.06, 0.095, 0.29, 0.1, skin);
+  m.box(0.215, 0.15, 0.08, 0.11, 0.08, 0.11, shade);
+  prism(m, [0.225, 0.17, 0.12], [0.33, 0.04, 0.3], 0.026, 0.075, WOOD);
+  for (const [dx, dy, dz] of [[0.06, 0.03, 0.27], [-0.05, 0.05, 0.3], [0.01, 0.11, 0.26]]) {
+    m.box(0.33 + dx, dy, dz, 0.036, 0.036, 0.036, knot, dx * 9); // knots on the club
+  }
+}
+
+/** A four-sided beam from point `a` to point `b`, `r0` thick at `a` and `r1` at `b`. */
+function prism(m, a, b, r0, r1, color) {
+  const d = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
+  const side = Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+  const u = normalize([d[1] * side[2] - d[2] * side[1], d[2] * side[0] - d[0] * side[2], d[0] * side[1] - d[1] * side[0]]);
+  const v = [d[1] * u[2] - d[2] * u[1], d[2] * u[0] - d[0] * u[2], d[0] * u[1] - d[1] * u[0]];
+  const ring = (p, r) =>
+    [[1, 1], [-1, 1], [-1, -1], [1, -1]].map(([s, t]) => [p[0] + (u[0] * s + v[0] * t) * r, p[1] + (u[1] * s + v[1] * t) * r, p[2] + (u[2] * s + v[2] * t) * r]);
+  const A = ring(a, r0);
+  const B = ring(b, r1);
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4;
+    // Outward normal of this side: the direction from the axis through the middle of the side.
+    const mid = [(A[i][0] + A[j][0]) / 2 - a[0], (A[i][1] + A[j][1]) / 2 - a[1], (A[i][2] + A[j][2]) / 2 - a[2]];
+    m.quad(A[i], A[j], B[j], B[i], color, 0, normalize(mid));
+  }
+  m.quad(B[0], B[1], B[2], B[3], color, 0, d);
+}
+
+/**
+ * Troll cave: a rocky mound at the back of the field with a dark entrance towards the viewer and a
+ * few bones before it. The fire in front is drawn with the moving parts, as long as trolls live here;
+ * the cave itself stays when the lair has been taken.
+ */
+export function cave(m, t) {
+  const x = t.x;
+  const z = t.z - 0.42;
+  const y = t.height;
+  const s = t.id * 23 + 5;
+  rock(m, x, y, z, 0.5, s);
+  rock(m, x - 0.42, y, z + 0.12, 0.27, s + 7);
+  rock(m, x + 0.44, y, z + 0.06, 0.31, s + 11);
+  // The mouth of the cave, framed by stones.
+  const front = z + 0.4;
+  m.box(x, y, front, 0.3, 0.3, 0.06, lin('#0d0a0f'));
+  for (const side of [-1, 1]) m.box(x + side * 0.19, y, front + 0.01, 0.1, 0.34, 0.09, STONE_MID, side * 0.1);
+  m.box(x, y + 0.32, front + 0.01, 0.48, 0.09, 0.1, STONE_DARK, 0.04);
+  // Bones.
+  const bone = lin('#e6dcc3');
+  m.box(x + 0.1, y, z + 0.84, 0.16, 0.025, 0.035, bone, 0.7);
+  m.box(x + 0.24, y, z + 0.94, 0.13, 0.025, 0.035, bone, -0.4);
+  m.box(x + 0.16, y, z + 0.98, 0.06, 0.05, 0.06, bone, 0.3);
+}
+

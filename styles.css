@@ -1067,7 +1067,7 @@ h2 {
 
 .lab-tools {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 4px;
 }
 
@@ -1159,7 +1159,7 @@ h2 {
 }
 
 .lab-info {
-  height: 50px;
+  height: 64px;
   overflow: hidden;
   padding: 0 2px;
   line-height: 1.3;

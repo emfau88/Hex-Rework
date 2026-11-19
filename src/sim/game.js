@@ -59,6 +59,9 @@ export class Game {
     // no kingdom starts on them.
     this.wild = mission.wild || map.wild?.length ? map.castles.length : -1;
     for (const id of map.wild || []) this.tiles[id].owner = this.wild;
+    // Lairs breed their monsters and send out raids (see _lairs). Only maps with monsters have any.
+    this.lairs = [];
+    for (const l of map.lairs || []) this._makeLair(this.tiles[l.id], l.kind, l.size ?? this.R[l.kind].size);
 
     const diff = DIFFICULTY[difficulty] || DIFFICULTY.normal;
     const first = human >= 0 ? playerColor : this.seed % 4;
@@ -147,6 +150,8 @@ export class Game {
   /** Troops per second. With `potential`, what the field would yield if owned and supplied. */
   income(t, potential = false) {
     if (!t.passable) return 0;
+    // A lair breeds its monsters back; every other field of the wilds keeps its number.
+    if (t.lair && !potential) return this.R[t.lair.kind].grow;
     if (!potential && (t.owner < 0 || !t.supplied || t.owner === this.wild)) return 0;
     const R = this.R;
     let v = t.castle >= 0 ? R.income.castle : R.income[t.terrain] ?? R.income.plain;
@@ -158,6 +163,16 @@ export class Game {
   cap(t) {
     if (t.castle >= 0) return this.R.cap.castle;
     return t.terrain === 'citadel' ? this.R.cap.citadel : this.R.cap.field;
+  }
+
+  /** Up to how many troops the field grows by itself: what it feeds, or for a lair its size. */
+  growCap(t) {
+    return t.lair ? t.lair.size : this.cap(t);
+  }
+
+  /** Whether a field grows, crowds and withers at all: kingdom fields and lairs, not free land or other monsters. */
+  breeds(t) {
+    return t.owner >= 0 && (t.owner !== this.wild || Boolean(t.lair));
   }
 
   /** Own troops already marching towards a field as their destination. */
@@ -272,10 +287,10 @@ export class Game {
     const R = this.R;
     const def = this.defense(t);
     const F = this.frontage();
-    const cap = this.cap(t);
-    const room = cap + R.overfill;
-    // Kingdom fields grow, crowd and wither during the battle; free land and monsters do not.
-    const owned = t.owner >= 0 && t.owner !== this.wild;
+    const room = this.cap(t) + R.overfill;
+    // Kingdom fields and lairs grow, crowd and wither during the battle; free land and other monsters do not.
+    const owned = this.breeds(t);
+    const cap = this.growCap(t);
     const grow = owned && t.supplied ? this.income(t) : 0;
     let D = t.units;
 
@@ -489,6 +504,7 @@ export class Game {
     if (amount < 1) return null;
     src.units -= amount;
     const army = this._spawn(owner, amount, path, kind || (dst.owner === owner ? 'move' : 'attack'));
+    if (src.beast) army.beast = src.beast; // monsters keep their kind on the march and at the edges
     if (owner === this.human) this.humanStats.sent++;
     this.events.push({ type: 'send', owner, from, to, units: amount, kind: army.kind });
     return army;
@@ -526,12 +542,83 @@ export class Game {
     const side = owner >= 0 ? this.factions[owner] : null;
     if (!this.mission.sandbox || !t || !t.passable || t.castle >= 0 || (owner >= 0 && !side?.alive)) return false;
     if (t.order && t.owner !== owner) this._dropOrder(t);
+    // Whatever stood here goes: a lair with its cave, or monsters of a kind.
+    if (t.cave) this.sceneVersion++;
+    t.lair = null;
+    t.cave = false;
+    t.beast = null;
     t.owner = owner;
     t.units = Math.max(owner >= 0 ? 1 : 0, Math.floor(units));
     t.siegeFrom = t.units;
     t.lastCapture = this.time;
     this._supply();
     return true;
+  }
+
+  /** Figure showcase only: a lair of `kind` with `units` monsters, which is also its size. */
+  placeLair(tileId, kind, units) {
+    if (this.wild < 0 || !this.R[kind] || !this.place(this.wild, tileId, units)) return false;
+    this._makeLair(this.tiles[tileId], kind, this.tiles[tileId].units);
+    return true;
+  }
+
+  /**
+   * A lair on field `t`: it belongs to the wilds, holds `size` monsters of its kind and breeds them
+   * back up to that number. The first raid comes one full interval after it was made.
+   */
+  _makeLair(t, kind, size) {
+    t.owner = this.wild;
+    t.units = size;
+    t.beast = kind;
+    t.cave = true;
+    t.lair = { kind, size, at: this.time + this.R[kind].every, target: -1, marked: false };
+    if (!this.lairs.includes(t.id)) this.lairs.push(t.id);
+    this.sceneVersion++;
+  }
+
+  /**
+   * Raids from the lairs. `warn` seconds before a raid the lair picks its prey, the weakest kingdom
+   * field next to it, and the target is marked from then on. When the time is up, a party sets out
+   * against exactly that field, if it still belongs to a kingdom and the lair can spare a full party.
+   * Nobody leaves a lair while it is attacked or an attack on it is on its way: the monsters defend
+   * their home, and the forecast for an attack on a lair stays exact.
+   */
+  _lairs() {
+    for (const id of this.lairs) {
+      const t = this.tiles[id];
+      const lair = t.lair;
+      if (!lair) continue;
+      const L = this.R[lair.kind];
+      if (!lair.marked && this.time >= lair.at - L.warn - 1e-9) {
+        lair.marked = true;
+        lair.target = this.prey(t);
+        if (lair.target >= 0) this.events.push({ type: 'raidwarn', tile: id, target: lair.target, defender: this.tiles[lair.target].owner, beast: lair.kind });
+      }
+      if (this.time < lair.at - 1e-9) continue;
+      const prey = lair.target >= 0 ? this.tiles[lair.target] : null;
+      lair.at += L.every;
+      lair.target = -1;
+      lair.marked = false;
+      if (!prey || prey.owner < 0 || prey.owner === this.wild || this.besieged(t) || Math.floor(t.units) - 1 < L.raid) continue;
+      this.dispatch(this.wild, id, prey.id, L.raid, 'raid');
+    }
+  }
+
+  /** The weakest kingdom field next to `t`, or -1. On a tie the first in the order of the edges. */
+  prey(t) {
+    let best = null;
+    for (const n of t.neighbors) {
+      const o = this.tiles[n];
+      if (!o.passable || o.owner < 0 || o.owner === this.wild) continue;
+      if (!best || o.units < best.units) best = o;
+    }
+    return best ? best.id : -1;
+  }
+
+  /** Whether foreign troops stand at the edges of `t` or march on it. */
+  besieged(t) {
+    if (t.pools.some((p) => p.owner !== t.owner)) return true;
+    return this.armies.some((a) => !a.done && a.owner !== t.owner && a.path[a.path.length - 1] === t.id);
   }
 
   _dropOrder(t) {
@@ -574,10 +661,10 @@ export class Game {
       this.events.push({ type: 'storm' });
     }
 
-    // Growth, crowding and withering. Free land and monsters keep their numbers.
+    // Growth, crowding and withering. Free land and monsters keep their numbers; lairs breed.
     for (const t of tiles) {
-      if (t.owner < 0 || t.owner === this.wild) continue;
-      t.units = this._drift(t.units, t.supplied, this.cap(t), t.supplied ? this.income(t) : 0);
+      if (!this.breeds(t)) continue;
+      t.units = this._drift(t.units, t.supplied, this.growCap(t), t.supplied ? this.income(t) : 0);
       if (t.order && t.units >= t.orderCost + 1) this._complete(t);
     }
 
@@ -612,6 +699,8 @@ export class Game {
       if (this.phase !== 'running') return;
     }
     if (changed) this._supply();
+
+    if (this.lairs.length) this._lairs();
 
     // Second way to win a mission: hold the citadel. A kingdom's clock only runs while it also owns
     // every field around the citadel and nobody stands at its edges. Losing the citadel stops the
@@ -667,6 +756,7 @@ export class Game {
     if (!tile.pools.length) tile.siegeFrom = tile.units; // a new battle: the display measures the garrison against this
     let pool = tile.pools.find((p) => p.owner === a.owner && p.from === from);
     if (!pool) tile.pools.push((pool = { owner: a.owner, from, units: 0, since: this.time }));
+    if (a.beast) pool.beast = a.beast;
     pool.units += a.units;
     tile.lastBattle = this.time;
     tile.lastAttacker = a.owner;
@@ -707,6 +797,13 @@ export class Game {
     const { winner, units } = this._spoils(t.pools, this.cap(t) + this.R.overfill);
     const sides = t.pools.filter((p) => p.owner === winner).length;
     const previous = t.owner;
+    // Monsters that take a field bring their kind along. A lair taken by a kingdom is gone; its cave stays.
+    const beast = winner === this.wild ? t.pools.find((p) => p.owner === winner && p.beast)?.beast ?? null : null;
+    if (t.lair && winner !== this.wild) {
+      this.events.push({ type: 'lair', tile: t.id, by: winner, beast: t.lair.kind });
+      t.lair = null;
+    }
+    if (t.beast || beast) t.beast = beast;
 
     t.pools = t.pools.filter((p) => p.owner !== winner);
     t.owner = winner;

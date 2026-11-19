@@ -137,12 +137,13 @@ export const SHOWCASE = {
   storm: false,
   aiDelay: Infinity,
   rules: { cutOffDecay: 0 },
-  // One band of monsters in the middle to start with (.!:20); everything else is set by hand.
+  // A troll cave in the middle (.!t) and a small field of the player next to it, so the first raid
+  // can be watched without setting anything; everything else is set by hand.
   layout: [
     'm  m  .  .  f  .  f  .  .  m  m',
     '  m  .  .  .  .  .  .  .  .  m',
     'w  .  .  .  h  .  .  .  .  .  w',
-    '  .  K0 .  .  .!:20 .  .  .  K1 .',
+    '  .  K0 .  .0:6 .!t .  .  .  K1 .',
     'w  .  .  .  .  .  f  .  .  .  w',
     '  m  .  .  .  .  .  .  .  .  m',
     'm  m  .  .  f  .  f  .  .  m  m',

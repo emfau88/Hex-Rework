@@ -62,6 +62,11 @@ export const RULES = Object.freeze({
   ringGuard: 10,
   // Once a rival stands this close to the castle, the home guard is filled up like a front.
   alarmRange: 2,
+
+  // Monsters (the wilds). A troll cave holds `size` trolls and breeds them back at `grow` per second.
+  // Every `every` seconds a party of `raid` trolls falls on the weakest kingdom field next to it; the
+  // target is marked `warn` seconds before. Starting values for the figure showcase, not yet measured.
+  troll: Object.freeze({ size: 30, grow: 0.2, every: 50, raid: 8, warn: 10 }),
 });
 
 // think      seconds between decisions

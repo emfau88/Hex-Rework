@@ -23,7 +23,7 @@ const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
 const FREE_PLAY = SKIRMISH.filter((m) => m.random);
 // Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
 // fast the time runs there.
-const LAB_TOOLS = ['order', 'wild', 'own', 'rival', 'free'];
+const LAB_TOOLS = ['order', 'troll', 'wild', 'own', 'rival', 'free'];
 const LAB_AMOUNTS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 99];
 const LAB_SPEEDS = [0.25, 0.5, 1, 3];
 const LAB_SPEED_LABEL = { 0.25: '¼×', 0.5: '½×', 1: '1×', 3: '3×' };
@@ -220,7 +220,7 @@ class App {
   /** Side that a tap sets with this tool: -1 free land, null for "orders". */
   labOwner(tool) {
     const game = this.game;
-    return tool === 'wild' ? game.wild : tool === 'own' ? this.ui.human : tool === 'rival' ? 1 - this.ui.human : tool === 'free' ? -1 : null;
+    return tool === 'wild' || tool === 'troll' ? game.wild : tool === 'own' ? this.ui.human : tool === 'rival' ? 1 - this.ui.human : tool === 'free' ? -1 : null;
   }
 
   /** Whether a tap on the board sets troops instead of giving orders. */
@@ -271,7 +271,8 @@ class App {
       this.say(id, i18n.t('labCastleNo'));
       return;
     }
-    if (this.game.place(this.labOwner(lab.tool), id, lab.amount)) this.sfx.play('build', 0.5);
+    const done = lab.tool === 'troll' ? this.game.placeLair(id, 'troll', lab.amount) : this.game.place(this.labOwner(lab.tool), id, lab.amount);
+    if (done) this.sfx.play('build', 0.5);
     this.updateLabInfo();
   }
 
@@ -303,8 +304,10 @@ class App {
       return;
     }
     const f = t.owner >= 0 ? game.factions[t.owner] : null;
-    const who = f ? `<b style="color:${PALETTE_HEX[f.color]}">${this.nameOf(f)}</b>` : `<b>${i18n.t('labFreeLand')}</b>`;
-    const ground = t.castle >= 0 ? i18n.t('labCastle') : i18n.t(`ground_${t.terrain}`);
+    const color = (side) => PALETTE_HEX[side.color];
+    const title = f && f.wild && t.beast ? i18n.t(`${t.beast}Name`) : f ? this.nameOf(f) : null;
+    const who = f ? `<b style="color:${color(f)}">${title}</b>` : `<b>${i18n.t('labFreeLand')}</b>`;
+    const ground = t.castle >= 0 ? i18n.t('labCastle') : t.cave ? i18n.t('ground_cave') : i18n.t(`ground_${t.terrain}`);
     const n = Math.floor(t.units + 1e-6);
     const cover = `×${game.defense(t).toFixed(2)}`;
     // Attackers at the edges: from how many sides and how many in all.
@@ -313,11 +316,26 @@ class App {
     const sideText = sides === 1 ? i18n.t('labSide1') : i18n.t('labSides', { n: sides });
     const rows = [];
     if (f && f.wild) {
-      rows.push([i18n.t('labStrength'), n]);
-      rows.push([i18n.t('labAttack'), i18n.t('labNone')]);
-      rows.push([i18n.t('labReach'), '–']);
+      // A lair breeds and raids; any other field of the wilds only holds what stands on it.
+      const lair = t.lair;
+      const L = lair ? game.R[lair.kind] : null;
+      rows.push([i18n.t('labStrength'), lair ? `${n} / ${lair.size}` : n]);
+      if (lair) rows.push([i18n.t('labBreed'), t.units >= lair.size - 0.01 ? i18n.t('full') : `+${game.income(t).toFixed(2)}/s`]);
+      rows.push([i18n.t('labAttack'), L ? i18n.t('labRaid', { n: L.raid, s: L.every }) : i18n.t('labNone')]);
+      rows.push([i18n.t('labReach'), L ? i18n.t('labReachNear') : '–']);
       rows.push([i18n.t('labCover'), cover]);
-      rows.push([i18n.t('labPlan'), sides ? i18n.t('labPlanDefend', { sides: sideText }) : i18n.t('labPlanHold')]);
+      let plan;
+      if (sides) plan = i18n.t('labPlanDefend', { sides: sideText });
+      else if (lair) {
+        // Seconds as on the countdown above the cave: real seconds at the pace that is set.
+        const s = Math.max(0, Math.ceil((lair.at - game.time) / (this.ui.pace || 1) - 1e-6));
+        const prey = lair.marked && lair.target >= 0 ? game.tiles[lair.target] : null;
+        const side = prey && prey.owner >= 0 ? game.factions[prey.owner] : null;
+        if (side) plan = i18n.t('labPlanRaidAt', { who: `<b style="color:${color(side)}">${this.nameOf(side)}</b>`, s });
+        else if (lair.marked || game.prey(t) < 0) plan = i18n.t('labPlanNoPrey');
+        else plan = i18n.t('labPlanRaidIn', { s });
+      } else plan = i18n.t('labPlanHold');
+      rows.push([i18n.t('labPlan'), plan]);
     } else {
       rows.push([i18n.t('panelTroops'), f ? `${n} / ${game.cap(t)}` : n]);
       const growth = !f ? i18n.t('labNoGrowth') : !t.supplied ? i18n.t('labCut') : t.units >= game.cap(t) - 0.01 ? i18n.t('full') : `+${game.income(t).toFixed(2)}/s`;
@@ -746,6 +764,15 @@ class App {
         this.sfx.play('castle', quiet);
         if (game.phase === 'running') this.banner(i18n.t('falls', { name: name(e.fallen) }), null, 2600);
         this.note(i18n.t('evKingdom', { a: name(e.fallen), b: name(e.by) }));
+        break;
+      case 'raidwarn':
+        // Monsters mark their next target: a warning for whoever owns it.
+        if (mine(e.defender)) this.sfx.play('alarm', 0.7);
+        this.note(i18n.t('evRaid', { name: name(e.defender) }), mine(e.defender));
+        break;
+      case 'lair':
+        if (mine(e.by)) this.sfx.play('castle', 0.6);
+        this.note(i18n.t('evLair', { name: name(e.by) }));
         break;
       case 'victory':
         this.banner(i18n.t('wins', { name: name(e.winner) }), null, 4000);
