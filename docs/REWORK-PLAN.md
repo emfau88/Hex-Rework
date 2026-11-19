@@ -834,3 +834,75 @@ Keine Fehlermeldungen.
 
 Nicht geprüft: am echten Handy; die englischen Texte nur gelesen; das Fell der Ungeheuer nur klein im Bild
 gesehen.
+
+## 17 · Figur 1: der Troll (19.11.2026)
+
+Erste Figur aus dem Pool ([INHALTE-PLAN.md](INHALTE-PLAN.md)). Er steht nur in der Figurenschau, in keiner
+Mission. Karten ohne Trollhöhle laufen mit demselben Würfel Schritt für Schritt wie vorher (Fingerabdruck-Test
+aus Abschnitt 16, unverändert grün).
+
+### Regeln
+
+Alle Zahlen sind Startwerte in `src/sim/rules.js` (`troll`) und noch nicht auf Spielbalance gemessen.
+
+- **Höhle:** Eine Trollhöhle ist ein Feld der Wildnis mit 30 Trollen (in der Karte auch mehr oder weniger).
+  Anders als andere Felder der Wildnis wächst sie nach, 0,2 Trolle pro Sekunde, bis sie wieder voll ist.
+- **Überfall:** Alle 50 Sekunden ziehen 8 Trolle gegen das schwächste Nachbarfeld eines Reichs (bei Gleichstand
+  das erste in fester Reihenfolge). 10 Sekunden vorher wird das Ziel ausgewählt und markiert: violetter Ring auf
+  dem Feld, pulsierender Pfeil, Meldung „Trolle rüsten zum Überfall auf …“ und, wenn es dein Feld ist, ein
+  Warnton. Der Überfall geht genau auf das markierte Feld, auch wenn inzwischen ein anderes schwächer ist.
+- **Über der Höhle** steht „Überfall n s“, umgerechnet auf das eingestellte Tempo. Ist die Höhle markiert, wird
+  das Schild violett. Liegt kein Reich daneben, steht dort nichts.
+- **Kein Überfall**, wenn kein Feld eines Reichs daneben liegt (freies Land wird nie überfallen), wenn das
+  Ziel inzwischen kein Feld eines Reichs mehr ist, wenn die Höhle keinen vollen Trupp entbehren kann (einer
+  bleibt immer zurück) oder wenn die Höhle angegriffen wird oder ein Angriff auf sie unterwegs ist. Dann
+  verteidigen die Trolle ihr Zuhause. Der nächste Überfall kommt jeweils 50 Sekunden später.
+- **Erobertes Feld:** Ein Feld, das die Trolle nehmen, wird ein Feld der Wildnis mit Troll-Figuren. Es ist
+  keine Höhle: Es wächst nicht und überfällt niemanden.
+- **Höhle erobert:** Nimmt ein Reich die Höhle, ist sie erledigt. Das Feuer geht aus, die Höhle bleibt als
+  Kulisse stehen, und das Feld ist ein normales Feld des Reichs. Meldung „… nimmt die Trollhöhle“.
+- **Vorhersage:** Auch eine Höhle, die während des Kampfs nachwächst, fällt genau so, wie der Pfeil es
+  vorhersagt. Weil niemand eine angegriffene Höhle verlässt, bleibt die Vorhersage auch kurz vor einem
+  Überfall genau.
+- **Karten:** `!t` hinter dem Feldbuchstaben setzt eine Trollhöhle, zum Beispiel `.!t` (30) oder `.!t:40`.
+  Ein unbekannter Buchstabe wird abgelehnt.
+
+### Im Bild
+
+- Troll: graugrün, kantig, gebückt, mit Hauern, leuchtenden Augen, langen Armen und einem Lendenschurz in
+  der Farbe seiner Seite. Die Keule schleift er hinter sich her. Bis zu 3 Trolle vor der Höhle, auf dem Marsch
+  und an der Kante; je Troll stehen etwa 12 Truppen am Rand.
+- Höhle: Felsen mit dunklem Eingang, Steinpfosten, Knochen davor, Lagerfeuer mit Flackern rechts davor.
+- Figurenschau: neues Werkzeug „Troll“ setzt eine Höhle mit so vielen Trollen, wie die Zahl sagt. Die Insel
+  startet mit einer Höhle in der Mitte und einem kleinen blauen Feld daneben. Werte der Höhle: Stärke (n / 30),
+  Nachwuchs, Angriff („8 alle 50 s“), Reichweite („Nachbarfelder“), Deckung, Vorhaben („Überfall in n s“,
+  „überfällt AZUR in n s“, „kein Reich daneben“, „wehrt sich“).
+
+### Nebenbei: Kampfanimation
+
+Bei der Frage, ob Verteidiger vor dem Kampf umfallen, fiel mir zweierlei auf: Die vorderste Figur eines
+Verteidigers kippte schon auf dem Weg zur Kante etwas, und Verteidiger drehten sich manchmal über den langen Weg
+zum Angreifer. Jetzt kippt sie erst, wenn sie an der Kante ankommt, und dreht sich auf dem kürzeren Weg. Das
+betrifft nur das Bild, nicht den Kampf.
+
+### Tests
+
+Neun neue Tests, 79 insgesamt: Höhle wächst bis zu ihrer Größe; Überfall markiert das schwächste Feld und geht
+genau dorthin; kein Überfall ohne Ziel, ohne vollen Trupp oder wenn das Ziel kein Reichsfeld mehr ist;
+Vorhersage genau bei einer nachwachsenden Höhle und bei einem Angriff kurz vor dem Überfall; Höhle erobert;
+Kartenzeichen; Figurenschau; Computergegner gegen Trollhöhlen (Mission 1 mit Höhlen auf den beiden Festungen,
+auf „Leicht“ und „Schwer“, ohne Fehler, nur ein Reich kann gewinnen, die Trolle überfallen mindestens einmal).
+
+### Geprüft und nicht geprüft
+
+Geprüft im Browser bei 1280 × 720 in der Figurenschau: Schild „Überfall 50 s“ über der Höhle; nach 40 Sekunden
+Ring, Pfeil und Meldung auf dem blauen Feld daneben; bei 50 Sekunden ziehen die Trolle los, kämpfen an der Kante
+und nehmen das Feld (auf 3 Truppen gesetzt), das Feld wird violett mit einem Troll. Ein Feld mit 20 Truppen
+hielt den Überfall dagegen. Werte der Höhle; Werkzeug „Troll“; eine Höhle ohne Reich daneben zeigt kein Schild
+mehr (Fehler beim Prüfen gefunden und behoben); Azur erobert eine Höhle: Feuer aus, Höhle bleibt, blaue
+Soldaten davor. Im Handy-Format (375 × 812): sechs Werkzeuge in einer Zeile, Werte in drei Zeilen. Keine
+Fehlermeldungen.
+
+Nicht geprüft: am echten Handy; Bewegung nur in Standbildern gesehen; die englischen Texte nur gelesen; ob die
+Startwerte (30 Trolle, 8 alle 50 s, 10 s Vorwarnung) Spaß machen; ob der Computergegner gezielt gegen Höhlen
+spielt (er behandelt sie wie andere Felder der Wildnis).

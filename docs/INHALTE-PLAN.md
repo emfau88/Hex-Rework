@@ -74,6 +74,11 @@ mit Messläufen eingestellt werden.
 - **Gegenmittel:** Grenzfelder stark halten, oder die Höhle von mehreren Seiten nehmen.
 - **Im Bild:** große, graugrüne Gestalten mit Keule, Feuer vor dem Höhleneingang.
 
+**Gebaut am 19.11.2026**, vorerst nur in der Figurenschau (Werkzeug „Troll“). Entschieden beim Bauen: Trolle
+überfallen nur Felder eines Reichs, nie freies Land; wird die Höhle angegriffen, bleiben alle daheim; ein von
+Trollen erobertes Feld wächst nicht und überfällt niemanden; nimmt ein Reich die Höhle, bleibt sie als leere
+Höhle stehen. Einzelheiten in Abschnitt 17 von [REWORK-PLAN.md](REWORK-PLAN.md).
+
 ### 2 · Steinriese
 
 - **Fähigkeit:** sehr stark (Startwert: 60) und ortsfest. An seinen Kanten kämpfen nur 3 Angreifer statt 8.
@@ -110,6 +115,9 @@ mit Messläufen eingestellt werden.
 - **Im Bild:** größer als ein Soldat, mit Umhang und Wappen in der Farbe seines Reichs.
 - **Offen:** wie man ihn bewegt (mit einem Trupp schicken oder eigens antippen). Das klären wir in der
   Figurenschau.
+- **Idee vom 19.11.2026:** Man verwandelt Truppen in einen Ritter, zum Beispiel 15 Truppen eines Feldes zu
+  einem Ritter, und je Reich gibt es nur einen zur selben Zeit („1/1“). Später ginge das ähnlich für andere
+  Figuren, etwa einen Totenbeschwörer. Noch nicht entschieden.
 
 ### 6 · Riesenspinne
 

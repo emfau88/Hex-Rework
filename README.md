@@ -104,8 +104,9 @@ Eine kleine Testinsel, um Figuren einzeln anzusehen. Sie steht nicht im Menü, n
 [emfau88.github.io/Hex-Rework/?schau](https://emfau88.github.io/Hex-Rework/?schau) (geht erst nach dem
 nächsten Hochladen), lokal `http://localhost:4180/?schau`.
 
-- **Werkzeuge:** „Befehle“ spielt wie sonst. „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld
-  auf diese Seite, mit so vielen Truppen, wie die Zahl daneben sagt. Burgen bleiben, wie sie sind.
+- **Werkzeuge:** „Befehle“ spielt wie sonst. „Troll“ setzt eine Trollhöhle mit so vielen Trollen, wie die Zahl
+  daneben sagt. „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld auf diese Seite, mit so
+  vielen Truppen, wie die Zahl sagt. Burgen bleiben, wie sie sind.
 - **Zeit:** anhalten, ¼, ½, 1 oder 3-fach, „+1 s“ für genau eine Sekunde. Leertaste hält an und startet.
 - **Werte:** Das zuletzt angetippte Feld zeigt bei Ungeheuern Stärke, Angriff, Reichweite, Deckung und
   Vorhaben, bei Reichen Truppen, Zuwachs, Deckung und den laufenden Kampf.
@@ -114,8 +115,14 @@ nächsten Hochladen), lokal `http://localhost:4180/?schau`.
 
 Ungeheuer sind eine eigene Seite, die **Wildnis**, in Violett. Sie gehört keinem Reich, greift jeden an, kann
 von jedem angegriffen werden, wächst nicht und schwindet nicht. Sie kann weder gewinnen noch verlieren. Ihre
-Figuren tragen vorerst ein dunkles Fell mit spitzen Ohren; jede echte Figur bekommt später ihr eigenes Modell
-(Plan in [docs/INHALTE-PLAN.md](docs/INHALTE-PLAN.md)). In den Missionen gibt es noch keine Ungeheuer.
+Figuren tragen ein dunkles Fell mit spitzen Ohren; jede echte Figur bekommt ihr eigenes Modell (Plan in
+[docs/INHALTE-PLAN.md](docs/INHALTE-PLAN.md)). In den Missionen gibt es noch keine Ungeheuer.
+
+Die erste echte Figur ist der **Troll**. Seine Höhle hat 30 Trolle und wächst nach. Alle 50 Sekunden ziehen
+8 Trolle gegen das schwächste Nachbarfeld eines Reichs. 10 Sekunden vorher ist das Ziel markiert (violetter
+Ring und Pfeil), und über der Höhle zählt „Überfall n s“ herunter. Wird die Höhle angegriffen, bleiben alle
+daheim. Nimmt ein Reich die Höhle, ist sie erledigt. Die Zahlen sind Startwerte (Abschnitt 17 in
+[docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)).
 
 ## Prüfen ohne Browser
 
@@ -169,8 +176,8 @@ git worktree add "../HexWars Diorama 0.1" prototyp-0.1
 ## Stand
 
 Nachtrag zu Stand 0.8 (19.11.2026): die Figurenschau unter `?schau` und Ungeheuer als eigene Seite
-„Wildnis“, die Grundlage für den Figurenpool (Abschnitt 16 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)).
-Im Spiel selbst ändert sich dadurch nichts.
+„Wildnis“, die Grundlage für den Figurenpool (Abschnitt 16 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)),
+und als erste Figur der Troll (Abschnitt 17). Im Spiel selbst ändert sich dadurch nichts.
 
 Stand 0.8 vom 19.11.2026: Tasten am PC für Sturm und Bauen, ein Streifen für den Füllstand eigener Felder, am
 Handy verdeckt keine Zahl mehr eine andere, Menü und Hilfe passen am PC ohne Scrollen auf 720 Punkte Höhe
@@ -180,5 +187,5 @@ Sekunden sicher zu gewinnen. Davor Stand 0.6: Helmformen je Reich, umfallende Fi
 Seitenleisten am PC (Abschnitt 13 in [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)). Davor Stand 0.5: abgelehnte
 Befehle werden rückgemeldet, Zoom und Verschieben, Meer rund um die Insel, Burgmauern (Abschnitt 12), Stand 0.4: Tempo-Schalter,
 Pause mit Befehlen, Kampfanzeige, Kampfanimation, Gebirge und Böschungen (Abschnitt 11), und Stand 0.3.1: drei
-Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 70 Tests, Messläufen und Durchläufen im
+Fehler aus einer Fremdprüfung behoben (Abschnitt 10). Geprüft mit 79 Tests, Messläufen und Durchläufen im
 Browser am PC und im Handy-Format. Nicht geprüft: ein Mensch am Spiel, echtes Handy, Ton, Safari.

@@ -64,6 +64,10 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 - [ ] **Figurenschau** ansehen (Link mit `?schau` am Ende, siehe README): Kommst du mit Setzen, Zeit und
       Werten zurecht, am PC und am Handy? Passt Violett als Farbe der Ungeheuer, und erkennt man sie am Fell
       mit Ohren? Sollen Ungeheuer, die eine Burg nehmen, das Land des Reichs frei lassen (so ist es jetzt)?
+- [ ] **Troll** in der Figurenschau ansehen: Erkennst du ihn, auch am Handy? Ist die Warnung 10 Sekunden vor
+      dem Überfall (Ring, Pfeil, „Überfall n s“) früh genug und verständlich? Passen die Startwerte (30 Trolle,
+      wachsen nach, 8 alle 50 s)? Ist es richtig, dass Trolle nur Felder eines Reichs überfallen, nie freies
+      Land, und dass eine eroberte Höhle als leere Höhle stehen bleibt?
 
 ## Offene Schwächen
 
@@ -94,13 +98,18 @@ mitkommt). Am normalen Spiel ändert sich bis dahin nichts.
 
 - [x] **Schritt 0 · Figurenschau und Grundlage „Wildnis“** (19.11.2026, Abschnitt 16 in
       [REWORK-PLAN.md](REWORK-PLAN.md)): Testinsel über den Link `?schau`; Ungeheuer gehören keinem Reich
-- [ ] **1 · Troll:** greift aus seiner Höhle das schwächste Nachbarfeld an · Aufwand klein bis mittel
+- [x] **1 · Troll:** greift aus seiner Höhle das schwächste Nachbarfeld an (19.11.2026, Abschnitt 17 in
+      [REWORK-PLAN.md](REWORK-PLAN.md); vorerst nur in der Figurenschau)
+- [ ] **Als Nächstes: Ritter** (Punkt 5 unten), auf deinen Wunsch vor Steinriese, Wolfsrudel und Drache
 - [ ] **2 · Steinriese:** schmale Kanten, Stampfen trifft alle Angreifer; nur rundum zu fällen · Aufwand mittel
 - [ ] **3 · Wolfsrudel:** zieht umher und fällt fast leere Felder an · Aufwand mittel
 - [ ] **4 · Drache:** verbrennt mit Vorwarnung das Feld mit den meisten Truppen; wirkt gegen Stapeln · Aufwand
       mittel
 - [ ] **5 · Ritter (Held):** zieht mit einem Trupp, stärkt dessen Angriff; kann gefangen und befreit werden ·
       Aufwand mittel bis groß
+  - **Idee (19.11.2026):** Truppen in einen Ritter verwandeln, zum Beispiel 15 Truppen eines Feldes zu einem
+    Ritter; je Reich nur einer zur selben Zeit („1/1“). Später ähnlich für andere Figuren, etwa einen
+    Totenbeschwörer. Noch nicht entschieden.
 - [ ] **6 · Riesenspinne:** Netze sperren Kanten · Aufwand klein bis mittel
 - [ ] **7 · Totenbeschwörer:** Gefallene stehen als Skelette wieder auf · Aufwand mittel bis groß
 - [ ] **8 · Greif:** stößt auf marschierende Truppen herab · Aufwand mittel
@@ -146,4 +155,6 @@ mitkommt). Am normalen Spiel ändert sich bis dahin nichts.
 - [x] Gegner für Menschen neu abgestimmt: Leicht, Normal und Schwer nach Sekunden pro Befehl; der Gegner
       wartet in der Einführung von Mission 1; langsame Testspieler im Messwerkzeug (Stand 0.7)
 - [x] Figurenschau (Link `?schau`) und Ungeheuer als eigene Seite „Wildnis“: Grundlage für den Figurenpool
+      (19.11.2026)
+- [x] Figur 1: Troll mit Höhle, Nachwuchs und angekündigten Überfällen, vorerst nur in der Figurenschau
       (19.11.2026)
