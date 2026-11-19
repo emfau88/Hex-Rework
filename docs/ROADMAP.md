@@ -32,6 +32,8 @@ die beiden kleinen Punkte danach (Füllstand, Tasten) mit Stand 0.8. Sie stehen 
 
 - [ ] **Mission 1 noch einmal auf „Normal“ spielen:** Stand 0.7 war dir zu leicht, davor war sie sehr schwer.
       Seit Stand 0.7.1 liegt „Normal“ dazwischen. Passt es jetzt? Sonst: „Schwer“ probieren und Bescheid geben.
+      Rückmeldung vom 19.11.: Aus Versehen auf „Leicht“ gespielt, das war leicht. Du vermutest, dass „Normal“
+      passt; gespielt ist es noch nicht.
 - [ ] Die drei Missionen am PC spielen. Verstehst du, warum ein Angriff scheitert?
 - [ ] „Schwer“ ausprobieren, sobald „Normal“ sitzt: Ist der Schritt zu groß?
 - [ ] Eine Mission auf „Ruhig“ spielen: Kommst du mit Lesen, Planen und Bauen mit? Sonst auf „Normal“ vergleichen.
@@ -82,17 +84,21 @@ Stand 0.8. Die Zahlen zur Stärke der Gegner stammen aus Stand 0.7.1 (REWORK-PLA
 Neue Inhalte, in der empfohlenen Reihenfolge. Jede neue Eigenart muss gemessen und erklärt werden; deshalb
 erst nach dem Spieltest und eine nach der anderen.
 
-- [ ] **13 · Ungeheuer-Lager** · Aufwand mittel
-  - Ein starkes freies Feld, das einen Preis bewacht und ab und zu Nachbarfelder überfällt. Braucht keinen
-    Computergegner. Vorschlag: Mittelpunkt von Mission 4.
-- [ ] **14 · Monster statt Burg als Missionsziel** · Aufwand mittel bis groß
-  - Es wehrt sich an jeder Kante stärker und muss von fünf oder sechs Seiten angegriffen werden. Lehrt Umzingeln.
-- [ ] **15 · Figurentypen** · Aufwand mittel · Speerträger auf dem Feld, Bogenschützen am Turm, Ritter an der Burg
-- [ ] **16 · Reiche mit Eigenart** · Aufwand groß
-  - Jedes bricht genau eine der vier Regeln, zum Beispiel Nomaden ohne Verbindung zur Burg oder Seeräuber,
-    die an Stränden landen. Deckt sich mit „Gegner mit Charakter“ aus Bulk 8.
-- [ ] Missionen 4 und 5: Brücken und Furten mit schmaler Kante, ein Verbündeter (Bulk 7)
-- [ ] Missionen 6 bis 9: Verteidigung, Nebel, Gegner mit Charakter, eine Fähigkeit je Reich (Bulk 8)
+Die Punkte 13 bis 16 sind ausgearbeitet in [INHALTE-PLAN.md](INHALTE-PLAN.md) (Stand 19.11.2026): Blöcke A
+bis H mit Startwerten, Missionen 4 bis 9 und „Fertig, wenn“. Vier Fragen dort sind von dir zu entscheiden.
+
+- [ ] **A · Grundlage „Wildnis“:** Ungeheuer als eigene Seite, die kein Reich ist · Aufwand mittel
+- [ ] **B · Trollhöhle (13, Mission 4):** überfällt Nachbarfelder, bewacht den Hort · Aufwand mittel
+- [ ] **C · Figuren nach Ort (15):** Bogenschützen am Turm, Ritter in der Burg, Rammbock; nur Darstellung ·
+      Aufwand mittel
+- [ ] **D · Schmale Kante und Koloss (14, Mission 5):** Brücken und Furten, ein Riese als Missionsziel ·
+      Aufwand mittel bis groß
+- [ ] **E · Völker-Grundlage und Nomaden (16, Mission 6)** · Aufwand mittel
+- [ ] **F · Drache (Mission 7):** greift das Feld mit den meisten Truppen an, wirkt gegen Stapeln · Aufwand mittel
+- [ ] **G · Horde und Clans (16, Mission 8)** · Aufwand klein bis mittel je Volk
+- [ ] **H · Seeräuber (16, Mission 9)** · Aufwand groß
+- [ ] Später: Verbündeter, Nebel, Verteidigungsmission, Gegner mit Charakter, eine Fähigkeit je Reich (Rest aus
+      Bulk 7 und 8)
 - [ ] Missionen 10 bis 12 und Finale, Sterne mit eigenen Aufgaben, Tageskarte (Bulk 9)
 - [ ] Technik für die Veröffentlichung: Bündelung, robustes Speichern, Qualitätsstufen (Bulk 10)
 - [ ] Portale: Kongregate, Y8, GameMonetize; Name prüfen, Icon, Screenshots (Bulk 11)
