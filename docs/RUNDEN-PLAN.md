@@ -1,10 +1,12 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.5 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 0.6 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
-geteilt (Abschnitt 13). Als Nächstes kommt Block 1, sobald du zustimmst.
+geteilt (Abschnitt 13). **Block 1 ist gebaut und gemessen** (Abschnitt 14): Die Gegner warten nicht mehr ab.
+Ein Kriterium ist knapp verfehlt: Gleich starke Gegner auf „Schwer“ verkeilen sich noch zu oft. Dazu brauche ich
+deine Entscheidung (Abschnitt 14, „Was offen bleibt“). Als Nächstes kommt Block 2.
 
 ## 1 · Worum es geht
 
@@ -119,8 +121,15 @@ Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, 
   Abschneiden.
 - **Stufen entstehen aus der Klugheit, nicht aus dem Tempo:**
   - Leicht: greift von wenigen Seiten an, will viel Vorsprung, baut selten.
-  - Schwer: umzingelt, schneidet ab, baut gezielt.
+  - Schwer: umzingelt, schneidet ab, stößt mit frisch eroberten Feldern sofort weiter vor.
   - Dazu wie heute weniger Zuwachs auf den leichten Stufen.
+- **Sie spielen zu Ende** (seit Block 1, Abschnitt 14):
+  - **Durchbruch:** Findet ein Reich eine Weile keinen Angriff (Leicht 2 Züge, Normal und Schwer 1 Zug), greift
+    es ein Feld mit allem an und lässt die Felder dahinter nachrücken. Das ist derselbe Befehl, den du hast.
+  - **Verlegen:** Reicht auch das nicht, holt es Truppen aus dem Hinterland hinter die Front und versucht es im
+    nächsten Zug wieder.
+  - Eine Burg bleibt in den ersten Zügen verschont (Leicht bis Zug 25, Normal bis 12, Schwer bis 6), außer es
+    ist sonst nichts mehr anzugreifen.
 
 ### Werte (alle in `TURN_RULES` in `src/sim/rules.js`)
 
@@ -323,7 +332,8 @@ Züge, Mehrspieler.
 - **Eingeschlossene Burgen.** In einer langen Partie hatte ein Reich ab Zug 20 alle 44 Felder voll (900 Truppen).
   Es kam trotzdem 30 Züge lang nicht an die Burg heran: Jedes Randfeld berührte die Front nur von einer Seite.
   Deshalb gibt es beim Angriff das Nachrücken.
-- **Die Computer verschieben nie,** sie greifen nur an und bauen.
+- **Die Computer verschieben nie,** sie greifen nur an und bauen. (Seit Block 1 verlegen sie Truppen, wenn sie
+  festsitzen; Abschnitt 14.)
 - **Gebaut wird selten.** Der Nachschub leert das Hinterland jeden Zug. Ein Hof (Preis 8, also 9 Truppen auf dem
   Feld) passt deshalb fast nur auf die Felder um die Burg, die 10 behalten. Ob „kein Ansparen“ richtig ist, zeigt
   dein Spieltest.
@@ -446,6 +456,8 @@ Den Aufwand habe ich geschätzt, nicht gemessen. Eine „Sitzung“ ist ein Arbe
 | 7 | **Ritter,** die erste neue Figur für Züge. Erst abstimmen, was er genau kann, dann bauen, zuerst nur in der Figurenschau. | Du hast seine Regeln bestätigt. Er ist in der Figurenschau einzeln ansehbar. Tests sind grün. Mit Ritter gemessen bleibt das Duell auf Normal im Rahmen von Block 1. | 2 Sitzungen |
 | 8 | **Übernahme ins öffentliche Spiel.** Bei (a) ersetzt der Rundenmodus die Echtzeit, bei (b) bekommt das Menü beide. Dazu Spielstand, Texte in Deutsch und Englisch, README. | Du hast den Stand in der Testversion freigegeben. Danach ist das öffentliche Spiel umgestellt, dein alter Fortschritt ist nicht verloren, und alle Tests sind grün. | 1 bis 2 Sitzungen, erst nach deinem Okay |
 
+**Stand:** Block 1 ist gebaut (Abschnitt 14). Drei von vier Kriterien sind erfüllt, das dritte knapp nicht.
+
 **Reihenfolge, und warum Block 1 zuerst:** Alle späteren Messungen an Missionen hängen davon ab, wie der Gegner
 spielt. Ändere ich ihn erst danach, muss ich die Missionen neu messen.
 
@@ -479,8 +491,102 @@ nur 20 Karten und ein Würfelsatz, also grob):
 
 ### Vermutet, nicht gemessen
 
-- Dass Block 1 auch Mission 2 und die Karte mit vier Reichen kürzer macht. Möglich ist, dass dort eigene Zahlen
-  je Mission nötig sind (Block 4 und 5).
+- Dass Block 1 auch Mission 2 und die Karte mit vier Reichen kürzer macht. Inzwischen grob gemessen
+  (Abschnitt 14): bei vier Reichen etwas, bei Mission 2 nicht. Dort sind eigene Zahlen je Mission nötig
+  (Block 4 und 5).
 - Die Zielwerte für Siege in den Blöcken 3 und 4 sind meine Vorschläge. Sie richten sich nach dem Duell, nicht
   nach einer Messung an Menschen.
 - Der Aufwand je Block.
+
+## 14 · Block 1: Gegner, die zu Ende spielen (21.11.2026)
+
+### Was neu ist
+
+- **Durchbruch.** Ein Computerreich, das keinen Angriff mehr findet, greift ein Feld mit allem an und lässt die
+  Felder dahinter nachrücken. Vorher kam es an einem vollen Feld oder einer Burg nicht vorbei, wenn es sie nur
+  von einer Seite berührte. Das war die Ursache für das „Abwarten“ (gemessen, siehe unten).
+- **Verlegen.** Reicht der Durchbruch nicht, bringt das Reich Truppen aus dem Hinterland hinter die Front. Im
+  Zeitraffer sieht man sie marschieren, und in der Liste steht „zieht Truppen zusammen“.
+- **„Schwer“ anders eingestellt:** keine eigene zweite Welle mehr, dafür stoßen frisch eroberte Felder weiter
+  vor, und es wird seltener gebaut. Mit der zweiten Welle tauschten zwei gleich starke Reiche endlos Felder.
+- **Messwerkzeug:** `node tools/simulate-turns.mjs 60` misst jetzt auch den „Wartenden“, der nie einen Befehl
+  gibt.
+- **Stellschrauben** (alle in `TURN_DIFFICULTY` in `src/sim/rules.js`): neu `patience` (Züge ohne Angriff bis zum
+  Durchbruch) und `push` (Vorstoßen nach einer Eroberung). Bei „Schwer“ geändert: `waves` 1 → 0, `build`
+  0,45 → 0,2.
+- **Das Echtzeitspiel ist unverändert.** Seine Tests laufen weiter grün.
+
+### Abnahme
+
+Gemessen mit `node tools/simulate-turns.mjs 60`, Duell, 60 Karten je Stufe. Vorher zwei Würfelsätze, nachher drei
+(`--shift=1`, `--shift=2`).
+
+| Kriterium | vorher | nachher | erreicht? |
+|---|---|---|---|
+| 1 · Wer nichts tut, verliert 60 von 60 | Leicht 59 · 59, Normal 59 · 59, Schwer 60 · 60 | alle Stufen 60 · 60 · 60 | **ja** |
+| 2 · höchstens 2 von 60 Partien mit 5 Zügen ohne Angriff | Leicht 8 · 10, Normal 4 · 3, Schwer 2 · 1 | Leicht 0 · 1 · 1, Normal 0 · 0 · 1, Schwer 0 · 0 · 0 | **ja** |
+| 3 · Schwer, Computer gegen Computer: mindestens 100 von 120 entschieden | 93 · 84 | 101 · 91 · 92 | **nein**: besser, aber nur in einem von drei Sätzen |
+| 4 · Stufen klar verschieden (Siege des Anfängers von 60) | Leicht 56 · 55, Normal 42 · 41, Schwer 6 · 11 | Leicht 58 · 55 · 59, Normal 41 · 42 · 36, Schwer 8 · 10 · 15 | **ja** |
+
+### Alle Werte nachher
+
+| Stufe | Computer gegen Computer entschieden | Ende in Zug (Mitte) | Anfänger siegt | Kluger siegt | Burg des Wartenden fällt in Zug (Mitte) |
+|---|---|---|---|---|---|
+| Leicht | 107 · 108 · 109 von 120 (vorher 100 · 107) | 39 · 39 · 40 (vorher 41 · 42) | 58 · 55 · 59 | 59 · 59 · 57 | 26 · 26 · 26 |
+| Normal | 111 · 105 · 106 (vorher 104 · 98) | 33 · 30 · 34 (vorher 36 · 35) | 41 · 42 · 36 | 40 · 48 · 44 | 22 · 21 · 22 |
+| Schwer | 101 · 91 · 92 (vorher 93 · 84) | 38 · 42 · 42 (vorher 42 · 41) | 8 · 10 · 15 | 27 · 17 · 23 | 20 · 19 · 20 |
+
+- **Offene Partien gegen „Schwer“** (kein Sieger bis Zug 80, von 60): beim Anfänger 6 · 8 · 8 (vorher 13 · 16),
+  beim Klugen 8 · 16 · 11 (vorher 14 · 11). Für den Anfänger also besser, für den Klugen gleich.
+- **Verlegt wird selten:** höchstens 0,01 Befehle je Zug. Der Computer tut es nur, wenn er festsitzt.
+
+### Der Weg dorthin (immer eine Stellschraube, je 60 Karten)
+
+| Versuch | Computer gegen Computer entschieden | Siege Anfänger / Kluger | Urteil |
+|---|---|---|---|
+| Durchbruch sofort, in jedem Zug ohne Angriff (Geduld 0), Normal | 51 von 120 | 7 / 21 | verworfen: viel zu stark, und die Reiche verkeilen sich |
+| Durchbruch nach 1 Zug (Normal) | 110 · 106 | 42 · 42 / 40 · 47 | gewählt |
+| Durchbruch nach 2 Zügen (Leicht) | 106 · 109 | 58 · 55 / 59 · 59 | gewählt |
+| Schwer nur mit Durchbruch, zweite Welle wie bisher | 94 · 84 · 80 · 80 | 6 · 12 · 5 · 12 / 22 · 24 · 23 · 20 | das Verkeilen bleibt |
+| Schwer ohne zweite Welle, mit Vorstoßen | 112 · 101 · 97 | 18 · 19 · 17 / 33 · 37 | entscheidet mehr, aber zu leicht für den Klugen |
+| dazu seltener bauen: 0,3 | 107 · 86 · 100 | 18 · 12 · 16 / 29 · 29 · 32 | noch zu leicht |
+| dazu seltener bauen: 0,2 | 100 · 93 · 90 · 96 | 8 · 10 · 15 · 16 / 28 · 17 · 23 · 17 | gewählt: so stark wie vorher, entscheidet mehr |
+| dazu seltener bauen: 0,1 | 92 · 85 · 82 | 6 · 8 · 8 / 19 · 16 · 16 | stärker, verkeilt sich wieder |
+| „Burg nehmen, sobald es mit allem geht“ | 94 · 84 | unverändert | kein Unterschied, wieder ausgebaut |
+| andere Zahlen bei Schwer (Seiten 6, Vorsprung 1,05, Frontwache 3, 4 und 7, Burgwache 16) | 92 bis 115 | | kein Unterschied oder zu leicht |
+
+Diese Versuche sind ohne das Verlegen gemessen. Mit Verlegen stehen die Werte in „Alle Werte nachher“.
+
+### Was offen bleibt: das Verkeilen auf „Schwer“
+
+- **Gemessen:** Je angriffslustiger ein Gegner eingestellt ist, desto besser schlägt er die Testspieler, und
+  desto öfter verkeilen sich zwei von seiner Sorte. Beide tauschen dann jeden Zug gleich viele Felder. Mit den
+  Zahlen des Gegners allein bekomme ich nicht beides: „Schwer“ wirklich schwer und fast jede Partie entschieden.
+- **Gemessener Versuch, nicht eingebaut:** „Im Sturm wächst nichts mehr nach.“ Schwer: 109 · 94 von 120
+  entschieden (statt 94 · 84 beim sonst gleichen Stand), und „Schwer“ bleibt dabei so stark wie vorher. Aber die
+  restlichen Partien enden dann mit leeren Feldern, in denen niemand mehr angreifen kann.
+- **Vermutet:** Sauber wird es erst mit einer Regel für das Ende, etwa „an der Zuggrenze gewinnt, wer mehr
+  Felder hat“. Das ist eine Regel und keine Zahl. Deshalb entscheidest du das, zusammen mit der Frage, wie lang
+  eine Partie sein soll.
+
+### Die anderen Karten, grob (20 Karten, Normal, ein Würfelsatz)
+
+| Karte | Computer gegen Computer entschieden | Ende Mitte | Anfänger / Kluger siegen | gegenüber Abschnitt 13 |
+|---|---|---|---|---|
+| Mission 1 | 40 von 40 | Zug 24 | 13 / 15 von 20 | gleich |
+| Mission 2 | 5 von 40 | Zug 57 | 9 / 18 von 20 | gleich: Die Pässe brauchen eigene Zahlen (Block 4) |
+| Mission 3 | 54 von 60 | Zug 49 | 0 / 0 von 20 | gleich: weiter nicht zu gewinnen (Block 4) |
+| Vier Reiche | 57 von 80 | Zug 48 | 3 / 12 von 20 | etwas kürzer (vorher 49 von 80, Zug 53); für den Anfänger schwerer (vorher 8) |
+
+### Wie geprüft
+
+- **Tests:** `node --test`, 103 Tests grün (5 neue): Durchbruch, Verlegen, Zählen der Züge ohne Angriff, „wer
+  nichts tut, verliert auf jeder Stufe ohne lange Pause“, und der Zeitraffer mit Verlegen endet auf demselben
+  Brett wie die direkte Rechnung.
+- **Browser** (eingebauter Browser, 800 × 600, Stufe Normal): die Karte, auf der die Burg vorher bis zur
+  Zuggrenze stand. Ich habe nur „Zug beenden“ gedrückt. Die Burg fiel in Zug 23, in Zug 16 hat der Gegner
+  Truppen verlegt, die Liste zeigte „zieht Truppen zusammen“, am Ende kam „Niederlage“. Keine Fehlermeldung.
+- **Nicht geprüft:** das Handyformat (an der Oberfläche hat sich nur eine Zeile Text geändert) und, wie in
+  Abschnitt 11, das Tempo bei sichtbarem Fenster. Die Ansicht war wieder ausgeblendet, ich habe die Bilder von
+  Hand angetrieben. Den Marsch beim Verlegen habe ich deshalb nicht als Bild gesehen, nur als Ablauf im Protokoll.
+
