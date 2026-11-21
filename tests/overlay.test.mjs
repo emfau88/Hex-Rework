@@ -173,3 +173,37 @@ test('a tower, a farm and a building site show their sign left of the number, an
     }
   }
 });
+
+test('turn mode: a rival command that plays shows the way of its troops and then how it ended', () => {
+  const game = lab({}, 0);
+  const mine = at(game, 1, 0);
+  const from = at(game, 2, 0);
+  give(game, mine, 0, 5);
+  give(game, from, 1, 12);
+  const calls = [];
+  const { canvas, texts } = fakeCanvas();
+  const ctx = canvas.getContext();
+  ctx.lineTo = (x, y) => calls.push([x, y]);
+  const overlay = new Overlay(canvas);
+  overlay.resize(375, 812, 1);
+  const camera = phoneCamera();
+  const ui = { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1, rivalMove: null };
+
+  overlay.draw(game, camera, ui, 0);
+  const idle = calls.length;
+  ui.rivalMove = { owner: 1, kind: 'attack', target: mine.id, paths: [[from.id, mine.id]], result: null };
+  calls.length = 0;
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(calls.length > idle, 'an arrow is drawn along the way');
+  assert.ok(!texts.some((t) => /[✓✗]/.test(t.text)), 'no outcome while the troops are on their way');
+
+  ui.rivalMove.result = { won: true, left: 6.4 };
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(texts.some((t) => t.text === '✓ 6'), 'the field fell: the garrison that moved in');
+  ui.rivalMove.result = { won: false, left: 2.2 };
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(texts.some((t) => t.text === '✗ 3'), 'the field held: what is left of the defenders');
+});

@@ -172,6 +172,20 @@ export class Overlay {
       return [px, py];
     };
 
+    // Turn mode: the way of the rival's troops in the command that is playing, under the numbers.
+    if (ui.rivalMove) {
+      const m = ui.rivalMove;
+      // A light rim, so the arrow stands out on fields of the rival's own colour too.
+      const width = m.kind === 'move' ? 3 : 4;
+      ctx.globalAlpha = m.result ? 0.55 : 0.95;
+      for (const path of m.paths) {
+        const pts = this._points(game, renderer, path);
+        this._arrow(ctx, pts, '#fff6e0', width + 3);
+        this._arrow(ctx, pts, PALETTE_HEX[game.factions[m.owner].color], width);
+      }
+      ctx.globalAlpha = 1;
+    }
+
     // A coming raid: an arrow from the lair to its marked target, under the numbers.
     for (const id of game.lairs) {
       const lair = game.tiles[id].lair;
@@ -311,7 +325,7 @@ export class Overlay {
     // and does not dodge the numbers of the fields it passes: on a phone those stand so close that
     // dodging made it jump by a whole field from one picture to the next.
     for (const a of game.armies) {
-      if (a.done || a.kind === 'supply' || !concerns(a.owner, game.tiles[a.path[a.path.length - 1]])) continue;
+      if (a.done || a.kind === 'supply' || !(a.show || concerns(a.owner, game.tiles[a.path[a.path.length - 1]]))) continue;
       const pos = renderer.armyPosition(game, a);
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
       badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, null, a.beast || null);
@@ -341,6 +355,7 @@ export class Overlay {
 
     if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
+    if (ui.rivalMove && ui.rivalMove.result) this._rivalResult(ctx, game, renderer, ui.rivalMove, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
     else if (ui.tutorialPath) this._tutorial(ctx, game, renderer, ui.tutorialPath, time);
@@ -630,6 +645,29 @@ export class Overlay {
     const count = res ? res.plan.length : ui.assault.sources.length;
     const result = !res ? '✗' : wins ? `✓ ${Math.max(1, Math.floor(res.left))}` : `✗ ${Math.ceil(res.left)}`;
     const text = `${count}× ${result}`;
+    ctx.font = `800 ${fs + 2}px ${FONT}`;
+    const w = ctx.measureText(text).width + 18;
+    const h = fs + 12;
+    const y = end.y - 34;
+    pill(ctx, end.x, y, w, h);
+    ctx.fillStyle = 'rgba(6, 20, 27, 0.92)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.fillText(text, end.x, y + 0.5);
+  }
+
+  /**
+   * Turn mode: how the rival's attack that just played ended, in its colour at the field: ✓ and the
+   * garrison that moved in, or ✗ and what is left of the defenders (the same signs as the person's preview).
+   */
+  _rivalResult(ctx, game, renderer, m, fs) {
+    const target = game.tiles[m.target];
+    const color = PALETTE_HEX[game.factions[m.owner].color];
+    const end = renderer.project(target.x, target.height + renderer.lift(target.id) + 0.06, target.z);
+    const text = m.result.won ? `✓ ${Math.max(1, Math.floor(m.result.left))}` : `✗ ${Math.ceil(m.result.left)}`;
     ctx.font = `800 ${fs + 2}px ${FONT}`;
     const w = ctx.measureText(text).width + 18;
     const h = fs + 12;

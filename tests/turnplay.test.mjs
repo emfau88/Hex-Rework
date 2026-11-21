@@ -94,3 +94,32 @@ test('a rival that brings troops up is played back to the same board', () => {
   assert.equal(app.game.winner, direct.winner);
   assert.ok(app.notes.some((n) => /zieht Truppen zusammen|gathers troops/.test(n)), 'the move shows in the list of events');
 });
+
+test('while a rival command plays, its way is shown, then the outcome, and nothing once the person moves', () => {
+  const { app, play } = shell(3);
+  play.readyAt = 0;
+  play.endMove(0);
+  const seen = { way: 0, result: 0, numbers: 0 };
+  let t = 0;
+  for (let frame = 0; play.busy && frame < 20000; frame++) {
+    t += 0.05;
+    play.update(t);
+    app.game.drainEvents();
+    const m = app.ui.rivalMove;
+    if (!m) continue;
+    assert.equal(m.owner, 1);
+    assert.ok(m.paths.length >= 1 && m.paths.every((p) => p.length >= 2 && p[p.length - 1] === m.target), 'every way ends at the target');
+    if (m.result) {
+      seen.result++;
+      assert.equal(typeof m.result.won, 'boolean');
+      assert.equal(app.game.armies.length, 0, 'the troops have arrived when the outcome shows');
+    } else {
+      seen.way++;
+      if (app.game.armies.some((a) => a.show)) seen.numbers++;
+    }
+  }
+  assert.ok(seen.way > 0, 'the way was on screen');
+  assert.ok(seen.result > 0, 'the outcome was on screen');
+  assert.ok(seen.numbers > 0, 'the marching troops carry their number');
+  assert.equal(app.ui.rivalMove, null, 'nothing is left once the person moves again');
+});

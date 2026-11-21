@@ -3,7 +3,9 @@
 // The person's commands go straight to the rules and are settled at once. When the person ends the
 // move, the supply columns march, then every rival plays its move command by command as a short
 // time-lapse: the troops of an attack march to the edge with the figures of the real-time game, and
-// only when they arrive is the battle fought (with the very same rules). A button skips the rest.
+// only when they arrive is the battle fought (with the very same rules). While a command plays, arrows
+// in the rival's colour show the way of its troops, and after a battle a small sign says how it ended
+// (ui.rivalMove, drawn by the overlay). A button skips the rest.
 // The rules know nothing of this: they settle each command the moment it is given.
 
 import { aiNext } from '../sim/turns.js';
@@ -12,9 +14,10 @@ import { PALETTE_HEX } from '../render/models.js';
 
 const $ = (sel) => document.querySelector(sel);
 
-// Seconds at the pace "normal": troops marching to a battle, supply columns, the pause after a battle,
-// the moment a rival starts its move, and after a building.
-const BEAT = { march: 0.8, supply: 0.6, rest: 0.35, start: 0.45, build: 0.6 };
+// Seconds at the pace "normal": troops marching to a battle, supply columns, the pause after a move of
+// troops, the pause after a battle while its outcome stands at the field, the moment a rival starts
+// its move, and after a building.
+const BEAT = { march: 0.8, supply: 0.6, rest: 0.35, result: 0.6, start: 0.45, build: 0.6 };
 const PACE = { calm: 1.35, normal: 1, fast: 0.6 };
 // Milliseconds after the person's move begins in which "end move" does nothing.
 const GRACE = 1000;
@@ -157,6 +160,7 @@ export class TurnPlay {
       const armies = [this._army(f.id, cmd.units, path, 'move', path.length - 1)];
       this.beat = { kind: 'move', cmd, before, armies, start: now, dur: BEAT.march * this.scale(), until: now + BEAT.march * this.scale() };
       g.armies.push(...armies);
+      this._show({ owner: f.id, kind: 'move', target: cmd.to, paths: [path], result: null });
       return;
     }
     // An attack: its troops leave their fields now and fight when they reach the edge. What the
@@ -166,6 +170,12 @@ export class TurnPlay {
     const armies = res.plan.map((p) => this._army(f.id, p.units, p.path, 'attack', p.path.length - 1.5));
     this.beat = { kind: 'attack', cmd, before, armies, start: now, dur: BEAT.march * this.scale(), until: now + BEAT.march * this.scale() };
     g.armies.push(...armies);
+    this._show({ owner: f.id, kind: 'attack', target: cmd.target, paths: res.plan.map((p) => p.path), result: null });
+  }
+
+  /** What the overlay draws for the rival's command that is playing (null: nothing). */
+  _show(move) {
+    this.app.ui.rivalMove = move;
   }
 
   /** Plays everything that is left at once: the beat on screen and the moves of all rivals. */
@@ -173,6 +183,7 @@ export class TurnPlay {
     const g = this.game;
     if (!this.busy) return;
     if (this.beat) this._land(0, true);
+    this._show(null);
     while (g.phase === 'running' && g.current !== this.human) {
       const f = g.factions[g.current];
       if (!this.memo) {
@@ -190,7 +201,8 @@ export class TurnPlay {
   }
 
   _army(owner, units, path, kind, stop) {
-    return { id: this.game.nextArmyId++, owner, units, path, seg: 0, t: 0, leg: 1, kind, done: false, stop };
+    // `show`: its number is drawn whoever it marches against (the overlay hides rivals among themselves).
+    return { id: this.game.nextArmyId++, owner, units, path, seg: 0, t: 0, leg: 1, kind, done: false, stop, show: true };
   }
 
   /** Columns that are already in the rules' list (supply) march for `beat` seconds. */
@@ -222,8 +234,15 @@ export class TurnPlay {
     } else if (b.kind === 'attack' || b.kind === 'move') {
       g.armies = [];
       for (const [id, units] of b.before) g.tiles[id].units = units;
+      this.outcome = null;
       if (!this._run(b.cmd)) this.memo.done = true;
-      if (!quick) this.beat = { kind: 'rest', until: now + BEAT.rest * this.scale() };
+      // The arrows stay through the short rest, now with the outcome of the battle at the field.
+      const shown = this.app.ui.rivalMove;
+      if (quick || !shown || !this.outcome) this._show(null);
+      else shown.result = { won: this.outcome.won, left: this.outcome.left };
+      if (!quick) this.beat = { kind: 'rest', until: now + (b.kind === 'attack' ? BEAT.result : BEAT.rest) * this.scale() };
+    } else {
+      this._show(null);
     }
   }
 
@@ -245,6 +264,7 @@ export class TurnPlay {
     const defender = g.tiles[cmd.target].owner;
     const res = g.attack(owner, cmd.target, cmd.parts);
     if (!res) return false;
+    this.outcome = res;
     if (s) {
       if (res.won) {
         s.took++;
@@ -287,6 +307,7 @@ export class TurnPlay {
     const g = this.game;
     this.busy = false;
     this.beat = null;
+    this._show(null);
     this.readyAt = performance.now() + GRACE;
     g.armies = [];
     const n = g.commandsLeft;
@@ -301,6 +322,7 @@ export class TurnPlay {
     this.busy = false;
     this.beat = null;
     this.memo = null;
+    this._show(null);
     this.game.armies = [];
     this.app.updateHud(true);
   }
