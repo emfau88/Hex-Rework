@@ -1,10 +1,10 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.4 vom 19.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
-Alle offenen Fragen aus Entwurf 0.1 sind entschieden (Abschnitt 4). Schritt 2 ist gebaut und gemessen
-(Abschnitt 10). Schritt 3 ist gebaut: Das Duell läuft im Browser Zug um Zug, an PC und Handy geprüft
-(Abschnitt 11). Seit Schritt 4 ist die Testversion online: https://emfau88.github.io/Hex-Rework/runden/
-(Abschnitt 6). Als Nächstes kommt dein Spieltest (Schritt 5).
+Entwurf 0.5 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
+Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
+(Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
+geteilt (Abschnitt 13). Als Nächstes kommt Block 1, sobald du zustimmst.
 
 ## 1 · Worum es geht
 
@@ -177,14 +177,14 @@ Zu jedem Schritt steht, wann er fertig ist. Den Aufwand habe ich geschätzt, nic
 | 2 | Rundenkern ohne Grafik: Regeln, Gegner mit 3 Befehlen, Tests, Messwerkzeug „Computer gegen Computer“ | Partien auf dem Duell dauern 20 bis 35 Züge; wer beginnt, gewinnt höchstens 55 %; Leicht, Normal und Schwer sind klar verschieden | gebaut, Abnahme nur zum Teil erreicht (Abschnitt 10) |
 | 3 | Spielbar im Browser auf der Duell-Karte: Zugleiste, Befehle mit Vorschau, Rückgängig, Gegnerzüge im Zeitraffer, Liste der Ereignisse; PC und Handy | eine Partie läuft im Browser ohne Fehler durch, an beiden Bildschirmen geprüft | erledigt (Abschnitt 11) |
 | 4 | Testversion online, Link in der README | der Link öffnet die Testversion; das echte Spiel und dein Spielstand sind unverändert | erledigt (Abschnitt 6) |
-| 5 | Dein Spieltest | du hast die Fragen unten beantwortet | deine Zeit |
-| 6 | **Entscheidung:** (a) Runden wird das Spiel, (b) beide Modi bleiben, (c) verwerfen | | |
-| 7 | nur bei (a) oder (b): Missionen 1 bis 3 in Zügen, Troll in Zügen, Ritter, Feinschliff, dann Übernahme ins öffentliche Spiel | | Wochen |
+| 5 | Dein Spieltest | du hast die Fragen unten beantwortet | gespielt am 20.11.2026; eine Frage beantwortet, fünf offen (Abschnitt 12) |
+| 6 | **Entscheidung:** (a) Runden wird das Spiel, (b) beide Modi bleiben, (c) verwerfen | | zum Teil entschieden: nicht (c), es wird ausgebaut. (a) oder (b) ist offen (Abschnitt 12) |
+| 7 | Ausbau: Gegner, Zeitraffer, Missionen 1 bis 3, freies Spiel, Troll, Ritter, dann Übernahme ins öffentliche Spiel | | in Blöcke geteilt (Abschnitt 13) |
 
-Bis Schritt 6 ruht die Arbeit an neuen Figuren. Wie Ritter und Co. funktionieren, hängt davon ab, ob in Sekunden
-oder in Zügen gespielt wird.
+Bis zur Wahl zwischen (a) und (b) ruht die Arbeit an neuen Figuren. Wie Ritter und Co. gebaut werden, hängt
+davon ab, ob sie nur in Zügen oder auch in Sekunden funktionieren müssen.
 
-**Fragen für deinen Spieltest (Schritt 5):**
+**Fragen für deinen Spieltest (Schritt 5):** Was davon beantwortet ist, steht in Abschnitt 12.
 - Fühlt es sich ruhiger an, und kommst du zum Bauen?
 - Sind 3 Befehle zu wenig, genau richtig oder zu viel?
 - Ist der Zeitraffer der Gegner zu schnell, zu langsam oder unnötig?
@@ -402,3 +402,85 @@ Züge, Mehrspieler.
   - Diese letzten 4 Felder mit der Burg griff er bis Zug 53 nicht an („wartet ab“).
   - Das ist dieselbe Schwäche wie bei den eingeschlossenen Burgen in Abschnitt 10. Für deinen Spieltest ist sie
     unwichtig, für „Schwer“ später schon.
+  - Nachtrag 21.11.2026: Das war eine einzelne Partie. Über 60 Karten gemessen ist dieser Fall selten
+    (Abschnitt 13, Ausgangswerte).
+
+## 12 · Dein Spieltest und die Entscheidung (20.11.2026)
+
+**Dein Ergebnis, wörtlich:** „ja ist schon deutlich ruhiger und erstmal interessant soweit, denke das sollten wir
+in diesem branch ausbauen mit den runden“
+
+### Was damit feststeht
+
+- **Ruhiger: ja.** Das war das Hauptziel der Probe (Abschnitt 1).
+- **Verwerfen (c) ist vom Tisch.** Der Rundenmodus wird weiterverfolgt.
+- **Ausgebaut wird im Zweig `runden`.** Das öffentliche Spiel bleibt bis auf Weiteres unverändert in Echtzeit.
+
+### Was noch offen ist
+
+| Frage | Wofür ich die Antwort brauche |
+|---|---|
+| **(a) Runden ersetzt die Echtzeit** oder **(b) beide Spielarten bleiben** | Spätestens vor Block 6 (Troll). Bei (b) muss jede Figur und jede Mission in beiden Spielarten gebaut, gemessen und gepflegt werden. Die Blöcke 1 bis 5 gehen ohne diese Antwort. |
+| Kommst du zum Bauen? | Block 2. Die Computer bauen selten (Abschnitt 10). |
+| 3 Befehle: zu wenig, richtig oder zu viel? | Block 2. Gemessen sind 2, 3 und 4 (Abschnitt 10). |
+| Zeitraffer: zu schnell, zu langsam, unnötig? Kannst du den Gegnern folgen? | Block 2 |
+| Fehlt dir die Spannung der Echtzeit? | Block 2, und die Wahl zwischen (a) und (b) |
+| Wie lang soll eine Partie sein (in Zügen oder Minuten)? | Blöcke 1, 3 und 4: Danach richten sich Zuggrenze, Sturm und die Sterne. |
+
+## 13 · Ausbau in Blöcken (Vorschlag vom 21.11.2026)
+
+Das ist der frühere Schritt 7, zerlegt. Jeder Block hat ein Abnahmekriterium. Fertig ist er, wenn das Kriterium
+erfüllt ist, alle Tests grün sind, das Ergebnis im Browser geprüft ist und dieser Plan den neuen Stand zeigt.
+Am Ende jedes Blocks frage ich, ob die Testversion neu hochgeladen werden soll.
+
+Den Aufwand habe ich geschätzt, nicht gemessen. Eine „Sitzung“ ist ein Arbeitsgang wie die Schritte 2 oder 3.
+
+| Block | Was | Fertig, wenn | Aufwand |
+|---|---|---|---|
+| 1 | **Gegner, die zu Ende spielen.** Der Computer soll einen klaren Vorsprung nutzen, statt abzuwarten, und gleich starke Gegner sollen sich seltener verkeilen. Dazu kommt die Messung „Spieler tut nichts“ ins Messwerkzeug. | je 60 Karten, zwei Würfelsätze: (1) Wer nichts tut, verliert auf jeder Stufe 60 von 60. (2) Höchstens 2 von 60 Partien je Stufe, in denen der Computer 5 Züge am Stück nicht angreift. (3) Computer gegen Computer auf Schwer: mindestens 100 von 120 entschieden. (4) Die Stufen bleiben klar verschieden: Anfänger gegen Leicht mindestens 50, gegen Normal 30 bis 48, gegen Schwer höchstens 15 Siege von 60. | 1 Sitzung |
+| 2 | **Zeitraffer und Lesbarkeit.** Marschierende Gegner besser sichtbar, Tempo bei normaler Bildfolge geprüft, Prüfung auf einem echten Handy (mit dir). Dazu das, was deine Antworten aus Abschnitt 12 verlangen (etwa Befehlszahl oder Bauen). | Du kannst jedem Gegnerzug folgen, ohne zu suchen (dein Urteil). Das Tempo ist bei sichtbarem Fenster gemessen. Du hast eine Partie auf deinem Handy gespielt, ohne dass etwas klemmt. | 1 Sitzung, dazu dein Test |
+| 3 | **Mission 1 in Zügen,** mit der Einführung in geführten Schritten und Sternen für wenige Züge. | Die Mission läuft im Browser von der Einführung bis zum Ergebnis ohne Fehler, an PC und im Handyformat. Je 60 Partien, zwei Würfelsätze: Der Anfänger gewinnt auf Normal 40 bis 52 von 60, auf Leicht mindestens 54. Siege liegen in der Mitte bei 20 bis 30 Zügen (oder bei der Länge, die du nennst). | 1 bis 2 Sitzungen |
+| 4 | **Missionen 2 und 3 in Zügen.** Mission 2 mit dem Abschneiden, Mission 3 mit der Zitadelle („halte sie so viele Züge“). | Beide laufen im Browser ohne Fehler durch. Je 60 Partien, zwei Würfelsätze, auf Normal: Der Kluge gewinnt 40 bis 54 von 60, der Anfänger mindestens 20. Höchstens 6 von 60 Partien enden an der Zuggrenze. | 2 bis 3 Sitzungen |
+| 5 | **Freies Spiel in Zügen:** Zufallskarte und die Karte mit vier Reichen. Bei drei Gegnern muss der Zeitraffer kurz bleiben. | Beide Karten laufen im Browser ohne Fehler durch. Der Zeitraffer aller Gegner zusammen dauert höchstens so lange, wie du in Block 2 gut fandest. Auf Normal: mindestens 100 von 120 Partien Computer gegen Computer entschieden, Ende in der Mitte vor Zug 45. | 1 bis 2 Sitzungen |
+| 6 | **Troll in Zügen.** Er überfällt alle paar Züge und kündigt es einen Zug vorher an (Skizze in Abschnitt 3). Zuerst in der Figurenschau, dann auf einer Karte. | In der Figurenschau sieht man Ankündigung, Überfall und Rückzug Zug um Zug. Tests für den Troll in Zügen sind grün, die Tests für den Troll in Echtzeit auch. | 1 bis 2 Sitzungen |
+| 7 | **Ritter,** die erste neue Figur für Züge. Erst abstimmen, was er genau kann, dann bauen, zuerst nur in der Figurenschau. | Du hast seine Regeln bestätigt. Er ist in der Figurenschau einzeln ansehbar. Tests sind grün. Mit Ritter gemessen bleibt das Duell auf Normal im Rahmen von Block 1. | 2 Sitzungen |
+| 8 | **Übernahme ins öffentliche Spiel.** Bei (a) ersetzt der Rundenmodus die Echtzeit, bei (b) bekommt das Menü beide. Dazu Spielstand, Texte in Deutsch und Englisch, README. | Du hast den Stand in der Testversion freigegeben. Danach ist das öffentliche Spiel umgestellt, dein alter Fortschritt ist nicht verloren, und alle Tests sind grün. | 1 bis 2 Sitzungen, erst nach deinem Okay |
+
+**Reihenfolge, und warum Block 1 zuerst:** Alle späteren Messungen an Missionen hängen davon ab, wie der Gegner
+spielt. Ändere ich ihn erst danach, muss ich die Missionen neu messen.
+
+### Ausgangswerte für die Blöcke (gemessen am 21.11.2026)
+
+**Spieler, der nie einen Befehl gibt** (Duell, 60 Karten je Stufe, erste · zweite Messung). Das Skript dafür liegt
+noch nicht im Projekt; es kommt mit Block 1 ins Messwerkzeug.
+
+| Stufe | Burg gefallen | Ende in Zug (10 % / Mitte / 90 %) | Partien mit 5 Zügen ohne Angriff |
+|---|---|---|---|
+| Leicht | 59 · 59 von 60 | 26/26/26 · 26/26/26 | 8 · 10 |
+| Normal | 59 · 59 von 60 | 19/22/24 · 19/22/24 | 4 · 3 |
+| Schwer | 60 · 60 von 60 | 16/18/21 · 15/18/20 | 2 · 1 |
+
+- Der Computer nimmt die Burg eines Wartenden also fast immer zügig. Die Partie aus Abschnitt 11 (Burg hält bis
+  Zug 53) ist der seltene Fall: Je Stufe bleibt höchstens 1 von 60 Partien ganz offen.
+- „Leicht“ endet immer genau in Zug 26. Das liegt an der Regel „keine Burg angreifen vor Sekunde 200“, also vor
+  Zug 25.
+- Häufiger ist das Verkeilen, wenn sich beide wehren: Computer gegen Computer bleiben auf Schwer 27 bis 36 von
+  120 Partien ohne Sieger (Abschnitt 10).
+
+**Die anderen Karten im Rundenkern, so wie er heute ist** (`node tools/simulate-turns.mjs 20 --only=… --level=normal`,
+nur 20 Karten und ein Würfelsatz, also grob):
+
+| Karte | Computer gegen Computer | Anfänger siegt | Kluger siegt | Was das heißt |
+|---|---|---|---|---|
+| Mission 1 | 40 von 40 entschieden, Mitte Zug 26 | 13 von 20 | 15 von 20 | passt schon fast |
+| Mission 2 | 5 von 40 entschieden, Mitte Zug 57 | 9 von 20 | 18 von 20 | verkeilt sich an den Pässen |
+| Mission 3 | 51 von 60 entschieden, Mitte Zug 51 | 0 von 20 | 0 von 20 | so nicht zu gewinnen |
+| Vier Reiche, Zufallskarte | 49 von 80 entschieden, Mitte Zug 53 | 8 von 20 | 12 von 20 | zu lang, 41 Partien enden erst im Sturm |
+
+### Vermutet, nicht gemessen
+
+- Dass Block 1 auch Mission 2 und die Karte mit vier Reichen kürzer macht. Möglich ist, dass dort eigene Zahlen
+  je Mission nötig sind (Block 4 und 5).
+- Die Zielwerte für Siege in den Blöcken 3 und 4 sind meine Vorschläge. Sie richten sich nach dem Duell, nicht
+  nach einer Messung an Menschen.
+- Der Aufwand je Block.
