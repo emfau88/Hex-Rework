@@ -23,7 +23,7 @@ export class TurnPlay {
   constructor(app) {
     this.app = app;
     this.busy = false; // from "end move" until it is the person's move again
-    this.beat = null; // what is playing on screen: { kind, start, dur, until, armies, cmd, plan }
+    this.beat = null; // what is playing on screen: { kind, start, dur, until, armies, cmd, before }
     this.memo = null; // the planner's notes for the rival's current move
     this.summary = null; // what the rival moving now has done so far
     this.reports = []; // summaries of the rivals' moves since the person's last move
@@ -129,7 +129,7 @@ export class TurnPlay {
     if (!this.memo) {
       // A rival begins: its fields have grown. A short moment before its first command.
       this.memo = {};
-      this.summary = { owner: f.id, took: 0, mine: 0, held: 0, failed: 0, built: 0 };
+      this.summary = { owner: f.id, took: 0, mine: 0, held: 0, failed: 0, built: 0, moved: 0 };
       this.beat = { kind: 'rest', until: now + BEAT.start * this.scale() };
       return;
     }
@@ -143,6 +143,20 @@ export class TurnPlay {
     if (cmd.type === 'build') {
       if (!this._run(cmd)) this.memo.done = true;
       this.beat = { kind: 'rest', until: now + BEAT.build * this.scale() };
+      return;
+    }
+    if (cmd.type === 'move') {
+      // Troops brought up behind the front: they leave their field now and arrive when the march ends.
+      const path = g.findPath(f.id, cmd.from, cmd.to);
+      if (!path) {
+        this.memo.done = true;
+        return;
+      }
+      const before = [[cmd.from, g.tiles[cmd.from].units]];
+      g.tiles[cmd.from].units -= cmd.units;
+      const armies = [this._army(f.id, cmd.units, path, 'move', path.length - 1)];
+      this.beat = { kind: 'move', cmd, before, armies, start: now, dur: BEAT.march * this.scale(), until: now + BEAT.march * this.scale() };
+      g.armies.push(...armies);
       return;
     }
     // An attack: its troops leave their fields now and fight when they reach the edge. What the
@@ -163,7 +177,7 @@ export class TurnPlay {
       const f = g.factions[g.current];
       if (!this.memo) {
         this.memo = {};
-        this.summary = { owner: f.id, took: 0, mine: 0, held: 0, failed: 0, built: 0 };
+        this.summary = { owner: f.id, took: 0, mine: 0, held: 0, failed: 0, built: 0, moved: 0 };
       }
       if (!this.memo.done) for (let c = aiNext(g, f, this.memo); c && this._run(c); c = aiNext(g, f, this.memo));
       g.shipSupply();
@@ -205,7 +219,7 @@ export class TurnPlay {
     this.beat = null;
     if (b.kind === 'supply') {
       this._pass();
-    } else if (b.kind === 'attack') {
+    } else if (b.kind === 'attack' || b.kind === 'move') {
       g.armies = [];
       for (const [id, units] of b.before) g.tiles[id].units = units;
       if (!this._run(b.cmd)) this.memo.done = true;
@@ -221,6 +235,11 @@ export class TurnPlay {
     if (cmd.type === 'build') {
       if (!g.build(owner, cmd.tile, cmd.building)) return false;
       if (s) s.built++;
+      return true;
+    }
+    if (cmd.type === 'move') {
+      if (!g.move(owner, cmd.from, cmd.to, cmd.units)) return false;
+      if (s) s.moved++;
       return true;
     }
     const defender = g.tiles[cmd.target].owner;
@@ -256,6 +275,7 @@ export class TurnPlay {
     if (s.took) parts.push(i18n.t(s.took === 1 ? 'sumTook1' : 'sumTook', { n: s.took }) + (s.mine ? ` (${i18n.t('sumMine', { n: s.mine })})` : ''));
     if (s.held) parts.push(i18n.t('sumHeld', { n: s.held }));
     if (s.built) parts.push(i18n.t('sumBuilt', { n: s.built }));
+    if (s.moved) parts.push(i18n.t('sumMoved'));
     if (!parts.length) parts.push(i18n.t('sumNothing'));
     const html = `${name}: ${parts.join(' · ')}`;
     this.reports.push({ html, text: `${f.name}: ${parts.join(' · ')}`, bad: s.mine > 0 });
@@ -299,7 +319,7 @@ export class TurnPlay {
       title.textContent = i18n.t('turnRival', { name: f.name });
       title.style.color = PALETTE_HEX[f.color];
       // A command on its way counts already: its troops are marching.
-      const playing = this.beat?.kind === 'attack' ? 1 : 0;
+      const playing = this.beat?.kind === 'attack' || this.beat?.kind === 'move' ? 1 : 0;
       sub.textContent = i18n.t('turnRivalSub', { n: Math.min(max, max - g.commandsLeft + playing), m: max });
     } else if (this.busy) {
       title.textContent = i18n.t('turnMine');

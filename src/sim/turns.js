@@ -253,13 +253,19 @@ export class TurnGame extends Game {
    */
   assaultParts(owner, target, fraction, rear = false) {
     const out = [];
-    const flank = this.flankers(owner, target);
-    const used = new Set(flank);
-    for (const n of flank) {
+    for (const n of this.assaultFields(owner, target, rear)) {
       const units = this.sendAmount(n, fraction);
       if (units >= 1) out.push({ origin: n, units });
     }
+    return out;
+  }
+
+  /** The fields that would join an attack on `target`: those next to it and, with `rear`, those behind. */
+  assaultFields(owner, target, rear = false) {
+    const flank = this.flankers(owner, target);
+    const out = flank.slice();
     if (rear) {
+      const used = new Set(flank);
       // A field behind that faces a rival of its own keeps its troops for that front.
       const facesRival = (r) => r.neighbors.some((k) => this.tiles[k].owner >= 0 && this.tiles[k].owner !== owner && k !== target);
       for (const n of flank) {
@@ -267,8 +273,7 @@ export class TurnGame extends Game {
           const r = this.tiles[m];
           if (used.has(m) || r.owner !== owner || r.castle >= 0 || facesRival(r)) continue;
           used.add(m);
-          const units = this.sendAmount(m, fraction);
-          if (units >= 1) out.push({ origin: m, units });
+          out.push(m);
         }
       }
     }
@@ -481,7 +486,7 @@ export function aiTurn(game, f = game.factions[game.current]) {
  * The next command of a computer kingdom in its move, without giving it, or null when it is done.
  * `memo` is an empty object at the start of the move and is passed again for every further command.
  * Giving the commands one at a time with runCommand plays exactly the move aiTurn plays.
- *   { type: 'attack', target, parts }   or   { type: 'build', tile, building }
+ *   { type: 'attack', target, parts }   or   { type: 'build', tile, building }   or   { type: 'move', from, to, units }
  */
 export function aiNext(game, f, memo) {
   const me = f.id;
@@ -498,14 +503,131 @@ export function aiNext(game, f, memo) {
   if (memo.guard++ >= 12) return null;
   const plan = planAttack(game, f);
   if (plan && game.preview(me, plan.target, plan.parts)) return { type: 'attack', ...plan };
+  // Stuck: nothing looked worth it for a while, so the kingdom throws everything at one field.
+  if (P.patience != null && idleMoves(game, me) >= P.patience) {
+    const push = planBreak(game, f);
+    if (push) return { type: 'attack', ...push };
+    // Not even that gets through: bring troops up behind the front for the next try.
+    const mass = planMass(game, f);
+    if (mass) return { type: 'move', ...mass };
+  }
   if (P.idleBuild) return chooseBuild(game, f);
   return null;
+}
+
+/** How many moves in a row kingdom `owner` has just made without any attack (the running move not counted). */
+export function idleMoves(game, owner) {
+  let n = 0;
+  for (let i = game.log.length - 1; i >= 0; i--) {
+    const e = game.log[i];
+    if (e.owner !== owner || e === game.entry) continue;
+    if (e.commands.some((c) => c.type === 'attack')) break;
+    n++;
+  }
+  return n;
+}
+
+/**
+ * Breakthrough: the attack a person gives with "all troops" and "follow up" (assaultParts), for a
+ * kingdom whose careful planner finds nothing. It keeps nothing back, so it gets through where a
+ * full field or a castle is touched from too few sides. Returns the best one that takes its
+ * field, as {target, parts}, or null. A castle is spared before `rushAfter` like in the planner,
+ * unless nothing else is left to attack.
+ */
+export function planBreak(game, f) {
+  const me = f.id;
+  const P = f.ai;
+  const tiles = game.tiles;
+  // Steps to the nearest rival castle: fields on the way there come first.
+  const toCastle = new Int16Array(tiles.length).fill(-1);
+  const queue = [];
+  for (const o of game.factions) {
+    if (o.alive && o.id !== me && !o.wild) {
+      toCastle[o.castle] = 0;
+      queue.push(o.castle);
+    }
+  }
+  for (let i = 0; i < queue.length; i++) {
+    for (const n of tiles[queue[i]].neighbors) {
+      if (toCastle[n] < 0 && tiles[n].passable) {
+        toCastle[n] = toCastle[queue[i]] + 1;
+        queue.push(n);
+      }
+    }
+  }
+  let best = null;
+  for (const id of breakTargets(game, f)) {
+    const o = tiles[id];
+    for (const rear of [false, true]) {
+      const parts = game.assaultParts(me, id, 1, rear);
+      const res = parts.length ? game.preview(me, id, parts) : null;
+      if (!res || !res.won) continue;
+      let score = o.castle >= 0 ? 1000 : (10 + 30 / (toCastle[id] + 1)) / (res.lost + 4);
+      if (o.owner === game.human) score *= P.humanBias;
+      if (!best || score > best.score) best = { target: id, parts, score };
+      break; // what gets through without the fields behind leaves them where they are
+    }
+  }
+  return best && { target: best.target, parts: best.parts };
+}
+
+/** The rival fields a kingdom touches and may break into now (see planBreak for the castles). */
+function breakTargets(game, f) {
+  const me = f.id;
+  const tiles = game.tiles;
+  const targets = new Set();
+  let other = false; // anything but a castle within reach
+  for (const t of tiles) {
+    if (t.owner !== me) continue;
+    for (const n of t.neighbors) {
+      const o = tiles[n];
+      if (!o.passable || o.owner === me) continue;
+      if (o.castle < 0) other = true;
+      if (o.owner >= 0 && !game.factions[o.owner].wild) targets.add(n);
+    }
+  }
+  const early = other && game.time < f.ai.rushAfter;
+  return [...targets].filter((id) => !(early && tiles[id].castle >= 0));
+}
+
+/**
+ * Bringing troops up: where no breakthrough gets through yet, the fullest field away from every
+ * front sends its troops to a field that would join the attack and still has room. This is the
+ * command "move" of a person. Returns {from, to, units} or null.
+ */
+export function planMass(game, f) {
+  const me = f.id;
+  const tiles = game.tiles;
+  const facesRival = (t) => t.neighbors.some((n) => tiles[n].owner >= 0 && tiles[n].owner !== me);
+  let best = null;
+  for (const id of breakTargets(game, f)) {
+    const stage = game.assaultFields(me, id, true);
+    const staged = new Set(stage);
+    let to = null;
+    let room = 0;
+    for (const s of stage) {
+      const t = tiles[s];
+      const r = t.castle >= 0 ? 0 : Math.floor(game.cap(t) - t.units);
+      if (r > room) {
+        room = r;
+        to = t;
+      }
+    }
+    if (!to) continue;
+    for (const d of tiles) {
+      if (d.owner !== me || staged.has(d.id) || facesRival(d)) continue;
+      const units = Math.min(Math.floor(d.units) - (d.castle === me ? f.ai.castleKeep : 1), room);
+      if (units >= 3 && (!best || units > best.units)) best = { from: d.id, to: to.id, units };
+    }
+  }
+  return best && game.findPath(me, best.from, best.to) ? best : null;
 }
 
 /** Gives a command as aiNext describes it. Returns false if the game refused it. */
 export function runCommand(game, owner, cmd) {
   if (cmd.type === 'attack') return Boolean(game.attack(owner, cmd.target, cmd.parts));
   if (cmd.type === 'build') return game.build(owner, cmd.tile, cmd.building);
+  if (cmd.type === 'move') return Boolean(game.move(owner, cmd.from, cmd.to, cmd.units));
   return false;
 }
 

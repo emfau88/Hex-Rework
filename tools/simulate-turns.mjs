@@ -16,6 +16,8 @@
 //   Anfänger   a stand-in person who attacks from two sides at most and wants a wide margin
 //   Kluger     a stand-in person who encircles, pushes on after a capture and builds
 //              Both begin, as a person does, and have the same commands as the rivals.
+//   Wartender  a person who never gives a command: how often and when the castle falls, and in how
+//              many matches a rival went 5 moves in a row without an attack ("wartet ab")
 //   Befehle    what the commands went to: attacks, moves, buildings (per move of a kingdom)
 
 import { TurnGame, aiTurn } from '../src/sim/turns.js';
@@ -51,13 +53,27 @@ const quant = (a) => {
   return `${q(0.1)}/${q(0.5)}/${q(0.9)}`;
 };
 
-/** Plays one match to the end. `person` replaces the planning of kingdom 0. Counts the commands. */
+/**
+ * Plays one match to the end. `person` replaces the planning of kingdom 0; 'idle' is a person who
+ * only ends the move. Counts the commands and notes the longest run of moves in which a computer
+ * kingdom did not attack (`game.pause`).
+ */
 function play(game, person, tally) {
-  if (person) game.factions[0].ai = person;
+  const idle = person === 'idle';
+  if (person && !idle) game.factions[0].ai = person;
+  const quiet = game.factions.map(() => 0);
+  game.pause = 0;
   while (game.phase === 'running') {
-    aiTurn(game, game.factions[game.current]);
-    tally.moves++;
-    for (const c of game.entry.commands) tally[c.type]++;
+    const me = game.current;
+    if (!(idle && me === 0)) {
+      aiTurn(game, game.factions[me]);
+      tally.moves++;
+      for (const c of game.entry.commands) tally[c.type]++;
+      if (!(person && me === 0)) {
+        quiet[me] = game.entry.commands.some((c) => c.type === 'attack') ? 0 : quiet[me] + 1;
+        game.pause = Math.max(game.pause, quiet[me]);
+      }
+    }
     game.endTurn();
   }
   return game;
@@ -100,6 +116,18 @@ for (const difficulty of levels) {
       }
       line.push(`${label}: Siege ${wins}/${runs} (Niederlagen ${lost})${won.length ? ` in Zug ${quant(won)}` : ''}`);
     }
+    let fallen = 0;
+    let paused = 0;
+    const fell = [];
+    for (let i = 0; i < runs; i++) {
+      const g = play(new TurnGame({ mission, seed: 1000 + i * 17 + shift, difficulty, human: 0, wide: true }), 'idle', { moves: 0, attack: 0, move: 0, build: 0 });
+      if (g.winner > 0) {
+        fallen++;
+        fell.push(g.turn);
+      }
+      if (g.pause >= 5) paused++;
+    }
+    line.push(`Wartender: Burg gefallen ${fallen}/${runs}${fell.length ? ` in Zug ${quant(fell)}` : ''}, Partien mit 5 Zügen ohne Angriff ${paused}`);
   }
   const per = (n) => (n / tally.moves).toFixed(2);
   line.push(`Befehle je Zug: Angriff ${per(tally.attack)}, Verschieben ${per(tally.move)}, Bauen ${per(tally.build)}`);

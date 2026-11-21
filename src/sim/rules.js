@@ -127,8 +127,14 @@ export const TURN_RULES = Object.freeze({
 // build      chance per turn to spend a command on a building first
 // idleBuild  spend commands that found no attack worth it on a building
 // rushAfter  no attack on any castle before this game second (turn × seconds)
+// patience   moves without any attack a kingdom sits out before it breaks through: everything next to
+//            one field attacks, and the fields behind follow (planBreak in turns.js). Without it a
+//            kingdom never got past a full field or a castle it touched from too few sides.
+// push       a field that was just taken attacks on with all it has (in real time part of `waves`)
+// "hard" has no second wave of its own (waves 0): with it, equal kingdoms traded fields without end
+// (84 of 120 duels decided on average, against 95 with `push` alone and fewer buildings).
 export const TURN_DIFFICULTY = Object.freeze({
-  easy: Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.15, idleBuild: false, incomeMul: 0.75, humanBias: 0.6, rushAfter: 200 }),
-  normal: Object.freeze({ margin: 1.25, sides: 3, waves: 0, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.3, idleBuild: true, incomeMul: 0.9, humanBias: 0.9, rushAfter: 96 }),
-  hard: Object.freeze({ margin: 1.12, sides: 5, waves: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.45, idleBuild: true, incomeMul: 1, humanBias: 1, rushAfter: 48 }),
+  easy: Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.15, idleBuild: false, incomeMul: 0.75, humanBias: 0.6, rushAfter: 200, patience: 2 }),
+  normal: Object.freeze({ margin: 1.25, sides: 3, waves: 0, reinforce: 2, frontKeep: 5, castleKeep: 20, build: 0.3, idleBuild: true, incomeMul: 0.9, humanBias: 0.9, rushAfter: 96, patience: 1 }),
+  hard: Object.freeze({ margin: 1.12, sides: 5, waves: 0, push: 1, reinforce: 2, frontKeep: 5, castleKeep: 22, build: 0.2, idleBuild: true, incomeMul: 1, humanBias: 1, rushAfter: 48, patience: 1 }),
 });

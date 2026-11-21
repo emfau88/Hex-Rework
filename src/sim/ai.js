@@ -29,7 +29,8 @@ export function aiThink(game, f) {
     if (t.castle === me) return f.alarm ? Infinity : P.castleKeep;
     // Momentum: a field that was just taken pushes on with all it has. Behind a broken front the
     // land is thinly held, and every further field cuts more of the rival off from its castle.
-    if (P.waves > 0 && game.time - t.stormedAt < 5) return 1;
+    // (`push` sets it apart from the second wave where a strength wants one without the other.)
+    if ((P.push ?? P.waves) > 0 && game.time - t.stormedAt < 5) return 1;
     let k = 1;
     if (facesRival(t)) k = ring.has(t.id) ? P.frontKeep + 3 : P.frontKeep;
     if (t.building) k = Math.max(k, 4);

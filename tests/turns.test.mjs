@@ -1,7 +1,7 @@
 // Turn mode (branch runden): rules of a move, commands, preview, undo and whole matches.  node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TurnGame, aiTurn, aiNext, runCommand } from '../src/sim/turns.js';
+import { TurnGame, aiTurn, aiNext, runCommand, planBreak, planMass, idleMoves } from '../src/sim/turns.js';
 import { MISSIONS } from '../src/sim/missions.js';
 import { TURN_RULES } from '../src/sim/rules.js';
 import { LAB, at, give } from './lab.mjs';
@@ -290,4 +290,88 @@ test('the storm comes by turns: edges widen and cover fades', () => {
   assert.equal(g.defense(castle), 1);
   assert.ok(cover > 1.5);
   assert.equal(g.frontage(), g.R.frontage * g.R.stormFrontage);
+});
+
+// ---------------------------------------------------------------- rivals that play a match to its end
+
+test('breakthrough: where the attack from one side fails, the fields behind follow', () => {
+  const g = new TurnGame({ mission: LAB, human: -1 });
+  for (const f of g.factions) f.autoSupply = false;
+  const front = at(g, 1, 0);
+  const behind = at(g, 0, 1);
+  const target = at(g, 2, 0); // touches front only
+  give(g, front, 0, 20);
+  give(g, behind, 0, 2);
+  give(g, target, 1, 20);
+  const f = g.factions[0];
+  assert.equal(planBreak(g, f), null, 'nothing gets through yet');
+  give(g, behind, 0, 20);
+  const plan = planBreak(g, f);
+  assert.equal(plan.target, target.id);
+  assert.deepEqual(plan.parts.map((p) => p.origin).sort(), [front.id, behind.id].sort());
+  assert.ok(g.preview(0, plan.target, plan.parts).won, 'what it plans does take the field');
+});
+
+test('bringing troops up: the hinterland sends to the field behind the front, never from a front', () => {
+  const g = new TurnGame({ mission: LAB, human: -1 });
+  for (const f of g.factions) f.autoSupply = false;
+  const front = at(g, 1, 0);
+  const behind = at(g, 0, 1);
+  const target = at(g, 2, 0);
+  const far = at(g, 0, 2); // behind `behind`, away from every rival
+  give(g, front, 0, 20);
+  give(g, behind, 0, 2);
+  give(g, far, 0, 14);
+  give(g, target, 1, 20);
+  const f = g.factions[0];
+  const move = planMass(g, f);
+  assert.ok(move, 'there is something to bring up');
+  assert.equal(move.to, behind.id, 'to the field that would follow the attack');
+  assert.notEqual(move.from, front.id);
+  assert.ok(runCommand(g, 0, { type: 'move', ...move }));
+  assert.equal(behind.units, 2 + move.units);
+  assert.equal(g.entry.commands.at(-1).type, 'move');
+});
+
+test('idleMoves counts the moves in a row without an attack, not the running one', () => {
+  const g = turnLab();
+  assert.equal(idleMoves(g, 1), 0);
+  g.endTurn(); // the person; kingdom 1 begins
+  g.endTurn(); // kingdom 1 did nothing
+  g.endTurn();
+  assert.equal(g.current, 1);
+  assert.equal(idleMoves(g, 1), 1, 'one finished move without an attack');
+  give(g, at(g, 3, 2), 1, 10);
+  give(g, at(g, 2, 2), 0, 1);
+  assert.ok(g.attack(1, at(g, 2, 2).id, [{ origin: at(g, 3, 2).id, units: 9 }]));
+  assert.equal(idleMoves(g, 1), 1, 'the running move does not count');
+  g.endTurn();
+  g.endTurn();
+  assert.equal(idleMoves(g, 1), 0, 'the last move had an attack');
+});
+
+test('a person who never gives a command loses the castle on every strength, without long pauses', () => {
+  // On these islands the rivals used to wait at a single edge: the castle stood until turn 48 or 53,
+  // on seed 1374 until the turn limit.
+  for (const seed of [1374, 1714]) {
+    for (const difficulty of ['easy', 'normal', 'hard']) {
+      const g = new TurnGame({ mission: duel, seed, difficulty, human: 0, wide: true });
+      let quiet = 0;
+      let longest = 0;
+      let moved = false;
+      while (g.phase === 'running') {
+        if (g.current !== 0) {
+          aiTurn(g, g.factions[g.current]);
+          quiet = g.entry.commands.some((c) => c.type === 'attack') ? 0 : quiet + 1;
+          longest = Math.max(longest, quiet);
+          moved ||= g.entry.commands.some((c) => c.type === 'move');
+        }
+        g.endTurn();
+      }
+      assert.equal(g.winner, 1, `seed ${seed}, ${difficulty}: the rival takes the castle`);
+      assert.ok(g.turn <= 35, `seed ${seed}, ${difficulty}: over in turn ${g.turn}`);
+      assert.ok(longest < 5, `seed ${seed}, ${difficulty}: longest pause ${longest} moves`);
+      if (seed === 1374 && difficulty === 'normal') assert.ok(moved, 'the rival brought troops up with a move');
+    }
+  }
 });

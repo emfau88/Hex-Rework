@@ -73,3 +73,24 @@ test('right after the person gets the move back, "end move" waits a moment', () 
   assert.equal(app.game.turn, turn);
   assert.equal(app.game.commandsLeft, 3, 'the move is still the person\'s, with all commands');
 });
+
+test('a rival that brings troops up is played back to the same board', () => {
+  // On this island the rival has to move troops to a single edge before it gets through.
+  const seed = 1374;
+  const direct = new TurnGame({ mission: duel, seed, human: 0, wide: true });
+  const { app, play } = shell(seed);
+  let moves = 0;
+  for (let turn = 0; turn < 40 && direct.phase === 'running'; turn++) {
+    direct.endTurn();
+    direct.advance();
+    if (app.game.phase !== 'running') break;
+    playBack(play, turn % 3 === 2 ? 4 : Infinity);
+    assert.equal(board(app.game), board(direct), `turn ${direct.turn}: same board`);
+    assert.equal(app.game.armies.length, 0, 'no figures left on the way');
+  }
+  for (const e of app.game.log) moves += e.commands.filter((c) => c.type === 'move').length;
+  assert.ok(moves > 0, 'the rival did move troops');
+  assert.equal(app.game.phase, 'finished');
+  assert.equal(app.game.winner, direct.winner);
+  assert.ok(app.notes.some((n) => /zieht Truppen zusammen|gathers troops/.test(n)), 'the move shows in the list of events');
+});
