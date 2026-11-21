@@ -1,12 +1,14 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.6 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 0.7 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
 geteilt (Abschnitt 13). **Block 1 ist gebaut und gemessen** (Abschnitt 14): Die Gegner warten nicht mehr ab.
 Ein Kriterium ist knapp verfehlt: Gleich starke Gegner auf „Schwer“ verkeilen sich noch zu oft. Dazu brauche ich
-deine Entscheidung (Abschnitt 14, „Was offen bleibt“). Als Nächstes kommt Block 2.
+deine Entscheidung (Abschnitt 14, „Was offen bleibt“). **Block 2 ist gebaut, aber noch nicht abgenommen**
+(Abschnitt 15): Jeder Gegnerzug zeigt jetzt Pfeile und sein Ergebnis. Ob du ihm damit folgen kannst, und der
+Test auf deinem Handy, fehlen noch.
 
 ## 1 · Worum es geht
 
@@ -456,7 +458,9 @@ Den Aufwand habe ich geschätzt, nicht gemessen. Eine „Sitzung“ ist ein Arbe
 | 7 | **Ritter,** die erste neue Figur für Züge. Erst abstimmen, was er genau kann, dann bauen, zuerst nur in der Figurenschau. | Du hast seine Regeln bestätigt. Er ist in der Figurenschau einzeln ansehbar. Tests sind grün. Mit Ritter gemessen bleibt das Duell auf Normal im Rahmen von Block 1. | 2 Sitzungen |
 | 8 | **Übernahme ins öffentliche Spiel.** Bei (a) ersetzt der Rundenmodus die Echtzeit, bei (b) bekommt das Menü beide. Dazu Spielstand, Texte in Deutsch und Englisch, README. | Du hast den Stand in der Testversion freigegeben. Danach ist das öffentliche Spiel umgestellt, dein alter Fortschritt ist nicht verloren, und alle Tests sind grün. | 1 bis 2 Sitzungen, erst nach deinem Okay |
 
-**Stand:** Block 1 ist gebaut (Abschnitt 14). Drei von vier Kriterien sind erfüllt, das dritte knapp nicht.
+**Stand:** Block 1 ist gebaut (Abschnitt 14). Drei von vier Kriterien sind erfüllt, das dritte knapp nicht;
+du hast am 21.11.2026 entschieden, trotzdem weiterzumachen, es bleibt als offen stehen. Block 2 ist gebaut und
+wartet auf deinen Test (Abschnitt 15).
 
 **Reihenfolge, und warum Block 1 zuerst:** Alle späteren Messungen an Missionen hängen davon ab, wie der Gegner
 spielt. Ändere ich ihn erst danach, muss ich die Missionen neu messen.
@@ -589,4 +593,58 @@ Diese Versuche sind ohne das Verlegen gemessen. Mit Verlegen stehen die Werte in
 - **Nicht geprüft:** das Handyformat (an der Oberfläche hat sich nur eine Zeile Text geändert) und, wie in
   Abschnitt 11, das Tempo bei sichtbarem Fenster. Die Ansicht war wieder ausgeblendet, ich habe die Bilder von
   Hand angetrieben. Den Marsch beim Verlegen habe ich deshalb nicht als Bild gesehen, nur als Ablauf im Protokoll.
+
+## 15 · Block 2: Zeitraffer und Lesbarkeit (21.11.2026, gebaut, noch nicht abgenommen)
+
+### Was neu ist
+
+- **Pfeile für jeden Gegnerbefehl.** Während ein Befehl läuft, zeigen Pfeile in der Farbe des Gegners, von
+  welchen Feldern seine Truppen kommen und wohin sie gehen. Die Pfeile haben einen hellen Rand, damit man sie
+  auch auf den Feldern des Gegners sieht. Beim Verlegen gibt es einen dünneren Pfeil entlang des Wegs.
+- **Das Ergebnis am Feld.** Nach einem Angriff steht kurz am Ziel, wie er ausging: ✓ und wie viele eingezogen
+  sind, oder ✗ und wie viele Verteidiger übrig sind. Das sind dieselben Zeichen wie in deiner Vorschau.
+- **Zahlen an allen marschierenden Gegnern.** Vorher trugen nur die Truppen eine Zahl, die auf dich zukamen.
+- **Die Pause nach einem Angriff ist länger** (0,6 statt 0,35 Sekunden bei „Normal“), damit man das Ergebnis lesen
+  kann. Die marschierenden Figuren selbst sind gleich groß geblieben.
+
+### Tempo
+
+| Tempo | ein Angriff (Marsch und Ergebnis) | ein Gegnerzug mit 3 Angriffen |
+|---|---|---|
+| Ruhig | 1,9 s | 7,1 s (vorher 6,1) |
+| Normal | 1,4 s | 5,3 s (vorher 4,5) |
+| Schnell | 0,8 s | 3,2 s (vorher 2,7) |
+
+- Die Tabelle ist aus den eingestellten Zeiten **gerechnet**.
+- **Gemessen** bei „Ruhig“, mit echter Uhr und von Hand angetriebenen Bildern: ein Gegnerzug mit 1 Angriff 3,4 s,
+  mit Angriff und Bau 4,3 s, mit 2 Angriffen 5,4 s. Das passt zur Rechnung.
+- Ein Tipp auf „Überspringen“ spielt weiter alles sofort ab.
+
+### Abnahme
+
+| Kriterium | Stand |
+|---|---|
+| Du kannst jedem Gegnerzug folgen, ohne zu suchen (dein Urteil) | **offen**, braucht deinen Test |
+| Das Tempo ist bei sichtbarem Fenster gemessen | **zum Teil:** Dauer mit echter Uhr gemessen; das Fenster war wieder verdeckt, ob es flüssig aussieht, habe ich nicht gesehen |
+| Du hast eine Partie auf deinem Handy gespielt, ohne dass etwas klemmt | **offen**, braucht deinen Test |
+
+### Wie geprüft
+
+- **Tests:** `node --test`, 105 Tests grün (2 neue): Die Pfeile stehen, solange die Truppen marschieren; danach
+  kommt das Ergebnis; ist man wieder dran, ist nichts mehr zu sehen. Das Overlay zeichnet Pfeil und Ergebnis.
+- **Browser** (eingebauter Browser, Stufe Normal, 800 × 600 und Handyformat 375 × 812): Einzelbilder eines
+  Angriffs von vier Feldern auf eines meiner Felder, des Ergebnisses „✓ 12“ danach und eines Verlegens über
+  mehrere Felder. Keine Fehlermeldung.
+
+### Aufgefallen
+
+- **Bei einem Angriff von mehreren Seiten liegen die Zahlen der Kolonnen am Ziel übereinander** (gesehen, vor
+  allem im Handyformat). Die Pfeile bleiben lesbar. Ob das stört, zeigt dein Test.
+- **Bei drei Gegnern wird der Zeitraffer lang** (gerechnet: bis 21 Sekunden pro Runde bei „Ruhig“). Das gehört zu
+  Block 5.
+
+### Noch offen aus deinen Antworten
+
+Bauen, Zahl der Befehle, Tempo und Spannung (Abschnitt 12) sind nicht beantwortet. Daran habe ich deshalb nichts
+geändert.
 
