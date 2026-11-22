@@ -13,6 +13,7 @@ function fakeCanvas() {
     measureText: (s) => ({ width: String(s).length * 6 }),
     fillText: (text, x, y) => texts.push({ text, x, y, color: store.fillStyle, font: store.font }),
     fillRect: (x, y, w, h) => rects.push({ x, y, w, h, color: store.fillStyle }),
+    createLinearGradient: () => ({ addColorStop() {} }),
   };
   const ctx = new Proxy(store, {
     get: (o, k) => (k in o ? o[k] : () => {}),
@@ -174,36 +175,77 @@ test('a tower, a farm and a building site show their sign left of the number, an
   }
 });
 
-test('turn mode: a rival command that plays shows the way of its troops and then how it ended', () => {
+test('turn mode: a command that plays shows a trail behind its troops, a ring at the target and then how it ended', () => {
   const game = lab({}, 0);
   const mine = at(game, 1, 0);
   const from = at(game, 2, 0);
   give(game, mine, 0, 5);
   give(game, from, 1, 12);
   const calls = [];
+  const rings = [];
   const { canvas, texts } = fakeCanvas();
   const ctx = canvas.getContext();
   ctx.lineTo = (x, y) => calls.push([x, y]);
+  ctx.ellipse = (x, y) => rings.push([x, y]);
   const overlay = new Overlay(canvas);
   overlay.resize(375, 812, 1);
   const camera = phoneCamera();
-  const ui = { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1, rivalMove: null };
+  const ui = { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1, march: null };
 
   overlay.draw(game, camera, ui, 0);
   const idle = calls.length;
-  ui.rivalMove = { owner: 1, kind: 'attack', target: mine.id, paths: [[from.id, mine.id]], result: null };
+  assert.equal(rings.length, 0);
+  // A column half way along its only leg.
+  const army = { id: 1, owner: 1, units: 8, path: [from.id, mine.id], seg: 0, t: 0.5, leg: 1, kind: 'attack', done: false, show: true };
+  ui.march = { owner: 1, kind: 'attack', target: mine.id, armies: [army], result: null };
   calls.length = 0;
   texts.length = 0;
   overlay.draw(game, camera, ui, 0);
-  assert.ok(calls.length > idle, 'an arrow is drawn along the way');
+  assert.ok(calls.length > idle, 'a trail is drawn behind the column');
+  const target = camera.project(mine.x, mine.height + 0.06, mine.z);
+  assert.ok(rings.some(([x, y]) => Math.abs(x - target.x) < 0.01 && Math.abs(y - target.y) < 0.01), 'a ring marks the field they go to');
   assert.ok(!texts.some((t) => /[✓✗]/.test(t.text)), 'no outcome while the troops are on their way');
 
-  ui.rivalMove.result = { won: true, left: 6.4 };
+  ui.march = { owner: 1, kind: 'attack', target: mine.id, armies: [], result: { won: true, left: 6.4 } };
   texts.length = 0;
   overlay.draw(game, camera, ui, 0);
   assert.ok(texts.some((t) => t.text === '✓ 6'), 'the field fell: the garrison that moved in');
-  ui.rivalMove.result = { won: false, left: 2.2 };
+  ui.march.result = { won: false, left: 2.2 };
   texts.length = 0;
   overlay.draw(game, camera, ui, 0);
   assert.ok(texts.some((t) => t.text === '✗ 3'), 'the field held: what is left of the defenders');
+});
+
+test('turn mode: what a field gained floats up from it, and the selected field says what it gains', () => {
+  const game = lab({}, 0);
+  const field = at(game, 1, 0);
+  give(game, field, 0, 7);
+  const { canvas, texts } = fakeCanvas();
+  const overlay = new Overlay(canvas);
+  overlay.resize(375, 812, 1);
+  const camera = phoneCamera();
+  const ui = { showNumbers: true, human: 0, selected: -1, hover: -1, notices: [], pace: 1, sendFraction: 1 };
+  ui.floaters = [{ tile: field.id, units: 2, at: 10 }, { tile: game.factions[0].castle, units: -4, at: 10 }];
+  overlay.draw(game, camera, ui, 10.2);
+  const plus = texts.filter((t) => t.text === '+2');
+  assert.equal(plus.length, 1, 'the gain floats above its field');
+  assert.ok(texts.some((t) => t.text === '−4'), 'a loss shows with a minus');
+  const early = plus[0].y;
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 11);
+  assert.ok(texts.find((t) => t.text === '+2').y < early, 'it rises');
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 12);
+  assert.ok(!texts.some((t) => t.text === '+2'), 'and is gone after a moment');
+
+  ui.floaters = [];
+  ui.selected = field.id;
+  ui.fieldInfo = { tile: field.id, text: 'Plain +2/turn · up to 20', bad: false };
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 12);
+  assert.ok(texts.some((t) => t.text === 'Plain +2/turn · up to 20'), 'the selected field says what it gains');
+  ui.selected = -1;
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 12);
+  assert.ok(!texts.some((t) => /up to 20/.test(t.text)), 'nothing without a selected field');
 });

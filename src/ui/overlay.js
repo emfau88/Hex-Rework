@@ -6,6 +6,15 @@ import { i18n } from './i18n.js';
 
 const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
 
+/** Seconds a number that floats up from a field stays on screen (turn mode: what the field just gained). */
+export const FLOAT_SECONDS = 1.8;
+
+/** A number with at most one decimal, written the way the language does (2,5 in German). */
+export function decimal(n) {
+  const s = String(Math.round(n * 10) / 10);
+  return i18n.lang === 'de' ? s.replace('.', ',') : s;
+}
+
 function pill(ctx, x, y, w, h) {
   const r = h / 2;
   ctx.beginPath();
@@ -172,18 +181,12 @@ export class Overlay {
       return [px, py];
     };
 
-    // Turn mode: the way of the rival's troops in the command that is playing, under the numbers.
-    if (ui.rivalMove) {
-      const m = ui.rivalMove;
-      // A light rim, so the arrow stands out on fields of the rival's own colour too.
-      const width = m.kind === 'move' ? 3 : 4;
-      ctx.globalAlpha = m.result ? 0.55 : 0.95;
-      for (const path of m.paths) {
-        const pts = this._points(game, renderer, path);
-        this._arrow(ctx, pts, '#fff6e0', width + 3);
-        this._arrow(ctx, pts, PALETTE_HEX[game.factions[m.owner].color], width);
-      }
-      ctx.globalAlpha = 1;
+    // Turn mode: the command that is playing, under the numbers. A light trail follows every marching
+    // column, and a ring in the kingdom's colour marks the field they go to.
+    if (ui.march) {
+      const m = ui.march;
+      for (const a of m.armies) this._trail(ctx, game, renderer, a, m.kind === 'move' ? 3 : 4.5);
+      this._ring(ctx, game, renderer, m, time, hexPx);
     }
 
     // A coming raid: an arrow from the lair to its marked target, under the numbers.
@@ -355,7 +358,9 @@ export class Overlay {
 
     if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
-    if (ui.rivalMove && ui.rivalMove.result) this._rivalResult(ctx, game, renderer, ui.rivalMove, fs);
+    if (ui.march && ui.march.result) this._marchResult(ctx, game, renderer, ui.march, fs);
+    if (ui.floaters && ui.floaters.length) this._floaters(ctx, game, renderer, ui.floaters, time, fs);
+    if (ui.fieldInfo && ui.fieldInfo.tile === ui.selected && !ui.dragPath) this._fieldInfo(ctx, game, renderer, ui.fieldInfo, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
     else if (ui.tutorialPath) this._tutorial(ctx, game, renderer, ui.tutorialPath, time);
@@ -660,10 +665,98 @@ export class Overlay {
   }
 
   /**
+   * Turn mode: the way a marching column has come, as a trail that fades towards where it set out.
+   * Light with a dark edge, so it shows on fields of any colour; whose troops they are is said by
+   * the figures and by the number they carry.
+   */
+  _trail(ctx, game, renderer, a, width) {
+    if (a.done) return;
+    const pts = [];
+    for (let i = 0; i <= a.seg; i++) {
+      const t = game.tiles[a.path[i]];
+      pts.push(renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z));
+    }
+    const pos = renderer.armyPosition(game, a);
+    pts.push(renderer.project(pos.x, pos.y + 0.06, pos.z));
+    const first = pts[0];
+    const last = pts[pts.length - 1];
+    if (Math.hypot(last.x - first.x, last.y - first.y) < 3) return;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const [rgb, w, alpha] of [['6, 20, 27', width + 3.5, 0.55], ['255, 245, 220', width, 0.95]]) {
+      const fade = ctx.createLinearGradient(first.x, first.y, last.x, last.y);
+      fade.addColorStop(0, `rgba(${rgb}, 0)`);
+      fade.addColorStop(0.35, `rgba(${rgb}, ${alpha * 0.45})`);
+      fade.addColorStop(1, `rgba(${rgb}, ${alpha})`);
+      ctx.strokeStyle = fade;
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke();
+    }
+  }
+
+  /** Turn mode: the field a command goes to, ringed in the kingdom's colour with a light rim. */
+  _ring(ctx, game, renderer, m, time, hexPx) {
+    const t = game.tiles[m.target];
+    const p = renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z);
+    // While the troops are on their way the ring breathes; with the outcome it stands still.
+    const r = hexPx * (m.result ? 0.4 : 0.38 + 0.03 * Math.sin(time * 7));
+    for (const [color, w] of [['rgba(6, 20, 27, 0.6)', 7], ['#fff5dc', 5], [PALETTE_HEX[game.factions[m.owner].color], 2.5]]) {
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, r, r * 0.72, 0, 0, Math.PI * 2);
+      ctx.lineWidth = m.kind === 'move' ? w * 0.7 : w;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    }
+  }
+
+  /** Turn mode: what the person's fields just gained (or lost) floats up from them and fades. */
+  _floaters(ctx, game, renderer, floaters, time, fs) {
+    ctx.font = `800 ${fs}px ${FONT}`;
+    ctx.lineJoin = 'round';
+    for (const f of floaters) {
+      const k = (time - f.at) / FLOAT_SECONDS;
+      const t = game.tiles[f.tile];
+      if (k < 0 || k >= 1 || !t) continue;
+      const p = renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z);
+      const text = `${f.units < 0 ? '−' : '+'}${decimal(Math.abs(f.units))}`;
+      const y = p.y - 16 - k * 18;
+      ctx.globalAlpha = k < 0.6 ? 1 : (1 - k) / 0.4;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(6, 20, 27, 0.9)';
+      ctx.strokeText(text, p.x, y);
+      ctx.fillStyle = f.units < 0 ? '#ff9a8c' : '#c8f5a8';
+      ctx.fillText(text, p.x, y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /** Turn mode: what the selected own field gains per turn and why, in a small plate above it. */
+  _fieldInfo(ctx, game, renderer, info, fs) {
+    const t = game.tiles[info.tile];
+    const p = renderer.project(t.x, t.height + renderer.lift(t.id) + 0.06, t.z);
+    ctx.font = `700 ${fs}px ${FONT}`;
+    const w = Math.min(ctx.measureText(info.text).width + 18, this.width - 12);
+    const h = fs + 10;
+    const x = Math.min(this.width - w / 2 - 6, Math.max(w / 2 + 6, p.x));
+    const y = p.y - 38;
+    pill(ctx, x, y, w, h);
+    ctx.fillStyle = 'rgba(6, 20, 27, 0.92)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = info.bad ? '#ff9a8c' : '#c8f5a8';
+    ctx.stroke();
+    ctx.fillStyle = info.bad ? '#ffd3cc' : '#e6fbd6';
+    ctx.fillText(info.text, x, y + 0.5);
+  }
+
+  /**
    * Turn mode: how the rival's attack that just played ended, in its colour at the field: ✓ and the
    * garrison that moved in, or ✗ and what is left of the defenders (the same signs as the person's preview).
    */
-  _rivalResult(ctx, game, renderer, m, fs) {
+  _marchResult(ctx, game, renderer, m, fs) {
     const target = game.tiles[m.target];
     const color = PALETTE_HEX[game.factions[m.owner].color];
     const end = renderer.project(target.x, target.height + renderer.lift(target.id) + 0.06, target.z);

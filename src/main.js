@@ -7,7 +7,7 @@ import { SKIRMISH } from './sim/maps.js';
 import { TurnPlay } from './ui/turnplay.js';
 import { DioramaRenderer } from './render/renderer.js';
 import { PALETTE_HEX } from './render/models.js';
-import { Overlay } from './ui/overlay.js';
+import { Overlay, FLOAT_SECONDS, decimal } from './ui/overlay.js';
 import { i18n } from './ui/i18n.js';
 import { loadStore, saveStore } from './ui/store.js';
 import { Sfx } from './audio/sfx.js';
@@ -54,6 +54,9 @@ class App {
       sendFraction: this.store.sendFraction,
       pace: 1,
       notices: [], // short messages at a field, such as the reason an order was refused: { tile, text, at }
+      march: null, // turn mode: the command whose troops are marching (see TurnPlay._show)
+      floaters: [], // turn mode: what the own fields just gained, floating up: { tile, units, at }
+      fieldInfo: null, // turn mode: growth of the selected own field and why: { tile, text, bad }
       showNumbers: false,
       tutorialPath: null,
       tutorialMark: null,
@@ -192,6 +195,9 @@ class App {
     this.ui.human = 0;
     this.ui.assault = null;
     this.ui.turnPreview = null;
+    this.ui.march = null;
+    this.ui.floaters = [];
+    this.ui.fieldInfo = null;
     this.events = [];
     this.alarmAt = -100;
     this.holdWarnAt = -100;
@@ -731,6 +737,8 @@ class App {
   build(type, id) {
     if (!this.canCommand() || id < 0) return;
     const human = this.ui.human;
+    // Turn mode: troops of the last command that are still marching arrive first.
+    if (this.turns) this.turns.flush();
     if (this.turns && this.game.commandsLeft < 1) {
       this.say(id, i18n.t('noCommands'));
       return;
@@ -747,6 +755,21 @@ class App {
       : option.state === 'ground' ? i18n.t('buildGround')
       : i18n.t('buildNo');
     this.say(id, text);
+  }
+
+  /**
+   * Turn mode: what an own field gains per turn and what that depends on, as one short line.
+   * A full field gains nothing, a field cut off from the castle loses troops.
+   */
+  fieldInfo(t) {
+    const game = this.game;
+    if (!t || t.owner !== this.ui.human) return null;
+    const cap = game.cap(t);
+    if (!t.supplied) return { tile: t.id, text: i18n.t('infoCutOff', { n: decimal(game.T.cutOff) }), bad: true };
+    if (t.units >= cap) return { tile: t.id, text: i18n.t('infoFull', { n: cap }), bad: false };
+    const kind = t.castle >= 0 ? 'infoCastle' : t.terrain === 'citadel' ? 'infoCitadel' : t.terrain === 'hill' ? 'infoHill' : t.terrain === 'forest' ? 'infoForest' : 'infoPlain';
+    const farm = t.building === 'farm' ? ` · ${i18n.t('infoFarm', { n: decimal(game.T.farmBonus) })}` : '';
+    return { tile: t.id, text: `${i18n.t(kind)} +${decimal(game.turnIncome(t))}${i18n.t('perTurn')}${farm} · ${i18n.t('infoUpTo', { n: cap })}`, bad: false };
   }
 
   /** An order was not carried out: say why, for a moment, at the field it was about. */
@@ -794,9 +817,12 @@ class App {
       }
       // Turn mode: the double tap shows exactly what it will do, worked out with the rules.
       ui.turnPreview = this.turns && ui.assault ? this.turns.preview(ui.assault.target, ui.sendFraction) : null;
-      ui.noCommands = Boolean(this.turns && game.commandsLeft < 1);
+      ui.noCommands = Boolean(this.turns && this.turns.left() < 1);
       if (this.tutorial) this.runTutorial(now);
       if (ui.notices.length) ui.notices = ui.notices.filter((n) => now - n.at < 1.8 && n.tile < game.tiles.length);
+      if (ui.floaters.length) ui.floaters = ui.floaters.filter((f) => now - f.at < FLOAT_SECONDS);
+      // Turn mode: the selected own field says what it gains per turn and why.
+      ui.fieldInfo = this.turns && ui.selected >= 0 && this.mode === 'play' ? this.fieldInfo(game.tiles[ui.selected]) : null;
 
       this.renderer.render(game, now, ui);
       this.overlay.draw(game, this.renderer, ui, now);
@@ -997,7 +1023,7 @@ class App {
       const state = option.state;
       const why = state === 'short' ? i18n.t('buildShort', { n: option.need }) : state === 'never' ? i18n.t('buildNever') : state === 'ground' ? i18n.t('buildGround') : '';
       // In turn mode building is a command: only in the own move and while commands are left.
-      const turnBlocked = this.turns && (!this.turns.myMove() || game.commandsLeft < 1);
+      const turnBlocked = this.turns && (!this.turns.myMove() || this.turns.left() < 1);
       btn.disabled = turnBlocked || (state !== 'now' && state !== 'save' && state !== 'saving');
       btn.classList.toggle('ready', state === 'now');
       btn.classList.toggle('saving', state === 'saving');
