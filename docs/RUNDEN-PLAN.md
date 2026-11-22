@@ -1,6 +1,6 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 1.2 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 1.3 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
@@ -13,7 +13,7 @@ Das Tempo des Zeitraffers passt für dich. Dazu erklärt das Spiel jetzt Turm, H
 (Abschnitt 16). Der Nachschub-Schalter ist im Rundenmodus entfernt, und ein Knopf dreht die Karte
 (Abschnitt 17). **Kampagne und Gefechte starten im Zweig jetzt in Zügen, noch unabgestimmt** (Abschnitt 18).
 **Mission 1 ist abgestimmt** (Block 3, Abschnitt 19). Als Nächstes kommen „Vier Reiche“ und die Missionen 2
-und 3. Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
+und 3. **Was an den Missionen 2 und 3 noch nicht stimmt und wie man es angehen kann, steht in Abschnitt 20.** Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
 
 ## 1 · Worum es geht
 
@@ -892,7 +892,7 @@ Das ist Schritt 1 des Wegs aus Abschnitt 17. Er macht alle Karten spielbar, stim
 
 1. Gefechte abstimmen (Block 5): „Vier Reiche“ kürzer und fairer, Zeitraffer für drei Gegner straffen.
 2. Mission 1 abstimmen (Block 3): erledigt, Abschnitt 19.
-3. Missionen 2 und 3 abstimmen (Block 4).
+3. Missionen 2 und 3 abstimmen (Block 4). Feststellungen und Ideen dazu: Abschnitt 20.
 
 Dafür fehlen noch deine Antworten: wie lang eine Partie sein soll, und ob an der Zuggrenze gewinnt, wer mehr
 Felder hat (Abschnitt 14).
@@ -954,4 +954,116 @@ Auf Normal war das für eine erste Mission zu schwer (Ziel 40 bis 52 von 60).
 - „Schwer“ ist für Anfänger hart (8 bis 22 von 60). Für eine erste Mission könnte das zu viel sein; im
   Echtzeitspiel war die Mission auf jeder Stufe sanfter. Ich habe es gelassen, weil niemand die erste Mission
   zuerst auf „Schwer“ spielen muss.
+
+## 20 · Merkzettel: Missionen 2 und 3 in Zügen (Feststellungen und Ideen, 22.11.2026)
+
+Hier steht, was an den beiden Missionen in Zügen noch nicht stimmt, warum vermutlich, und wie man es angehen
+kann. **Nichts davon ist gebaut.** Du hast die Missionen noch nicht gespielt; alles hier kommt aus Messungen mit
+Testspielern. Die Arbeit selbst ist Block 4.
+
+Alle Zahlen: `node tools/simulate-turns.mjs 20 --only=m2` oder `m3`, Stufe Normal, 20 Karten, ein Würfelsatz.
+Das ist grob: Unterschiede von 3 bis 4 Siegen können Zufall sein. Vor einer Entscheidung mit 60 Partien und
+zwei Würfelsätzen nachmessen.
+
+### Mission 2 „Die zwei Pässe“: zäh
+
+**Gemessen**
+
+| | Wert |
+|---|---|
+| Computer gegen Computer | nur 5 von 40 Partien enden, die Mitte liegt bei Zug 57 |
+| Anfänger (greift von höchstens zwei Seiten an, rückt nie nach) | 9 Siege, 0 Niederlagen, 11 Partien ohne Sieger |
+| Kluger (umzingelt, rückt nach) | 18 Siege von 20, aber erst um Zug 47 |
+
+- Niemand verliert die Mission, sie kommt nur nicht voran. Wer nachrückt, gewinnt, braucht aber lang.
+- Der Anfänger im Messwerkzeug rückt nie nach. Dein doppelter Tipp rückt immer nach. **Vermutet:** Ein Mensch
+  kommt deshalb besser durch als der Anfänger, eher wie der Kluge, also gewinnbar, aber lang.
+
+**Warum (vermutet)**
+
+- Die Pässe sind eng, und EMBER hält dort Hügel mit Turm. Hügel und Turm zusammen geben +105 % Deckung: Ein
+  volles solches Feld braucht von einer Seite 56 Angreifer (gerechnet, Abschnitt 16).
+- Im Echtzeitspiel kam der Sturm in dieser Mission früher (nach 300 statt 420 Sekunden), weil die Pässe den
+  Verteidiger begünstigen. In Zügen gilt das noch nicht: Der Sturm kommt wie überall ab Zug 40.
+- Im Echtzeitspiel wartete EMBER am Anfang ab und stürmte spät. Diese Einstellungen wirken in Zügen nicht.
+
+**Schon grob probiert**
+
+| Versuch | Computer gegen Computer entschieden | Anfänger siegt | Kluger siegt | Eindruck |
+|---|---|---|---|---|
+| unverändert | 5 von 40 | 9 von 20 | 18 von 20 | |
+| Sturm ab Zug 28 | 6 von 40 | 12 | 18 | hilft kaum |
+| Sturm ab Zug 20, voll nach 10 Zügen | 12 von 40 | 10 | 14 | hilft dem Anfänger nicht, schadet dem Klugen |
+| Gegner bricht sofort durch (Geduld 0) | 16 von 40 | 7 (5 Niederlagen) | 18 | mehr Entscheidungen, aber schwerer |
+
+Der frühe Sturm allein löst es also nicht.
+
+**Ideen, noch nicht gemessen**
+
+1. **Die Karte entschärfen.** Einen der beiden Türme an den Pässen weglassen oder vom Hügel auf die Wiese
+   setzen, oder die Pässe um ein Feld breiter machen. Das trifft die vermutete Ursache direkt. Die Karte steht
+   in `src/sim/missions.js` als Zeichnung.
+2. **Die Lektion stärker machen.** Die Mission soll das Abschneiden lehren. Wenn hinter den Pässen mehr Felder
+   an einer einzigen Verbindung hängen, lohnt sich Abschneiden mehr als Stürmen.
+3. **Dem Spieler mehr Schwung geben:** vollere Startfelder oder ein schwächerer Vorposten von EMBER.
+4. **EMBER an den Pässen zahmer machen,** so wie Mission 1 auf Normal (mehr Truppen bleiben an der Front, er
+   greift seltener an). Dann kann man in Ruhe aufbauen und durchbrechen.
+5. **Eine Regel für das Ende** (Abschnitt 14): An der Zuggrenze gewinnt, wer mehr Felder hat, und die
+   Zuggrenze dieser Mission liegt früher, etwa bei 50. Dann endet auch eine zähe Partie mit einem Ergebnis.
+
+### Mission 3 „Drei Reiche“: zu schwer
+
+**Gemessen**
+
+| | Wert |
+|---|---|
+| Anfänger | 0 Siege von 20, 20 Niederlagen |
+| Kluger | 0 Siege von 20, 19 Niederlagen |
+| Woran sie verlieren (Kluger, eigene Auswertung) | 17 von 20 durch den Fall der eigenen Burg, 2 durch die Zitadelle, 1 ohne Sieger; die Mitte liegt bei Zug 38 |
+| Computer gegen Computer | 54 von 60 entschieden, Mitte Zug 49 |
+
+**Warum (vermutet)**
+
+- Im Echtzeitspiel bremste die Mission die beiden Gegner über ihr Tempo: Sie entschieden viel seltener als
+  sonst (auf Normal alle 14 statt alle 8 Sekunden), und auf Leicht wuchsen sie nur halb so schnell. In Zügen hat
+  jeder Gegner seine vollen 3 Befehle. Zwei Gegner haben zusammen 6 Befehle gegen deine 3.
+- Wer eine Burg nimmt, erbt das ganze Reich. Sobald ein Gegner den anderen schluckt, steht man einem doppelt so
+  großen Reich gegenüber.
+- Das Ziel „Zitadelle halten“ spielt kaum eine Rolle: Die Partien enden vorher durch Burgen.
+
+**Schon grob probiert**
+
+| Versuch | Anfänger siegt | Kluger siegt | Eindruck |
+|---|---|---|---|
+| unverändert | 0 von 20 | 0 von 20 | |
+| Zitadelle 12 oder 16 Züge halten statt 8 | 0 | 0 | kein Unterschied, weil die Burg vorher fällt |
+| Gegner greifen den Spieler seltener an (0,6) | nicht gemessen | 0 (18 Niederlagen) | kein Unterschied |
+| Gegner lassen 8 Truppen an der Front | 1 | 0 | kein Unterschied |
+| Gegner wachsen langsamer (70 %) | 3 (15 Niederlagen) | 0 (17 Niederlagen) | zu wenig |
+| Gegner wachsen langsamer (55 %) | 17 (2 Niederlagen) | 2 (3 Niederlagen, 15 ohne Sieger) | hilft dem Anfänger stark; der Kluge bleibt hängen. Das Bild ist uneinheitlich und muss genauer gemessen werden. |
+
+**Ideen, noch nicht gemessen**
+
+1. **Die Gegner bekommen in dieser Mission 2 Befehle statt 3.** Das ist die Entsprechung zum langsameren
+   Entscheiden im Echtzeitspiel und trifft die vermutete Ursache. Es braucht eine kleine Erweiterung der Regeln:
+   Befehle je Reich statt für alle gleich. Sichtbar wäre es im Zeitraffer („Befehl 1 von 2“).
+2. **Langsamer wachsende Gegner,** zwischen 55 % und 70 %, sauber gemessen. Das geht schon heute mit einer Zahl
+   an der Mission. Nachteil: Es ist unsichtbar, und der Spieler kann es nicht verstehen.
+3. **Die Gegner zuerst aufeinander hetzen:** Sie stehen sich auf der Karte nah, der Spieler sitzt allein links.
+   Die Karte oder die Startbesatzung so ändern, dass die beiden früh aneinandergeraten.
+4. **Die Zitadelle zum echten Ziel machen:** kürzere Wege für den Spieler zur Mitte, oder die Gegner werten die
+   Zitadelle höher als fremde Burgen. Dann lernt man, wofür die Mission da ist.
+5. **Das Erben entschärfen:** Wer eine Burg nimmt, bekommt in dieser Mission weniger von den Truppen des
+   Reichs. Das bremst den Gegner, der den anderen schluckt.
+6. **Mehr Schwung für den Spieler:** vollere Startfelder oder ein Hof zu Beginn.
+
+### Was für beide gilt
+
+- **Die Sterne** (45 Züge für den zweiten Stern) sind geschätzt und richten sich nach nichts Gemessenem.
+- **Die Einstellungen aus dem Echtzeitspiel wirken in Zügen nicht:** früher Sturm, späteres Stürmen, langsameres
+  Entscheiden. Jede Mission braucht dafür eigene Zahlen für Züge (`turns`, `turnAi`, `turnAiBy` in
+  `src/sim/missions.js`).
+- **Dein eigener Eindruck fehlt.** Die Testspieler spielen anders als ein Mensch. Bevor ich an den Karten
+  drehe, wäre eine Partie von dir in jeder der beiden Missionen wertvoll: Wo hängt es, und macht es trotzdem
+  Spaß?
 
