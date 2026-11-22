@@ -1,6 +1,6 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.9 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 1.0 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
@@ -10,7 +10,9 @@ deine Entscheidung (Abschnitt 14, „Was offen bleibt“). **Block 2 ist gebaut,
 (Abschnitt 15). Nach deiner Rückmeldung vom 22.11.2026 ist er überarbeitet: Auch deine eigenen Truppen
 marschieren jetzt sichtbar, die Pfeile sind einer hellen Spur mit Ring gewichen, und der Zuwachs steht am Feld.
 Das Tempo des Zeitraffers passt für dich. Dazu erklärt das Spiel jetzt Turm, Hof, Zuwachs und Deckung
-(Abschnitt 16). Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
+(Abschnitt 16). Der Nachschub-Schalter ist im Rundenmodus entfernt, und ein Knopf dreht die Karte
+(Abschnitt 17). Dort steht auch der Gesamtstand und der Weg zu Kampagne und Gefechten in Zügen. Offen sind dein
+Urteil zur neuen Darstellung und der Test am Handy.
 
 ## 1 · Worum es geht
 
@@ -72,7 +74,8 @@ Gegenüber Entwurf 0.1 geändert, beide Male wegen der Messung in Abschnitt 10:
 | **Bauen** | Turm oder Hof auf einem eigenen Feld, sofort, bezahlt mit Truppen dieses Felds. Der Preis steigt wie heute mit jedem weiteren Gebäude. Kein Ansparen mehr: Reicht es noch nicht, wartet man einfach einen Zug. | 1 Befehl |
 | **Rückgängig** | nimmt den letzten Befehl dieses Zugs zurück | nichts |
 
-Der Nachschub ist kein Befehl, er läuft von selbst. Er lässt sich abschalten, wie heute.
+Der Nachschub ist kein Befehl, er läuft von selbst. Abschalten lässt er sich im Rundenmodus nicht mehr
+(seit 22.11.2026, Abschnitt 17).
 
 ### Kampf
 
@@ -741,7 +744,7 @@ So viele Angreifer braucht ein Feld (von einer Seite / von zwei Seiten):
   lässt sich scrollen), Bau-Knöpfe mit „+60 % Deckung“ und „+2,5/Zug“, Vorschau auf einen Hügel mit „Hügel ·
   Deckung +45 %“. Keine Fehlermeldung.
 
-### Noch nicht entschieden (deine Fragen, meine Einschätzung)
+### Deine Fragen zu Nachschub und Drehen (inzwischen entschieden, siehe Abschnitt 17)
 
 - **Nachschub an/aus.** Der Nachschub arbeitet auch im Rundenmodus, am Ende deines Zugs. Der Schalter nützt nur
   beim Bauen, weil der Nachschub das Hinterland sonst jeden Zug leert. Vermutet, nicht gemessen: Als
@@ -750,4 +753,86 @@ So viele Angreifer braucht ein Feld (von einer Seite / von zwei Seiten):
 - **Karte drehen.** Technisch nah (die Kamera hat schon einen Winkel). Mein Vorschlag: ein Knopf, der in
   Schritten von 60 Grad dreht, statt freiem Drehen; Aufwand geschätzt 1 Sitzung, nach den Missionen. Nicht
   angefasst.
+
+## 17 · Stand am 22.11.2026, Nachschub-Schalter und Karte drehen
+
+### Deine Entscheidungen vom 22.11.2026
+
+- **Ziel für den Zweig `runden`:** Auch die Kampagne und die Gefechte werden rundenbasiert, mit den
+  Verbesserungen aus den Blöcken 1 und 2. (Meine Lesart: Im Zweig gibt es dann keine Echtzeit-Karten mehr. Ob
+  das öffentliche Spiel umgestellt wird, bleibt Block 8.)
+- **Der Nachschub-Schalter kommt im Rundenmodus weg.**
+- **Ein Knopf dreht die Karte.**
+
+### Was dafür gebaut ist
+
+- **Nachschub ohne Schalter.** Im Rundenmodus ist der Knopf verschwunden, die untere Leiste hat drei Knöpfe.
+  Der Nachschub läuft dort immer, auch wenn er im Echtzeitspiel abgestellt war.
+  - **Folge fürs Bauen (gerechnet):** Der Nachschub leert das Hinterland jeden Zug bis auf 1, die Felder um die
+    Burg behalten 10. Ein Hof im Hinterland kostet deshalb meist 2 Befehle: erst Truppen hin verlegen, dann
+    bauen. Sind alle Fronten voll, bleiben die Truppen liegen, und es geht mit einem.
+  - Die Testspieler im Messwerkzeug hatten den Nachschub immer an. Die gemessene Balance ändert sich also nicht.
+- **Karte drehen.** Oben rechts neben der Zugnummer sitzt ein Knopf mit rundem Pfeil, am PC auch die Taste R.
+  - Jeder Tipp dreht um eine Seite der Insel weiter (60 Grad), in knapp einer halben Sekunde. Nach sechs Tipps
+    ist man wieder am Anfang.
+  - Die Zahl eines Felds und seine Besatzung bleiben vorn am Feld, aus jeder Richtung.
+  - Eine neue Partie beginnt immer in der gewohnten Ansicht.
+  - Der Knopf ist auch in den Echtzeit-Karten da, solange es sie im Zweig noch gibt.
+
+### Wie geprüft
+
+- **Tests:** `node --test`, 114 Tests grün (4 neue): Sechs Schritte ergeben einen vollen Kreis, immer in
+  dieselbe Richtung; ein zweiter Tipp während des Drehens setzt dort an, wo die Ansicht steht; was vorn am Feld
+  stand, bleibt aus jeder Richtung vorn; im Rundenmodus gibt es keinen Nachschub-Schalter, und der Nachschub
+  läuft immer.
+- **Browser** (eingebauter Browser, 800 × 827 und Handyformat): Insel nach einem und nach drei Schritten
+  gesehen, Zahlen und Figuren stehen richtig. Ein Tipp auf ein eigenes Feld in der gedrehten Ansicht wählt das
+  richtige Feld. Keine Fehlermeldung.
+
+### Aufgefallen
+
+- **Am Handy füllen nur zwei der sechs Ansichten den Bildschirm** (gesehen). Die Insel ist länglich und steht im
+  Handyformat hochkant. In den vier schrägen Ansichten liegt sie quer und wird deutlich kleiner. Man kann
+  hineinzoomen. Eine Möglichkeit wäre, am Handy nur zwischen vorn und hinten zu wechseln.
+- **Gebäude, Burgen und Bäume drehen sich nicht mit dem Feld,** man sieht sie von der anderen Seite. In den
+  Bildern hat nichts gestört.
+
+### Gesamtstand
+
+| Teil | Stand |
+|---|---|
+| Probe: Rundenkern, Duell im Browser, Testversion online (Schritte 0 bis 4) | fertig, online |
+| Block 1: Gegner, die zu Ende spielen | fertig, online. Offen: Auf „Schwer“ verkeilen sich gleich starke Gegner noch (Abschnitt 14). |
+| Block 2: Zeitraffer und Lesbarkeit | gebaut und online: Marsch der eigenen Truppen, Spur und Ring, Zuwachs, Auskunft am Feld. Dein Urteil und der Test am echten Handy fehlen. |
+| Erklärungen: Turm, Hof, Zuwachs, Deckung | fertig, online |
+| Nachschub-Schalter weg, Karte drehen | gebaut, nur lokal |
+| Block 3: Mission 1 in Zügen | offen |
+| Block 4: Missionen 2 und 3 in Zügen | offen |
+| Block 5: Gefechte in Zügen (vier Reiche, Zufallskarte) | offen; das Duell gibt es schon |
+| Block 6 und 7: Troll und Ritter in Zügen | offen |
+| Block 8: Übernahme ins öffentliche Spiel | offen, erst nach deinem Okay |
+
+### Der Weg zu Kampagne und Gefechten in Zügen
+
+Der Rundenkern rechnet alle Karten schon heute (gemessen, Abschnitt 14). Im Browser spielbar ist nur das Duell,
+weil die anderen noch nicht abgestimmt sind:
+
+| Karte | Was heute fehlt (gemessen, 20 Karten, Normal) |
+|---|---|
+| Vier Reiche, Zufallskarte | laufen, dauern aber lang (Mitte Zug 48), und der Anfänger gewinnt nur 3 von 20. Der Zeitraffer von drei Gegnern ist lang. |
+| Mission 1 | passt fast (Anfänger 13 von 20, Mitte Zug 24). Die Einführung in geführten Schritten ist für Echtzeit geschrieben. |
+| Mission 2 | verkeilt sich an den Pässen: Nur 5 von 40 Partien zwischen Computern enden. |
+| Mission 3 | für die Testspieler nicht zu gewinnen: 0 von 20. Das Ziel „Zitadelle 60 Sekunden halten“ muss in Züge übersetzt werden. |
+
+**Mein Vorschlag für die Reihenfolge:**
+
+1. **Alles in Zügen spielbar machen, noch roh** (1 Sitzung). Kampagne und Gefechte starten im Zweig in Zügen,
+   die Echtzeit-Einträge fallen weg. Die Einführung von Mission 1 bekommt Texte für Züge. Im Menü steht bei jeder
+   Karte, ob sie schon abgestimmt ist. Du kannst dann alles anspielen.
+2. **Gefechte abstimmen** (Block 5, 1 bis 2 Sitzungen).
+3. **Mission 1 abstimmen** (Block 3, 1 Sitzung, weil die Einführung dann schon steht).
+4. **Missionen 2 und 3 abstimmen** (Block 4, 2 bis 3 Sitzungen).
+
+Der Aufwand ist geschätzt, nicht gemessen. Für die Länge der Partien und das Ende an der Zuggrenze brauche ich
+vorher deine Antwort (Abschnitt 14, „Was offen bleibt“).
 
