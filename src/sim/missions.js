@@ -23,8 +23,12 @@ export const CAMPAIGN = [
     factions: 2,
     guide: 'basics',
     par: 300,
-    // Turn mode (branch runden): turns for the second star. Estimated, not measured yet.
+    // Turn mode (branch runden): turns for the second star, and the rival retuned for turns. On
+    // "normal" it keeps more troops at its front (7 instead of 5), so it attacks less: the stand-in
+    // beginner then wins 51 of 60 instead of 35 to 38 (docs/RUNDEN-PLAN.md, section 19).
     parTurns: 30,
+    turnAiBy: { normal: { frontKeep: 7 } },
+    turnsTuned: true,
     seed: 11,
     aiDelay: 8,
     // A patient teacher on every strength: attacks from two sides at most and wants a wide margin.

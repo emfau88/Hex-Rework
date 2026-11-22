@@ -29,7 +29,8 @@ export class TurnGame extends Game {
     const diff = TURN_DIFFICULTY[this.difficulty] || TURN_DIFFICULTY.normal;
     for (const f of this.factions) {
       if (f.wild || f.human) continue;
-      f.ai = Object.freeze({ ...diff, ...(mission.turnAi || null) });
+      // A mission may retune the rivals for turns: `turnAi` on every strength, `turnAiBy` on one.
+      f.ai = Object.freeze({ ...diff, ...(mission.turnAi || null), ...(mission.turnAiBy?.[this.difficulty] || null) });
       f.incomeMul = f.ai.incomeMul;
     }
     if (this.objective.type === 'hold') this.objective.turns = Math.ceil(this.objective.seconds / this.T.seconds);
