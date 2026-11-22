@@ -1,14 +1,15 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.7 vom 21.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 0.8 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
 geteilt (Abschnitt 13). **Block 1 ist gebaut und gemessen** (Abschnitt 14): Die Gegner warten nicht mehr ab.
 Ein Kriterium ist knapp verfehlt: Gleich starke Gegner auf „Schwer“ verkeilen sich noch zu oft. Dazu brauche ich
 deine Entscheidung (Abschnitt 14, „Was offen bleibt“). **Block 2 ist gebaut, aber noch nicht abgenommen**
-(Abschnitt 15): Jeder Gegnerzug zeigt jetzt Pfeile und sein Ergebnis. Ob du ihm damit folgen kannst, und der
-Test auf deinem Handy, fehlen noch.
+(Abschnitt 15). Nach deiner Rückmeldung vom 22.11.2026 ist er überarbeitet: Auch deine eigenen Truppen
+marschieren jetzt sichtbar, die Pfeile sind einer hellen Spur mit Ring gewichen, und der Zuwachs steht am Feld.
+Das Tempo des Zeitraffers passt für dich. Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
 
 ## 1 · Worum es geht
 
@@ -435,7 +436,7 @@ in diesem branch ausbauen mit den runden“
 | **(a) Runden ersetzt die Echtzeit** oder **(b) beide Spielarten bleiben** | Spätestens vor Block 6 (Troll). Bei (b) muss jede Figur und jede Mission in beiden Spielarten gebaut, gemessen und gepflegt werden. Die Blöcke 1 bis 5 gehen ohne diese Antwort. |
 | Kommst du zum Bauen? | Block 2. Die Computer bauen selten (Abschnitt 10). |
 | 3 Befehle: zu wenig, richtig oder zu viel? | Block 2. Gemessen sind 2, 3 und 4 (Abschnitt 10). |
-| Zeitraffer: zu schnell, zu langsam, unnötig? Kannst du den Gegnern folgen? | Block 2 |
+| Zeitraffer: zu schnell, zu langsam, unnötig? Kannst du den Gegnern folgen? | **beantwortet am 22.11.2026:** „tempo von gegner passt“. Die Pfeile waren lesbar, sahen aber billig aus (Abschnitt 15). |
 | Fehlt dir die Spannung der Echtzeit? | Block 2, und die Wahl zwischen (a) und (b) |
 | Wie lang soll eine Partie sein (in Zügen oder Minuten)? | Blöcke 1, 3 und 4: Danach richten sich Zuggrenze, Sturm und die Sterne. |
 
@@ -598,57 +599,94 @@ Diese Versuche sind ohne das Verlegen gemessen. Mit Verlegen stehen die Werte in
   Abschnitt 11, das Tempo bei sichtbarem Fenster. Die Ansicht war wieder ausgeblendet, ich habe die Bilder von
   Hand angetrieben. Den Marsch beim Verlegen habe ich deshalb nicht als Bild gesehen, nur als Ablauf im Protokoll.
 
-## 15 · Block 2: Zeitraffer und Lesbarkeit (21.11.2026, gebaut, noch nicht abgenommen)
+## 15 · Block 2: Zeitraffer und Lesbarkeit (gebaut, noch nicht abgenommen)
 
-### Was neu ist
+### Erster Stand (21.11.2026) und deine Rückmeldung (22.11.2026)
 
-- **Pfeile für jeden Gegnerbefehl.** Während ein Befehl läuft, zeigen Pfeile in der Farbe des Gegners, von
-  welchen Feldern seine Truppen kommen und wohin sie gehen. Die Pfeile haben einen hellen Rand, damit man sie
-  auch auf den Feldern des Gegners sieht. Beim Verlegen gibt es einen dünneren Pfeil entlang des Wegs.
-- **Das Ergebnis am Feld.** Nach einem Angriff steht kurz am Ziel, wie er ausging: ✓ und wie viele eingezogen
-  sind, oder ✗ und wie viele Verteidiger übrig sind. Das sind dieselben Zeichen wie in deiner Vorschau.
-- **Zahlen an allen marschierenden Gegnern.** Vorher trugen nur die Truppen eine Zahl, die auf dich zukamen.
-- **Die Pause nach einem Angriff ist länger** (0,6 statt 0,35 Sekunden bei „Normal“), damit man das Ergebnis lesen
-  kann. Die marschierenden Figuren selbst sind gleich groß geblieben.
+Der erste Stand zeigte jeden Gegnerbefehl mit Pfeilen in der Farbe des Gegners und dem Ergebnis am Feld. Du hast
+ihn online gespielt. Deine Rückmeldung, wörtlich:
+
+> „finde man sollte trotz rundenmodus truppenbewegungen wie in der vorigen version sehen, das sieht hübscher aus.
+> die pfeile sind lesbar, aber sehen etwas billig aus und schwer bezüglich kontrast erkennbar (z.b. rot auf rot).
+> wäre evtl auch gut wenn man pro runde den income sehen kann der jeweiligen felder und wovon dieses abhängt oder
+> wird das dann zu voll? ist nur eine idee. tempo von gegner passt“
+
+So habe ich sie verstanden (meine Lesart):
+- „Vorige Version“ ist das Echtzeitspiel. Dort sieht man alle Truppen marschieren, auch die eigenen. Im
+  Rundenmodus geschahen deine eigenen Befehle ohne Marsch, auf einen Schlag.
+- Die Pfeile sollen schöner werden und sich auch auf Feldern in der Farbe des Gegners abheben.
+- Der Zuwachs je Feld soll sichtbar sein, ohne dass die Insel zu voll wird.
+
+### Was jetzt gebaut ist (22.11.2026)
+
+- **Deine eigenen Truppen marschieren.** Nach einem Angriff oder Verlegen laufen die Figuren los, mit ihrer
+  Zahl, wie im Echtzeitspiel. Kommen sie an, wird gekämpft oder eingezogen. Der Marsch dauert eine halbe
+  Sekunde (bei „Ruhig“ 0,7).
+  - **Er hält dich nicht auf.** Der nächste Befehl, „Rückgängig“ oder „Zug beenden“ lässt die Truppen sofort
+    ankommen. Der Befehl zählt schon als verbraucht, während sie laufen.
+- **Helle Spur statt Pfeil.** Hinter jeder marschierenden Kolonne zieht sich eine helle Spur mit dunklem Rand,
+  die nach hinten ausläuft. Sie hebt sich auf jeder Feldfarbe ab. Wem die Truppen gehören, zeigen die Figuren
+  und ihre Zahl.
+- **Ring am Ziel.** Das Feld, zu dem ein Befehl geht, trägt einen Ring in der Farbe des Reichs mit hellem Rand.
+  Solange die Truppen laufen, pulsiert er leicht.
+- **Ergebnis am Feld** (nur bei Gegnern, du kennst deines aus der Vorschau): ✓ und wie viele eingezogen sind,
+  oder ✗ und wie viele Verteidiger übrig sind.
+- **Zuwachs am Zugbeginn.** Wenn du wieder dran bist, steigt über jedem deiner Felder kurz auf, was es gerade
+  bekommen hat, etwa „+2“, an der Burg „+6“. Volle Felder zeigen nichts, weil sie nicht wachsen. Ein Verlust
+  steht rot da, etwa „−4“ bei einem abgeschnittenen Feld. Nach knapp 2 Sekunden ist alles wieder weg.
+- **Auskunft am gewählten Feld.** Tippst du ein eigenes Feld an, steht darüber, was es pro Zug bekommt und
+  warum: „Wiese +2/Zug · bis 20“, mit Hof „Wiese +4,5/Zug · davon Hof 2,5 · bis 20“, „voll (20) · wächst nicht
+  weiter“ oder „abgeschnitten · −4/Zug“.
+- **Unverändert:** die Zahlen an allen marschierenden Gegnern und die längere Pause nach einem Gegnerangriff
+  (0,6 Sekunden bei „Normal“).
 
 ### Tempo
 
-| Tempo | ein Angriff (Marsch und Ergebnis) | ein Gegnerzug mit 3 Angriffen |
-|---|---|---|
-| Ruhig | 1,9 s | 7,1 s (vorher 6,1) |
-| Normal | 1,4 s | 5,3 s (vorher 4,5) |
-| Schnell | 0,8 s | 3,2 s (vorher 2,7) |
+| Tempo | ein Gegnerangriff (Marsch und Ergebnis) | ein Gegnerzug mit 3 Angriffen | Marsch deiner eigenen Truppen |
+|---|---|---|---|
+| Ruhig | 1,9 s | 7,1 s | 0,7 s |
+| Normal | 1,4 s | 5,3 s | 0,5 s |
+| Schnell | 0,8 s | 3,2 s | 0,3 s |
 
 - Die Tabelle ist aus den eingestellten Zeiten **gerechnet**.
-- **Gemessen** bei „Ruhig“, mit echter Uhr und von Hand angetriebenen Bildern: ein Gegnerzug mit 1 Angriff 3,4 s,
-  mit Angriff und Bau 4,3 s, mit 2 Angriffen 5,4 s. Das passt zur Rechnung.
-- Ein Tipp auf „Überspringen“ spielt weiter alles sofort ab.
+- **Gemessen** bei „Ruhig“: ein Gegnerzug mit 1 Angriff 3,4 s, mit 2 Angriffen 5,4 s (Bilder von Hand angetrieben)
+  und 4,6 s (sichtbares Fenster). Das passt zur Rechnung.
+- **Gemessen im sichtbaren Fenster** (22.11.2026): Der Zeitraffer lief mit 50 oder mehr Bildern pro Sekunde.
+- **Dein Urteil:** Das Tempo der Gegner passt.
 
 ### Abnahme
 
 | Kriterium | Stand |
 |---|---|
-| Du kannst jedem Gegnerzug folgen, ohne zu suchen (dein Urteil) | **offen**, braucht deinen Test |
-| Das Tempo ist bei sichtbarem Fenster gemessen | **zum Teil:** Dauer mit echter Uhr gemessen; das Fenster war wieder verdeckt, ob es flüssig aussieht, habe ich nicht gesehen |
+| Du kannst jedem Gegnerzug folgen, ohne zu suchen (dein Urteil) | **zum Teil:** Die Pfeile waren lesbar, das Tempo passt. Dein Urteil zur neuen Spur fehlt noch. |
+| Das Tempo ist bei sichtbarem Fenster gemessen | **ja** (siehe oben) |
 | Du hast eine Partie auf deinem Handy gespielt, ohne dass etwas klemmt | **offen**, braucht deinen Test |
 
 ### Wie geprüft
 
-- **Tests:** `node --test`, 105 Tests grün (2 neue): Die Pfeile stehen, solange die Truppen marschieren; danach
-  kommt das Ergebnis; ist man wieder dran, ist nichts mehr zu sehen. Das Overlay zeichnet Pfeil und Ergebnis.
-- **Browser** (eingebauter Browser, Stufe Normal, 800 × 600 und Handyformat 375 × 812): Einzelbilder eines
-  Angriffs von vier Feldern auf eines meiner Felder, des Ergebnisses „✓ 12“ danach und eines Verlegens über
-  mehrere Felder. Keine Fehlermeldung.
+- **Tests:** `node --test`, 108 Tests grün. Neu seit dem ersten Stand: Ein eigener Befehl marschiert erst und
+  endet dann auf genau demselben Brett wie der Befehl direkt in den Regeln. Der nächste Befehl, „Rückgängig“ und
+  „Zug beenden“ lassen die Truppen sofort ankommen. Spur, Ring, Ergebnis, Zuwachs und Feld-Auskunft werden
+  gezeichnet.
+- **Browser** (eingebauter Browser, Stufe Normal, 800 × 676): Bilder gesehen von einem eigenen Angriff mit vier
+  Kolonnen im Marsch, von einem Gegnerangriff mit Ring, vom Ergebnis „✓ 6“ mit Ring, vom Zuwachs über allen
+  eigenen Feldern und von der Auskunft „Wiese +2/Zug · bis 20“. Keine Fehlermeldung.
+- **Nicht geprüft:**
+  - Das Handyformat für die neuen Teile. Meine Bilder dort trafen den falschen Moment. Die Aufteilung der
+    Oberfläche hat sich nicht geändert.
+  - Ein echtes Handy.
 
 ### Aufgefallen
 
-- **Bei einem Angriff von mehreren Seiten liegen die Zahlen der Kolonnen am Ziel übereinander** (gesehen, vor
-  allem im Handyformat). Die Pfeile bleiben lesbar. Ob das stört, zeigt dein Test.
+- **Die Feld-Auskunft kann die Zahl des Felds darüber verdecken** (gesehen). Sie steht nur, solange das Feld
+  gewählt ist.
+- **Ein gerade erobertes Feld zeigt am nächsten Zugbeginn manchmal „−10“** (gesehen). Das ist richtig: Es zogen
+  mehr Truppen ein, als das Feld nährt, und der Überschuss schmilzt. Ob das verwirrt, zeigt dein Test.
+- **Bei einem Angriff von mehreren Seiten liegen die Zahlen der Kolonnen am Ziel übereinander** (gesehen).
 - **Bei drei Gegnern wird der Zeitraffer lang** (gerechnet: bis 21 Sekunden pro Runde bei „Ruhig“). Das gehört zu
   Block 5.
 
 ### Noch offen aus deinen Antworten
 
-Bauen, Zahl der Befehle, Tempo und Spannung (Abschnitt 12) sind nicht beantwortet. Daran habe ich deshalb nichts
-geändert.
+Bauen, Zahl der Befehle und Spannung (Abschnitt 12) sind nicht beantwortet. Daran habe ich nichts geändert.
 
