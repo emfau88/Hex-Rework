@@ -12,6 +12,30 @@ welche davon taugen. Sie ergänzt zwei andere Pläne:
 **Kennungen:** Jede Idee hat ein Kürzel (zum Beispiel `U4` oder `F6`). So kannst du im Gespräch kurz sagen, was
 dir gefällt.
 
+## 0 · Akute Probleme und Grundplan (Stand 23.11.2026)
+
+**Die akuten Probleme** (dein Eindruck und die Messung, Einzelheiten in Abschnitt 1)
+
+1. Partien verkeilen sich und dauern zu lang. Mission 2: Nur 5 von 40 Partien enden, die Mitte liegt bei Zug 57.
+2. Mission 3 ist nicht zu gewinnen (0 von 20).
+3. Ein großes Reich fühlt sich nicht mächtiger an: Nur 4 bis 13 % der Truppen handeln pro Zug, ein Viertel bis ein
+   Drittel des Zuwachses verfällt.
+4. Eroberte Felder gehen sofort wieder verloren (Hin und Her).
+5. Zug 30 spielt sich wie Zug 12, und der Gegner ist immer von derselben Art.
+
+**Grundsatz:** Erst muss das Spiel enden, dann kommt die Würze. Jede neue Figur wird daran gemessen, welches
+dieser fünf Probleme sie trifft. Nichts aus den Phasen 2 bis 4 wird gebaut, bevor Phase 1 bestanden ist.
+
+| Phase | Trifft | Inhalt | Fertig, wenn |
+|---|---|---|---|
+| 1 · Das Spiel endet | Probleme 1 bis 4 | Probe P0: Tempo für große Reiche, Halt für Eroberungen, Sieg durch Übermacht. Dazu Mission 3 umbauen | Jede Karte endet in der Mitte bei Zug 20 bis 30; Mission 2 hat in 90 % der Partien einen Sieger; die Testspieler können Mission 3 gewinnen; du findest Mission 2 nicht mehr zäh |
+| 2 · Nicht immer derselbe Gegner | Problem 5 | Probe P1: der Troll in Zügen in einer Mission. Probe P2: Trophäe für die Höhle | Du hast die Mission gespielt und willst die Wildnis behalten |
+| 3 · Etwas aufbauen | Probleme 3 und 5 | Probe P3: eine besondere Einheit, die erste nach deiner Wahl | Die Rechnerprobe hält die Grenzen, deine vier Fragen fallen gut aus |
+| 4 · Mehr davon | Problem 5 | Proben P4 bis P6: Boss, Held und Zauber, anderer Gegner | je Probe; jede erst, wenn die davor bestanden ist |
+
+**Folge für den Rundenplan:** Die Abstimmung von Mission 2, Mission 3 und „Vier Reiche“ über einzelne Zahlen
+(Blöcke 4 und 5) sollte auf Phase 1 warten. Das Fundament ändert alle Zahlen, die Arbeit wäre sonst doppelt.
+
 ## 1 · Was das Audit gemessen hat (22.11.2026)
 
 Gemessen auf Stufe Normal, 20 Karten je Variante, ein Würfelsatz, Computer gegen Computer und mit den beiden
@@ -155,7 +179,7 @@ Die Einschätzungen sind Meinung, außer wo „gemessen“ steht.
 |---|---|---|---|
 | `U1` | Ramme | Deckung durch einen Turm zählt an ihrer Kante nicht | Verkeilte Pässe (Mission 2) |
 | `U2` | Reiter | Nach einem gewonnenen Angriff sofort ein zweiter, ohne Befehl | Tempo |
-| `U3` | Riese | Zählt als zusätzliche Kante beim Umzingeln | Felder, die man nur von einer Seite erreicht |
+| `U3` | Riese | Greift er mit an, verlieren auch bis zu zwei gegnerische Nachbarfelder des Ziels Truppen (deine Idee vom 23.11.2026) | Eroberungen halten nicht: Die Felder, die zurückschlagen würden, sind geschwächt. Dazu Tempo für den nächsten Angriff |
 | `U4` | Katapult | Schwächt ein Feld in zwei Schritten Entfernung, ohne es zu nehmen | Alles-oder-nichts beim Angriff |
 | `U5` | Saboteur | Ein gegnerisches Feld bekommt einen Zug lang keinen Nachschub | Der Verteidiger füllt gratis nach |
 | `U6` | Garde | Ihr Feld kann einen Zug lang nur von einer Seite angegriffen werden | Eroberungen halten nicht |
@@ -163,8 +187,12 @@ Die Einschätzungen sind Meinung, außer wo „gemessen“ steht.
 | `U8` | Greifenreiter | Greift ein Feld im Umkreis von drei Schritten an, auch über Gebirge und Wasser | Zweite Front, Engpässe |
 | `U9` | Feldscher | Die Hälfte der Gefallenen eines verlorenen Angriffs kehrt zurück | Erlaubt gewagte Angriffe, bringt Risiko ins Spiel |
 | `U10` | Baumeister | Baut einmal je Zug ohne Befehl in seiner Nähe | Bauen hört nach Zug 20 auf |
-| `U11` | Trollhorde (Trophäe) | Überfällt von selbst und angekündigt alle paar Züge ein Nachbarfeld des Gegners | Tempo ohne eigenen Befehl |
-| `U12` | Koloss | Ein großer Brocken mit eigener Stärke; sein Feld fällt erst, wenn er besiegt ist | Bewegliche Festung, hält einen Keil |
+| `U11` | Trollhorde (Trophäe) | Eine eroberte Trollhöhle kämpft für dich. Sie bleibt an ihrem Ort und überfällt alle paar Züge von selbst das schwächste gegnerische Nachbarfeld, einen Zug vorher angekündigt | Tempo ohne eigenen Befehl; macht Höhlen zu umkämpften Orten |
+| `U12` | Koloss | Eine große Figur mit eigener Stärke (etwa 30). Angreifer müssen erst sie besiegen, dann die Truppen des Felds. Gewinnt ein Angriff von ihrem Feld aus, zieht sie ins eroberte Feld mit | Eroberungen halten nicht. Risiko: Als reine Verteidigung könnte sie Fronten noch stärker verkeilen |
+
+Zum Riesen (`U3`): Die erste Fassung („zählt als zusätzliche Kante beim Umzingeln“) ist durch deine Idee ersetzt.
+Offen für die Rechnerprobe: wie viel die Nachbarfelder verlieren, ob Deckung dabei zählt, und ob es auch neben
+einer Burg gilt.
 
 Der Ritter aus dem Figurenplan („12 statt 8 Angreifer an der Kante“) wäre nach der Messung zu schwach: Breitere
 Kanten überall änderten im Duell nichts. Er bräuchte ein Können wie `U2` oder `A8`.
