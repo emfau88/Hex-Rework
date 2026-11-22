@@ -1,6 +1,6 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 1.0 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 1.1 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
@@ -11,8 +11,9 @@ deine Entscheidung (Abschnitt 14, „Was offen bleibt“). **Block 2 ist gebaut,
 marschieren jetzt sichtbar, die Pfeile sind einer hellen Spur mit Ring gewichen, und der Zuwachs steht am Feld.
 Das Tempo des Zeitraffers passt für dich. Dazu erklärt das Spiel jetzt Turm, Hof, Zuwachs und Deckung
 (Abschnitt 16). Der Nachschub-Schalter ist im Rundenmodus entfernt, und ein Knopf dreht die Karte
-(Abschnitt 17). Dort steht auch der Gesamtstand und der Weg zu Kampagne und Gefechten in Zügen. Offen sind dein
-Urteil zur neuen Darstellung und der Test am Handy.
+(Abschnitt 17). **Kampagne und Gefechte starten im Zweig jetzt in Zügen, noch unabgestimmt** (Abschnitt 18).
+Als Nächstes werden die Karten einzeln abgestimmt. Offen sind dein Urteil zur neuen Darstellung und der Test am
+Handy.
 
 ## 1 · Worum es geht
 
@@ -835,4 +836,63 @@ weil die anderen noch nicht abgestimmt sind:
 
 Der Aufwand ist geschätzt, nicht gemessen. Für die Länge der Partien und das Ende an der Zuggrenze brauche ich
 vorher deine Antwort (Abschnitt 14, „Was offen bleibt“).
+
+## 18 · Alles in Zügen spielbar, noch roh (22.11.2026)
+
+Das ist Schritt 1 des Wegs aus Abschnitt 17. Er macht alle Karten spielbar, stimmt sie aber noch nicht ab.
+
+### Was sich geändert hat
+
+- **Das Menü startet alles in Zügen:** die Missionen 1 bis 3, das Duell und „Vier Reiche“. Den eigenen Abschnitt
+  „Rundenmodus · Test“ gibt es nicht mehr. Echtzeit-Karten gibt es im Zweig nicht mehr zu wählen.
+  - Die Regeln des Echtzeitspiels bleiben im Code, mit ihren Tests. Die Partie hinter dem Menü läuft weiter in
+    Echtzeit.
+- **„noch nicht abgestimmt“** steht im Menü an jeder Karte außer dem Duell, dazu ein kurzer Hinweis darunter.
+- **Alle Missionen sind offen,** solange Karten unabgestimmt sind. Sonst würde eine Mission, die noch nicht zu
+  gewinnen ist, die folgenden versperren. Die Sperre kommt zurück, wenn alles abgestimmt ist.
+- **Ziele und Sterne in Zügen.** Der zweite Stern heißt „In höchstens … Zügen“: Mission 1 und Duell 30,
+  Missionen 2 und 3 und „Vier Reiche“ 45. Diese Zahlen sind geschätzt, nicht gemessen.
+- **Mission 3 zählt Züge.** Aus „60 Sekunden halten“ werden 8 Züge. Gezählt wird zu Beginn des Zugs dessen, der
+  Zitadelle und Ring hält. Einweisung, Zielzeile und Einführung sprechen von Zügen.
+- **Die geführten Schritte laufen in Zügen** (Missionen 1 bis 3). Wo ein Satz von Warten oder von der Uhr
+  sprach, gibt es eine Fassung für Züge. Der Satz bleibt in der Hinweiszeile stehen, auch nachdem der Gegner
+  gezogen hat.
+- **Der Gegner hält in der Einführung still,** auch mit dem Durchbruch aus Block 1: Solange Mission 1 die
+  Grundlagen erklärt, bricht er nicht durch und zieht keine Truppen zusammen, und die Übungsfestung lässt er in
+  Ruhe.
+
+### Wie geprüft
+
+- **Tests:** `node --test`, 118 Tests grün (4 neue): Jede Karte des Menüs kommt in Zügen zu einem Ende; die
+  Zitadelle zählt 8 Züge und beendet die Partie; der Gegner hält während der Einführung still; das Menü startet
+  alles in Zügen.
+- **Browser** (eingebauter Browser, 800 × 827, Stufe Normal):
+  - Menü mit den Marken „noch nicht abgestimmt“.
+  - Missionen 2 und 3, Duell und „Vier Reiche“ gestartet und je 5 bis 6 Züge gespielt, ohne Fehlermeldung.
+  - Mission 1: die vier geführten Schritte durchgespielt (ziehen, zwei Felder nehmen, Festung mit doppeltem
+    Tipp, weiter zur Burg). Der Gegner griff bis zur Festung nicht an.
+  - Mission 3: Einweisung und Zielzeile nennen 8 Züge.
+- **Gemessen:** Bei „Vier Reiche“ dauert der Zeitraffer von drei Gegnern bei „Ruhig“ 20 Sekunden (8 Befehle).
+  „Überspringen“ spielt ihn sofort ab.
+- **Nicht geprüft:** keine Karte bis zum Ende im Browser (nur im Test ohne Bild), das Handyformat für das neue
+  Menü, ein echtes Handy.
+
+### Was du beim Anspielen erwarten musst (gemessen, 20 Karten, Normal, Abschnitt 14 und 17)
+
+| Karte | Erwartung |
+|---|---|
+| Duell | abgestimmt |
+| Mission 1 | sollte passen: Der Anfänger gewinnt 13 von 20, Mitte Zug 24 |
+| Mission 2 | zäh: Die Pässe verkeilen sich, Partien dauern lang |
+| Mission 3 | sehr schwer: Die Testspieler verloren 17 bis 19 von 20, fast immer durch den Fall der eigenen Burg um Zug 38. Vermutet: Im Echtzeitspiel bremste die Mission die Gegner über ihr Tempo, das gibt es in Zügen nicht. |
+| Vier Reiche | lang (Mitte Zug 48) und für Anfänger schwer (3 von 20). Der Zeitraffer von drei Gegnern ist lang. |
+
+### Nächste Schritte
+
+1. Gefechte abstimmen (Block 5): „Vier Reiche“ kürzer und fairer, Zeitraffer für drei Gegner straffen.
+2. Mission 1 abstimmen (Block 3).
+3. Missionen 2 und 3 abstimmen (Block 4).
+
+Dafür fehlen noch deine Antworten: wie lang eine Partie sein soll, und ob an der Zuggrenze gewinnt, wer mehr
+Felder hat (Abschnitt 14).
 
