@@ -462,6 +462,10 @@ Den Aufwand habe ich geschätzt, nicht gemessen. Eine „Sitzung“ ist ein Arbe
 du hast am 21.11.2026 entschieden, trotzdem weiterzumachen, es bleibt als offen stehen. Block 2 ist gebaut und
 wartet auf deinen Test (Abschnitt 15).
 
+**Online:** Seit dem 22.11.2026 hat die Testversion unter `/runden/` den Stand von Block 1 und Block 2. Geprüft
+nach dem Hochladen: Die Veröffentlichung lief durch, das Duell läuft online vier Züge ohne Fehlermeldung, und
+das echte Spiel ist unverändert.
+
 **Reihenfolge, und warum Block 1 zuerst:** Alle späteren Messungen an Missionen hängen davon ab, wie der Gegner
 spielt. Ändere ich ihn erst danach, muss ich die Missionen neu messen.
 
