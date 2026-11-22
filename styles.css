@@ -305,6 +305,11 @@ canvas {
   display: none;
 }
 
+/* Turn mode: the supply always runs at the end of the move, so its switch is gone. */
+#app[data-turns] #btn-supply {
+  display: none;
+}
+
 /* Turn mode: what the building gives, where nothing stands in its way. */
 .build .why.gain {
   color: #c8f5a8;

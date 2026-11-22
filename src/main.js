@@ -188,7 +188,8 @@ class App {
       difficulty: this.store.difficulty,
       human: 0,
       playerColor: this.store.color,
-      autoSupply: this.store.supply,
+      // Turn mode: the supply always runs (its switch is gone there); real time keeps the setting.
+      autoSupply: mission.turnMode ? true : this.store.supply,
       wide: this.wide(),
     });
     this.turns = mission.turnMode ? new TurnPlay(this) : null;
@@ -507,6 +508,7 @@ class App {
 
     const again = () => (this.lab ? this.startLab() : this.startMission(this.mission, this.mission.random ? this.seed : undefined));
     $('#btn-view').addEventListener('click', () => this.renderer.resetView());
+    $('#btn-turn').addEventListener('click', () => this.turnView());
     $('#btn-pause').addEventListener('click', () => this.togglePause());
     $('#btn-continue').addEventListener('click', () => this.setMode('play'));
     $('#btn-options').addEventListener('click', () => this.setMode('options'));
@@ -607,6 +609,8 @@ class App {
       } else if ((e.key === ' ' || e.key.toLowerCase() === 'p') && (this.mode === 'play' || this.mode === 'pause' || this.mode === 'options')) {
         e.preventDefault();
         this.togglePause();
+      } else if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey && !e.altKey && (this.mode === 'play' || this.mode === 'pause')) {
+        this.turnView();
       } else if (e.key === '0' || e.key === 'Home') {
         this.renderer.resetView(); // back to the whole island
       } else if (e.key === '1' || e.key === '2') {
@@ -657,6 +661,14 @@ class App {
   /** Milliseconds for the second tap of a combined attack. Turn mode has no clock, so more. */
   tapWindow() {
     return this.turns ? 10000 : 2500;
+  }
+
+  /** Turns the view on by one side of the island (six views in all). A drag in progress is dropped. */
+  turnView() {
+    if (!this.game || (this.mode !== 'play' && this.mode !== 'pause')) return;
+    this.input.cancel();
+    this.renderer.turnBy(1);
+    this.sfx.play('select');
   }
 
   /** Turn mode: takes back the last command of this move. */
@@ -1001,6 +1013,8 @@ class App {
     view.hidden = !(this.renderer.zoom > 1.01);
     view.setAttribute('aria-label', i18n.t('viewReset'));
     view.title = i18n.t('viewReset');
+    $('#btn-turn').setAttribute('aria-label', i18n.t('viewTurn'));
+    $('#btn-turn').title = i18n.t('viewTurn');
     $('#clock').textContent = this.turns ? i18n.t('turnLabel', { n: game.turn }) : clock(game.time);
     $('#clock').classList.toggle('storm', game.storm);
     if (this.turns) this.turns.hud();

@@ -14,6 +14,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
 const MAX_BEASTS = 200; // monster figures (trolls)
+const TURN_SECONDS = 0.45; // a turn of the view by one side of the island
 const MAX_ZOOM = 2.6;
 const INSTANCE = 12; // floats per figure: position and turn, colour and size, tilt and kingdom
 const HEX = Math.PI / 6;
@@ -383,7 +384,64 @@ export class DioramaRenderer {
     this._envelope = null;
     this.zoom = 1;
     this.pan = [0, 0];
+    // A new island is shown from the side it was laid out for.
+    this.camera.azimuth = MAP_ANGLE;
+    this.turnStep = 0;
+    this.turning = null;
     this._fit();
+  }
+
+  // ------------------------------------------------------------ turning the view
+
+  /** How far the view is turned around the island, in radians beyond the angle the maps are laid out for. */
+  get turnAngle() {
+    return this.camera.azimuth - MAP_ANGLE;
+  }
+
+  /** Looks at the island from `angle` radians further round and fits the picture anew. */
+  setTurn(angle) {
+    this.camera.azimuth = MAP_ANGLE + angle;
+    this.zoom = 1;
+    this.pan = [0, 0];
+    this._fit();
+  }
+
+  /**
+   * Turns the view on by `steps` sixths of a circle. The fields are hexagons, so after each step
+   * the island lies in the picture the same way, seen from its next side. The turn is played over
+   * a moment (see render); without pictures it is there at once the next time one is drawn.
+   */
+  turnBy(steps = 1) {
+    if (!this.game) return;
+    const from = this.turnAngle;
+    this.turnStep = (((this.turnStep + steps) % 6) + 6) % 6;
+    let to = (this.turnStep * Math.PI) / 3;
+    while (to <= from + 1e-6) to += Math.PI * 2;
+    while (to - from > Math.PI * 2 + 1e-6) to -= Math.PI * 2;
+    this.turning = { from, to, start: null };
+  }
+
+  /** Plays a turn of the view that is under way. */
+  _turnOn(time) {
+    const t = this.turning;
+    if (t.start === null) t.start = time;
+    const k = clamp((time - t.start) / TURN_SECONDS, 0, 1);
+    if (k >= 1) {
+      this.turning = null;
+      this.setTurn((this.turnStep * Math.PI) / 3);
+    } else this.setTurn(mix(t.from, t.to, smooth(k)));
+  }
+
+  /**
+   * A spot inside a field, given as it is laid out for the built-in view, turned with the view: what
+   * stood at the front of a field (its number, its garrison) stays at the front from every side.
+   */
+  turned(dx, dz) {
+    const d = this.turnAngle;
+    if (!d) return [dx, dz];
+    const c = Math.cos(d);
+    const s = Math.sin(d);
+    return [dx * c + dz * s, -dx * s + dz * c];
   }
 
   _buildStatic(game) {
@@ -544,7 +602,8 @@ export class DioramaRenderer {
 
   /** Anchor for a field's number plate: the front corner of the hex. */
   tileAnchor(t) {
-    return this.project(t.x, t.height + this.lift(t.id), t.z + 0.62);
+    const [dx, dz] = this.turned(0, 0.62);
+    return this.project(t.x + dx, t.height + this.lift(t.id), t.z + dz);
   }
 
   /** Field under a canvas position, or -1. */
@@ -952,9 +1011,11 @@ export class DioramaRenderer {
         const strength = i === spots.length - 1 ? figureStrength(t.units, i, beast ? TROLL_AT : FIGURE_AT) : 1;
         let size = (fighting ? 1 : 0.62 + 0.38 * strength) * scale;
         let tilt = 0;
-        let x = t.x + spots[i][0];
-        let z = t.z + spots[i][1];
-        let rot = (wobble - 0.5) * 0.7;
+        // The ranks keep their place in the picture when the view is turned.
+        const [sx, sz] = this.turned(spots[i][0], spots[i][1]);
+        let x = t.x + sx;
+        let z = t.z + sz;
+        let rot = (wobble - 0.5) * 0.7 + this.turnAngle;
         let hop = 0;
         if (fighting) {
           // Under attack the garrison leaves its ranks: every figure goes to one of the edges the
@@ -1061,6 +1122,7 @@ export class DioramaRenderer {
    */
   render(game, time, ui) {
     if (game !== this.game) this.setGame(game);
+    if (this.turning) this._turnOn(time);
     const gl = this.gl;
     const dt = clamp(time - this.lastTime, 0, 0.05);
     this.lastTime = time;
