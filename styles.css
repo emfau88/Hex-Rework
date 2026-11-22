@@ -305,6 +305,11 @@ canvas {
   display: none;
 }
 
+/* Turn mode: what the building gives, where nothing stands in its way. */
+.build .why.gain {
+  color: #c8f5a8;
+}
+
 .build.ready b {
   background: var(--gold);
   color: var(--gold-ink);

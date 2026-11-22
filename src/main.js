@@ -818,6 +818,7 @@ class App {
       // Turn mode: the double tap shows exactly what it will do, worked out with the rules.
       ui.turnPreview = this.turns && ui.assault ? this.turns.preview(ui.assault.target, ui.sendFraction) : null;
       ui.noCommands = Boolean(this.turns && this.turns.left() < 1);
+      ui.coverHints = Boolean(this.turns); // the preview of an attack names the cover of its target
       if (this.tutorial) this.runTutorial(now);
       if (ui.notices.length) ui.notices = ui.notices.filter((n) => now - n.at < 1.8 && n.tile < game.tiles.length);
       if (ui.floaters.length) ui.floaters = ui.floaters.filter((f) => now - f.at < FLOAT_SECONDS);
@@ -1029,7 +1030,10 @@ class App {
       btn.classList.toggle('saving', state === 'saving');
       btn.classList.toggle('blocked', Boolean(why));
       $(`#cost-${type}`).textContent = option.cost;
-      $(`#why-${type}`).textContent = why;
+      // Turn mode: where nothing stands in the way, the button says what the building gives.
+      const gain = !why && this.turns ? (type === 'tower' ? i18n.t('gainTower', { n: Math.round(game.R.towerDefense * 100) }) : i18n.t('gainFarm', { n: decimal(game.T.farmBonus) })) : '';
+      $(`#why-${type}`).textContent = why || gain;
+      $(`#why-${type}`).classList.toggle('gain', Boolean(gain));
     }
   }
 

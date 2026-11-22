@@ -375,3 +375,47 @@ test('a person who never gives a command loses the castle on every strength, wit
     }
   }
 });
+
+// ---------------------------------------------------------------- what the help of the turn mode says
+
+test('the help of the turn mode states the numbers the rules use', async () => {
+  const { i18n } = await import('../src/ui/i18n.js');
+  const { RULES } = await import('../src/sim/rules.js');
+  const lang = i18n.lang;
+  i18n.lang = 'de';
+  try {
+    const build = i18n.t('turnHow8');
+    const growth = i18n.t('turnHow9');
+    const cover = i18n.t('turnHow10');
+    const de = (n) => String(n).replace('.', ',');
+    const pct = (v) => `+${Math.round(v * 100)} %`;
+    for (const part of [`Turm (${RULES.towerCost} Truppen, jeder weitere ${RULES.towerStep} mehr)`, pct(RULES.towerDefense), `Hof (${RULES.farmCost} Truppen, jeder weitere ${RULES.farmStep} mehr)`, `+${de(TURN_RULES.farmBonus)} Truppen pro Zug`]) {
+      assert.ok(build.includes(part), `"${part}" stands in: ${build}`);
+    }
+    const I = TURN_RULES.income;
+    assert.equal(I.plain, I.forest);
+    for (const part of [`Wiese und Wald ${de(I.plain)}`, `Hügel ${de(I.hill)}`, `Zitadelle ${de(I.citadel)}`, `Burg ${de(I.castle)}`, `nährt ${RULES.cap.field} Truppen`, `Zitadelle ${RULES.cap.citadel}`, `Burg ${RULES.cap.castle}`]) {
+      assert.ok(growth.includes(part), `"${part}" stands in: ${growth}`);
+    }
+    for (const part of [`Wald ${pct(RULES.defense.forest - 1)}`, `Hügel ${pct(RULES.defense.hill - 1)}`, `Turm ${pct(RULES.towerDefense)}`, `Burg ${pct(RULES.castleDefense)}`]) {
+      assert.ok(cover.includes(part), `"${part}" stands in: ${cover}`);
+    }
+    // Attackers a full field takes from one side, fought with the real battle.
+    const need = (terrain, building) => {
+      for (let n = 1; n < 200; n++) {
+        const g = turnLab();
+        const target = at(g, 1, 1);
+        target.terrain = terrain;
+        target.building = building;
+        give(g, target, 1, RULES.cap.field);
+        if (g._battle(target, [{ owner: 0, from: at(g, 1, 0).id, units: n }]).fallen) return n;
+      }
+      return Infinity;
+    };
+    for (const part of [`auf der Wiese ${need('plain', null)}`, `im Wald ${need('forest', null)}`, `auf dem Hügel ${need('hill', null)}`, `mit Turm ${need('plain', 'tower')}`]) {
+      assert.ok(cover.includes(part), `"${part}" stands in: ${cover}`);
+    }
+  } finally {
+    i18n.lang = lang;
+  }
+});

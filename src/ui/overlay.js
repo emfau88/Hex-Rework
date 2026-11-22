@@ -9,6 +9,22 @@ const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Ar
 /** Seconds a number that floats up from a field stays on screen (turn mode: what the field just gained). */
 export const FLOAT_SECONDS = 1.8;
 
+/**
+ * What covers the defenders of a field and by how much, as one short line, or '' on open ground:
+ * "Hill + Tower · cover +105 %". The share is what the rules use right now (the storm wears it down).
+ */
+export function coverText(game, t) {
+  const n = Math.round((game.defense(t) - 1) * 100);
+  if (n <= 0) return '';
+  const what = [];
+  if (t.castle >= 0) what.push(i18n.t('infoCastle'));
+  else if (t.terrain === 'forest') what.push(i18n.t('infoForest'));
+  else if (t.terrain === 'hill') what.push(i18n.t('infoHill'));
+  else if (t.terrain === 'citadel') what.push(i18n.t('infoCitadel'));
+  if (t.building === 'tower') what.push(i18n.t('tower'));
+  return i18n.t('cover', { what: what.join(' + ') || i18n.t('infoPlain'), n });
+}
+
 /** A number with at most one decimal, written the way the language does (2,5 in German). */
 export function decimal(n) {
   const s = String(Math.round(n * 10) / 10);
@@ -360,7 +376,7 @@ export class Overlay {
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
     if (ui.march && ui.march.result) this._marchResult(ctx, game, renderer, ui.march, fs);
     if (ui.floaters && ui.floaters.length) this._floaters(ctx, game, renderer, ui.floaters, time, fs);
-    if (ui.fieldInfo && ui.fieldInfo.tile === ui.selected && !ui.dragPath) this._fieldInfo(ctx, game, renderer, ui.fieldInfo, fs);
+    if (ui.fieldInfo && ui.fieldInfo.tile === ui.selected && !ui.dragPath && !ui.assault) this._fieldInfo(ctx, game, renderer, ui.fieldInfo, fs);
     if (ui.dragPath && ui.dragPath.length > 1) this._order(ctx, game, renderer, ui, fs);
     else if (ui.dragging && ui.pointer && ui.selected >= 0) this._loose(ctx, game, renderer, ui);
     else if (ui.tutorialPath) this._tutorial(ctx, game, renderer, ui.tutorialPath, time);
@@ -593,6 +609,7 @@ export class Overlay {
     ctx.stroke();
     ctx.fillStyle = color;
     ctx.fillText(text, end.x, y + 0.5);
+    if (ui.coverHints && !friendly) this._cover(ctx, game, target, end.x, y - h, fs);
   }
 
   /** Combined attack: thin arrows from every own neighbour and the forecast for all of them together. */
@@ -662,6 +679,29 @@ export class Overlay {
     ctx.stroke();
     ctx.fillStyle = color;
     ctx.fillText(text, end.x, y + 0.5);
+    if (ui.coverHints) this._cover(ctx, game, target, end.x, y - h, fs);
+  }
+
+  /**
+   * Turn mode: why a field costs more attackers than its number shows. A small plate above the
+   * forecast names what covers the defenders (forest, hill, tower, castle) and by how much; the
+   * storm wears the cover down, and the plate follows. Nothing on open ground.
+   */
+  _cover(ctx, game, target, x, y, fs) {
+    const text = coverText(game, target);
+    if (!text) return;
+    ctx.font = `700 ${fs - 1}px ${FONT}`;
+    const w = Math.min(ctx.measureText(text).width + 14, this.width - 12);
+    const h = fs + 6;
+    const cx = Math.min(this.width - w / 2 - 6, Math.max(w / 2 + 6, x));
+    pill(ctx, cx, y, w, h);
+    ctx.fillStyle = 'rgba(6, 20, 27, 0.88)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#9fd0e6';
+    ctx.stroke();
+    ctx.fillStyle = '#d6f0fb';
+    ctx.fillText(text, cx, y + 0.5);
   }
 
   /**

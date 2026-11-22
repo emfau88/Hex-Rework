@@ -249,3 +249,36 @@ test('turn mode: what a field gained floats up from it, and the selected field s
   overlay.draw(game, camera, ui, 12);
   assert.ok(!texts.some((t) => /up to 20/.test(t.text)), 'nothing without a selected field');
 });
+
+test('turn mode: the preview of an attack names the cover of its target', async () => {
+  const { coverText } = await import('../src/ui/overlay.js');
+  const game = lab({}, 0);
+  const target = at(game, 2, 0);
+  const mine = at(game, 1, 0);
+  give(game, mine, 0, 20);
+  give(game, target, 1, 10);
+  assert.equal(coverText(game, target), '', 'open ground: nothing to say');
+  target.terrain = 'forest';
+  assert.match(coverText(game, target), /\+25 %/);
+  target.terrain = 'hill';
+  target.building = 'tower';
+  assert.match(coverText(game, target), /\+105 %/, 'hill and tower add up');
+  assert.match(coverText(game, game.tiles[game.factions[1].castle]), /\+80 %/);
+
+  const { canvas, texts } = fakeCanvas();
+  const overlay = new Overlay(canvas);
+  overlay.resize(375, 812, 1);
+  const camera = phoneCamera();
+  const ui = { showNumbers: true, human: 0, selected: mine.id, hover: -1, notices: [], pace: 1, sendFraction: 1, dragPath: [mine.id, target.id] };
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(!texts.some((t) => /\+105 %/.test(t.text)), 'the real-time game shows no cover plate');
+  ui.coverHints = true;
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(texts.some((t) => /\+105 %/.test(t.text)), 'in turn mode the plate stands above the forecast');
+  // To an own field nothing is covered against.
+  give(game, target, 0, 3);
+  texts.length = 0;
+  overlay.draw(game, camera, ui, 0);
+  assert.ok(!texts.some((t) => /\+105 %/.test(t.text)));
+});
