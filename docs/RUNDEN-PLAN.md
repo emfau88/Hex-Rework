@@ -1,6 +1,6 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 1.1 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 1.2 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
@@ -12,8 +12,8 @@ marschieren jetzt sichtbar, die Pfeile sind einer hellen Spur mit Ring gewichen,
 Das Tempo des Zeitraffers passt für dich. Dazu erklärt das Spiel jetzt Turm, Hof, Zuwachs und Deckung
 (Abschnitt 16). Der Nachschub-Schalter ist im Rundenmodus entfernt, und ein Knopf dreht die Karte
 (Abschnitt 17). **Kampagne und Gefechte starten im Zweig jetzt in Zügen, noch unabgestimmt** (Abschnitt 18).
-Als Nächstes werden die Karten einzeln abgestimmt. Offen sind dein Urteil zur neuen Darstellung und der Test am
-Handy.
+**Mission 1 ist abgestimmt** (Block 3, Abschnitt 19). Als Nächstes kommen „Vier Reiche“ und die Missionen 2
+und 3. Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
 
 ## 1 · Worum es geht
 
@@ -847,7 +847,8 @@ Das ist Schritt 1 des Wegs aus Abschnitt 17. Er macht alle Karten spielbar, stim
   „Rundenmodus · Test“ gibt es nicht mehr. Echtzeit-Karten gibt es im Zweig nicht mehr zu wählen.
   - Die Regeln des Echtzeitspiels bleiben im Code, mit ihren Tests. Die Partie hinter dem Menü läuft weiter in
     Echtzeit.
-- **„noch nicht abgestimmt“** steht im Menü an jeder Karte außer dem Duell, dazu ein kurzer Hinweis darunter.
+- **„noch nicht abgestimmt“** steht im Menü an jeder Karte, die noch nicht gemessen ist, dazu ein kurzer Hinweis
+  darunter. Abgestimmt sind das Duell und seit Abschnitt 19 Mission 1.
 - **Alle Missionen sind offen,** solange Karten unabgestimmt sind. Sonst würde eine Mission, die noch nicht zu
   gewinnen ist, die folgenden versperren. Die Sperre kommt zurück, wenn alles abgestimmt ist.
 - **Ziele und Sterne in Zügen.** Der zweite Stern heißt „In höchstens … Zügen“: Mission 1 und Duell 30,
@@ -882,7 +883,7 @@ Das ist Schritt 1 des Wegs aus Abschnitt 17. Er macht alle Karten spielbar, stim
 | Karte | Erwartung |
 |---|---|
 | Duell | abgestimmt |
-| Mission 1 | sollte passen: Der Anfänger gewinnt 13 von 20, Mitte Zug 24 |
+| Mission 1 | abgestimmt (Abschnitt 19) |
 | Mission 2 | zäh: Die Pässe verkeilen sich, Partien dauern lang |
 | Mission 3 | sehr schwer: Die Testspieler verloren 17 bis 19 von 20, fast immer durch den Fall der eigenen Burg um Zug 38. Vermutet: Im Echtzeitspiel bremste die Mission die Gegner über ihr Tempo, das gibt es in Zügen nicht. |
 | Vier Reiche | lang (Mitte Zug 48) und für Anfänger schwer (3 von 20). Der Zeitraffer von drei Gegnern ist lang. |
@@ -890,9 +891,67 @@ Das ist Schritt 1 des Wegs aus Abschnitt 17. Er macht alle Karten spielbar, stim
 ### Nächste Schritte
 
 1. Gefechte abstimmen (Block 5): „Vier Reiche“ kürzer und fairer, Zeitraffer für drei Gegner straffen.
-2. Mission 1 abstimmen (Block 3).
+2. Mission 1 abstimmen (Block 3): erledigt, Abschnitt 19.
 3. Missionen 2 und 3 abstimmen (Block 4).
 
 Dafür fehlen noch deine Antworten: wie lang eine Partie sein soll, und ob an der Zuggrenze gewinnt, wer mehr
 Felder hat (Abschnitt 14).
+
+## 19 · Block 3: Mission 1 in Zügen (22.11.2026, erledigt)
+
+### Messung
+
+`node tools/simulate-turns.mjs 60 --only=m1`, 60 Partien je Stufe, Werte als erste · zweite · dritte Messung.
+Die geführten Schritte und die Schonfrist des Gegners gibt es nur im Browser; die Testspieler spielen ohne sie.
+
+**Vorher** (Gegner wie im Duell):
+
+| Stufe | Anfänger siegt | Kluger siegt | Sieg in Zug (Mitte) |
+|---|---|---|---|
+| Leicht | 60 · 60 | 60 · 60 | 21 |
+| Normal | 35 · 38 | 52 · 54 | 24 |
+| Schwer | 22 · 8 | 23 · 22 | 32 · 29 |
+
+Auf Normal war das für eine erste Mission zu schwer (Ziel 40 bis 52 von 60).
+
+**Eine Stellschraube nach der anderen, Normal:**
+
+| Versuch | Anfänger siegt | Kluger siegt | Urteil |
+|---|---|---|---|
+| Gegner greift von höchstens 2 Seiten an | 57 · 55 | 60 · 60 | zu leicht |
+| Gegner will mehr Vorsprung (1,4) | 37 · 39 | 53 · 54 | kein Unterschied |
+| beides zusammen (der „geduldige Lehrer“ der Echtzeit-Mission) | 55 · 50 | 60 · 60 | etwas zu leicht |
+| Gegner lässt 7 statt 5 Truppen an der Front stehen | 51 · 51 · 52 | 58 · 60 · 60 | gewählt |
+
+**Nachher** (gewählt: auf Normal 7 Truppen Frontwache, sonst unverändert):
+
+| Stufe | Anfänger siegt | Kluger siegt | Sieg in Zug (Mitte) |
+|---|---|---|---|
+| Leicht | 60 · 60 · 60 | 60 · 60 · 60 | 21 |
+| Normal | 51 · 51 · 52 | 58 · 60 · 60 | 22 · 22 · 21 |
+| Schwer | 22 · 8 · 9 | 23 · 22 · 32 | 32 · 29 · 32 |
+
+### Abnahme (Kriterien aus Abschnitt 13)
+
+| Kriterium | Stand |
+|---|---|
+| Läuft im Browser von der Einführung bis zum Ergebnis ohne Fehler, am PC und im Handyformat | **ja:** beide Male Sieg in Zug 20, zwei Sterne, „Nächste Mission“ |
+| Anfänger gewinnt auf Normal 40 bis 52 von 60 | **ja:** 51 · 51 · 52 (am oberen Rand) |
+| Anfänger gewinnt auf Leicht mindestens 54 | **ja:** 60 · 60 · 60 |
+| Siege liegen in der Mitte bei 20 bis 30 Zügen | **ja:** Zug 21 bis 22 |
+
+### Was dafür geändert ist
+
+- In `src/sim/missions.js` bei Mission 1: `turnAiBy: { normal: { frontKeep: 7 } }`. Missionen können den Gegner
+  jetzt je Stufe für Züge einstellen (`turnAiBy`), so wie `aiBy` im Echtzeitspiel.
+- Der zweite Stern bleibt bei 30 Zügen: Die Siege der Testspieler liegen bei Zug 21 bis 22.
+- Mission 1 trägt im Menü keine Marke „noch nicht abgestimmt“ mehr.
+
+### Vermutet, nicht gemessen
+
+- Ein Mensch hat es beim ersten Durchgang leichter als der Testspieler, weil der Gegner bis zur Übungsfestung
+  stillhält. Wie viel, zeigt dein Test.
+- „Schwer“ ist für Anfänger hart (8 bis 22 von 60). Für eine erste Mission könnte das zu viel sein; im
+  Echtzeitspiel war die Mission auf jeder Stufe sanfter. Ich habe es gelassen, weil niemand die erste Mission
+  zuerst auf „Schwer“ spielen muss.
 
