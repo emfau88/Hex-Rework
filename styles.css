@@ -803,6 +803,27 @@ h2 {
   font-size: 12px;
 }
 
+/* Turn mode in the making: a map whose numbers have not been tuned for turns yet. */
+.missions .tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 185, 163, 0.55);
+  color: #ffb9a3;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.menu .note,
+p.note {
+  margin: 8px 2px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .missions button.locked {
   opacity: 0.45;
   cursor: default;

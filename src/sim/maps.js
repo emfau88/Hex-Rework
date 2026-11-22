@@ -18,19 +18,22 @@ export const SKIRMISH = [
     hidden: true,
     name: { de: 'Vier Reiche', en: 'Four Kingdoms' },
     blurb: { de: '4 Reiche · Zitadelle', en: '4 kingdoms · citadel' },
-    factions: 4, halfX: 11.6, halfZ: 6.4, citadel: true, par: 420, seed: 42,
+    factions: 4, halfX: 11.6, halfZ: 6.4, citadel: true, par: 420, parTurns: 45, seed: 42,
   },
   {
     id: 'duel',
     name: { de: 'Duell', en: 'Duel' },
     blurb: { de: '2 Reiche · Zufallskarte', en: '2 kingdoms · random map' },
     factions: 2, halfX: 10.6, halfZ: 5.6, citadel: false, par: 360, random: true,
+    // Turn mode (branch runden): turns for the second star, and the mark that this map has been
+    // measured and tuned for turns (docs/RUNDEN-PLAN.md). The others still play with untuned numbers.
+    parTurns: 30, turnsTuned: true,
   },
   {
     id: 'random',
     name: { de: 'Vier Reiche', en: 'Four Kingdoms' },
     blurb: { de: '4 Reiche · Zufallskarte', en: '4 kingdoms · random map' },
-    factions: 4, halfX: 11.6, halfZ: 6.4, citadel: true, par: 420, random: true,
+    factions: 4, halfX: 11.6, halfZ: 6.4, citadel: true, par: 420, parTurns: 45, random: true,
     // Three rivals at once: on "hard" they decide a little slower than in a duel.
     aiBy: { hard: { think: 5 } },
   },

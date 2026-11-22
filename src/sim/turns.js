@@ -575,6 +575,8 @@ export function planBreak(game, f) {
 function breakTargets(game, f) {
   const me = f.id;
   const tiles = game.tiles;
+  // While the first mission still explains the basics, the rivals leave the player alone (see aiThink).
+  if (game.truce) return [];
   const targets = new Set();
   let other = false; // anything but a castle within reach
   for (const t of tiles) {
@@ -587,7 +589,7 @@ function breakTargets(game, f) {
     }
   }
   const early = other && game.time < f.ai.rushAfter;
-  return [...targets].filter((id) => !(early && tiles[id].castle >= 0));
+  return [...targets].filter((id) => !(early && tiles[id].castle >= 0) && !(game.reserved && game.reserved.has(id)));
 }
 
 /**

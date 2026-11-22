@@ -23,6 +23,8 @@ export const CAMPAIGN = [
     factions: 2,
     guide: 'basics',
     par: 300,
+    // Turn mode (branch runden): turns for the second star. Estimated, not measured yet.
+    parTurns: 30,
     seed: 11,
     aiDelay: 8,
     // A patient teacher on every strength: attacks from two sides at most and wants a wide margin.
@@ -62,6 +64,7 @@ export const CAMPAIGN = [
     factions: 2,
     guide: 'cutoff',
     par: 360,
+    parTurns: 45,
     seed: 23,
     aiDelay: 4,
     // EMBER starts ahead and sits behind the passes, so it storms late; on "hard" it also grows a little slower.
@@ -89,6 +92,11 @@ export const CAMPAIGN = [
       de: 'Zwei Rivalen und eine Zitadelle in der Mitte. Wer sie samt den Feldern ringsum insgesamt 60 Sekunden hält, gewinnt.',
       en: 'Two rivals and a citadel in the middle. Whoever holds it and the fields around it for 60 seconds in total wins.',
     },
+    // The same briefing for the turn mode; {n} is the number of turns the citadel has to be held.
+    briefTurns: {
+      de: 'Zwei Rivalen und eine Zitadelle in der Mitte. Wer sie samt den Feldern ringsum insgesamt {n} Züge hält, gewinnt.',
+      en: 'Two rivals and a citadel in the middle. Whoever holds it and the fields around it for {n} turns in total wins.',
+    },
     lesson: {
       de: 'Wer eine Burg nimmt, erbt das ganze Reich. Die Zitadelle hältst du nur, wenn auch die Felder um sie herum dir gehören.',
       en: 'Whoever takes a castle inherits the kingdom. You only hold the citadel if the fields around it are yours too.',
@@ -97,6 +105,7 @@ export const CAMPAIGN = [
     guide: 'citadel',
     objective: { type: 'hold', seconds: 60 },
     par: 420,
+    parTurns: 45,
     seed: 37,
     aiDelay: 2,
     // Two hard rivals that both go for the player's castle at once leave no room to play the mission.

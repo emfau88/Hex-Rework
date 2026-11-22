@@ -383,7 +383,10 @@ export class TurnPlay {
     const n = g.commandsLeft;
     this.app.banner(i18n.t('turnStart', { n: g.turn }), '#f2c36b', 1600);
     const text = this.reports.map((r) => r.text).join(' — ');
-    if (text) this.app.flash(text, 6000);
+    // While a mission still guides the first steps, its sentence keeps the hint line: what the rivals
+    // did was just shown on the board and stands in the list of events.
+    if (this.app.tutorial) this.app.tutorial.text = null;
+    else if (text) this.app.flash(text, 6000);
     this.app.updateHud(true);
     return n;
   }

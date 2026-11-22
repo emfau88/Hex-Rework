@@ -79,3 +79,12 @@ test('turn mode has no switch for the supply, and its matches always ship supply
   assert.match(main, /autoSupply: mission\.turnMode \? true : this\.store\.supply/, 'a turn match ships supply whatever the real-time setting says');
   assert.match(html, /id="btn-turn"/, 'the button that turns the map is on the page');
 });
+
+test('branch runden: the menu starts every map in turns and marks the ones that are not tuned yet', () => {
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(main, /const CAMPAIGN = CAMPAIGN_MISSIONS\.map\(inTurns\)/);
+  assert.match(main, /const FREE_PLAY = SKIRMISH\.filter\(\(m\) => m\.random\)\.map\(inTurns\)/);
+  assert.ok(!/id="turnplay"/.test(html), 'the separate test section is gone');
+  assert.match(html, /id="untuned-note"/);
+});

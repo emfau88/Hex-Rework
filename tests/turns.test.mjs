@@ -419,3 +419,75 @@ test('the help of the turn mode states the numbers the rules use', async () => {
     i18n.lang = lang;
   }
 });
+
+// ---------------------------------------------------------------- every map of the menu in turns
+
+test('every map the menu starts plays to an end in turns, with a person who only ends the move', async () => {
+  const { CAMPAIGN } = await import('../src/sim/missions.js');
+  const { SKIRMISH } = await import('../src/sim/maps.js');
+  const maps = [...CAMPAIGN, ...SKIRMISH.filter((m) => m.random)];
+  assert.deepEqual(maps.map((m) => m.id), ['m1', 'm2', 'm3', 'duel', 'random']);
+  for (const mission of maps) {
+    assert.ok(mission.parTurns > 0, `${mission.id} has a goal in turns for the second star`);
+    const g = new TurnGame({ mission, seed: mission.seed ?? 4711, human: 0, wide: true });
+    assert.equal(g.current, 0, 'the person begins');
+    let moves = 0;
+    while (g.phase === 'running' && moves++ < 400) {
+      if (g.current !== 0) aiTurn(g, g.factions[g.current]);
+      g.endTurn();
+    }
+    assert.equal(g.phase, 'finished', `${mission.id} comes to an end`);
+    assert.ok(g.turn <= TURN_RULES.turnLimit + 1);
+  }
+});
+
+test('the citadel mission counts turns: the goal of 60 seconds is 8 turns, counted at the start of the holder\'s move', async () => {
+  const { CAMPAIGN } = await import('../src/sim/missions.js');
+  const m3 = CAMPAIGN.find((m) => m.id === 'm3');
+  const g = new TurnGame({ mission: m3, seed: m3.seed, human: 0, wide: true });
+  for (const f of g.factions) f.autoSupply = false;
+  assert.equal(g.objective.turns, Math.ceil(m3.objective.seconds / TURN_RULES.seconds));
+  assert.equal(g.objective.turns, 8);
+  assert.ok(/\{n\} Züge/.test(m3.briefTurns.de), 'its briefing for turns speaks of turns');
+  // The person holds the citadel and its whole ring: every own move adds one turn.
+  const prize = g.tiles[g.objective.tile];
+  give(g, prize, 0, 20);
+  for (const n of prize.neighbors) if (g.tiles[n].passable) give(g, g.tiles[n], 0, 10);
+  const round = () => {
+    do g.endTurn();
+    while (g.phase === 'running' && g.current !== 0);
+  };
+  round();
+  assert.equal(g.hold.owner, 0);
+  assert.equal(g.hold.time, 1);
+  for (let i = 0; i < 6; i++) round();
+  assert.equal(g.hold.time, 7);
+  assert.equal(g.phase, 'running');
+  round();
+  assert.equal(g.phase, 'finished');
+  assert.equal(g.winner, 0);
+  assert.equal(g.reason, 'hold');
+});
+
+test('while the first lesson runs, a rival that is stuck neither breaks through nor gathers troops', () => {
+  const g = new TurnGame({ mission: LAB, human: -1 });
+  for (const f of g.factions) f.autoSupply = false;
+  const front = at(g, 1, 0);
+  const behind = at(g, 0, 1);
+  const target = at(g, 2, 0);
+  give(g, front, 0, 20);
+  give(g, behind, 0, 20);
+  give(g, target, 1, 20);
+  const f = g.factions[0];
+  assert.ok(planBreak(g, f), 'without the lesson it would break through');
+  g.reserved = new Set([target.id]);
+  assert.equal(planBreak(g, f), null, 'the practice field of the lesson is left alone');
+  g.reserved = null;
+  g.truce = true;
+  assert.equal(planBreak(g, f), null, 'and during the truce nothing is attacked this way');
+  give(g, behind, 0, 2);
+  give(g, at(g, 0, 2), 0, 14);
+  assert.equal(planMass(g, f), null, 'nor are troops brought up for it');
+  g.truce = false;
+  assert.ok(planMass(g, f));
+});

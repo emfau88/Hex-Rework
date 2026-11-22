@@ -2,8 +2,9 @@
 
 import { Game } from './sim/game.js';
 import { TurnGame } from './sim/turns.js';
-import { CAMPAIGN, MISSIONS, SHOWCASE } from './sim/missions.js';
+import { CAMPAIGN as CAMPAIGN_MISSIONS, SHOWCASE } from './sim/missions.js';
 import { SKIRMISH } from './sim/maps.js';
+import { TURN_RULES } from './sim/rules.js';
 import { TurnPlay } from './ui/turnplay.js';
 import { DioramaRenderer } from './render/renderer.js';
 import { PALETTE_HEX } from './render/models.js';
@@ -22,10 +23,19 @@ const star = '<svg><use href="#i-star"/></svg>';
 // more or less time to read the board.
 const SPEEDS = { calm: 0.75, normal: 1, fast: 1.3 };
 const ATTRACT = SKIRMISH.find((m) => m.id === 'four');
-const FREE_PLAY = SKIRMISH.filter((m) => m.random);
-// Turn mode (branch runden): the duel, played turn by turn. `parTurns` is its goal for the second star.
-const TURN_DUEL = Object.freeze({ ...SKIRMISH.find((m) => m.id === 'duel'), id: 'duel-turns', turnMode: true, parTurns: 30 });
-const ALL_MISSIONS = [...MISSIONS, TURN_DUEL];
+// Branch runden: everything the menu starts is played turn by turn (docs/RUNDEN-PLAN.md). The rules
+// of the real-time game stay in the code and keep their tests; only the match behind the menu still
+// runs on them. `parTurns` of a mission is its goal for the second star; `turnsTuned` marks the maps
+// whose numbers have been measured for turns.
+const inTurns = (m) => Object.freeze({ ...m, turnMode: true });
+const CAMPAIGN = CAMPAIGN_MISSIONS.map(inTurns);
+const FREE_PLAY = SKIRMISH.filter((m) => m.random).map(inTurns);
+const ALL_MISSIONS = [...CAMPAIGN, ...FREE_PLAY];
+// While maps are still untuned, every mission is open: a mission that cannot be won yet must not
+// lock the ones after it away from being tried.
+const OPEN_FOR_TESTING = ALL_MISSIONS.some((m) => !m.turnsTuned);
+/** Turns the citadel has to be held in a mission with that goal (as TurnGame works it out). */
+const holdTurns = (m) => Math.ceil(m.objective.seconds / (m.turns?.seconds ?? TURN_RULES.seconds));
 // Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
 // fast the time runs there.
 const LAB_TOOLS = ['order', 'troll', 'wild', 'own', 'rival', 'free'];
@@ -165,9 +175,13 @@ class App {
     this.pending = mission;
     $('#brief-no').textContent = i18n.t('mission', { n: mission.no });
     $('#brief-name').textContent = i18n.pick(mission.name);
-    $('#brief-text').textContent = i18n.pick(mission.brief);
+    const hold = mission.objective?.type === 'hold';
+    const inTurnMode = Boolean(mission.turnMode);
+    $('#brief-text').textContent = inTurnMode && mission.briefTurns ? i18n.pick(mission.briefTurns).replace('{n}', holdTurns(mission)) : i18n.pick(mission.brief);
     $('#brief-lesson').textContent = i18n.pick(mission.lesson);
-    $('#brief-goal').textContent = mission.objective?.type === 'hold' ? i18n.t('goalCitadelLong', { s: mission.objective.seconds }) : i18n.t('goalConquerLong');
+    $('#brief-goal').textContent = !hold ? i18n.t('goalConquerLong')
+      : inTurnMode ? i18n.t('goalCitadelLongTurns', { n: holdTurns(mission) })
+      : i18n.t('goalCitadelLong', { s: mission.objective.seconds });
     $('#brief-stars').innerHTML = this.goalLabels(mission)
       .map((label) => `<div>${star}<span>${label}</span></div>`)
       .join('');
@@ -400,8 +414,19 @@ class App {
   }
 
   unlocked(mission) {
+    if (OPEN_FOR_TESTING) return true;
     const i = CAMPAIGN.indexOf(mission);
     return i <= 0 || Boolean(this.store.done[CAMPAIGN[i - 1].id]);
+  }
+
+  /** A text of the turn mode where there is one (key + "Turns"), else the one of the real-time game. */
+  tt(key, vars) {
+    if (this.turns) {
+      const own = `${key}Turns`;
+      const text = i18n.t(own, vars);
+      if (text !== own) return text;
+    }
+    return i18n.t(key, vars);
   }
 
   goalLabels(mission) {
@@ -428,17 +453,18 @@ class App {
     for (const b of document.querySelectorAll('#difficulty button')) b.classList.toggle('on', b.dataset.diff === this.store.difficulty);
     const speed = this.store.speed in SPEEDS ? this.store.speed : 'calm';
     for (const b of document.querySelectorAll('.speed button')) b.classList.toggle('on', b.dataset.speed === speed);
+    const untuned = `<span class="tag">${i18n.t('untuned')}</span>`;
+    $('#untuned-note').hidden = !OPEN_FOR_TESTING;
     $('#missions').innerHTML = CAMPAIGN.map((m) => {
       const open = this.unlocked(m);
       const got = this.store.stars[m.id] || 0;
       const stars = `<span class="mini-stars">${[0, 1, 2].map((k) => `<span class="${k < got ? 'got' : ''}">${star}</span>`).join('')}</span>`;
       const no = open ? m.no : '<svg><use href="#i-lock"/></svg>';
-      const blurb = open ? i18n.pick(m.blurb) : i18n.t('locked');
+      const blurb = open ? `${i18n.pick(m.blurb)}${m.turnsTuned ? '' : untuned}` : i18n.t('locked');
       return `<button data-mission="${m.id}" class="${open ? '' : 'locked'}"><span class="no">${no}</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${blurb}</span></span>${open ? stars : ''}</button>`;
     }).join('');
-    $('#turnplay').innerHTML = `<button data-mission="${TURN_DUEL.id}"><span class="no">${star}</span><span class="txt"><span class="name">${i18n.t('turnDuelName')}</span><span class="blurb">${i18n.t('turnDuelBlurb')}</span></span></button>`;
     $('#skirmish').innerHTML = FREE_PLAY.map(
-      (m) => `<button data-mission="${m.id}"><span class="no">?</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}</span></span></button>`,
+      (m) => `<button data-mission="${m.id}"><span class="no">?</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}${m.turnsTuned ? '' : untuned}</span></span></button>`,
     ).join('');
     $('#btn-sound use').setAttribute('href', this.store.sound ? '#i-sound' : '#i-mute');
     $('#btn-lang').textContent = i18n.lang.toUpperCase();
@@ -483,7 +509,6 @@ class App {
     };
     $('#missions').addEventListener('click', pick);
     $('#skirmish').addEventListener('click', pick);
-    $('#turnplay').addEventListener('click', pick);
     $('#btn-undo').addEventListener('click', () => this.undo());
     $('#btn-endturn').addEventListener('click', () => this.endMove());
     $('#btn-start').addEventListener('click', () => this.pending && this.startMission(this.pending));
@@ -978,17 +1003,18 @@ class App {
       return;
     }
     const hold = game.hold;
-    const s = game.objective.seconds;
+    // Turn mode counts the turns the citadel was held, real time the seconds.
+    const s = this.turns ? game.objective.turns : game.objective.seconds;
     bar.hidden = false;
     if (hold.owner < 0) {
-      text.textContent = i18n.t('goalFree', { s });
+      text.textContent = this.tt('goalFree', { s });
       text.style.color = '';
       bar.firstElementChild.style.width = '0%';
       return;
     }
     const f = game.factions[hold.owner];
     const vars = { name: f.name, t: Math.floor(hold.time), s };
-    text.textContent = i18n.t(hold.secure ? 'goalRun' : 'goalStop', vars);
+    text.textContent = this.tt(hold.secure ? 'goalRun' : 'goalStop', vars);
     text.style.color = PALETTE_HEX[f.color];
     bar.classList.toggle('paused', !hold.secure);
     bar.firstElementChild.style.width = `${Math.min(100, (hold.time / s) * 100)}%`;
@@ -1202,7 +1228,7 @@ class App {
     const rival = game.factions[1].name;
 
     const say = (key, vars) => {
-      const text = i18n.t(key, vars);
+      const text = this.tt(key, vars);
       if (tut.text === text) return;
       tut.text = text;
       this.setHint(text, `${tut.step + 1}/${tut.steps}`);
