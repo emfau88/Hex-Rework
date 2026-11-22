@@ -1,6 +1,6 @@
 # Rundenmodus · Plan und Regelentwurf
 
-Entwurf 0.8 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
+Entwurf 0.9 vom 22.11.2026 · Zweig `runden` · Das öffentliche Spiel bleibt in Echtzeit, bis du entscheidest.
 Die Probe (Schritte 0 bis 4) ist gebaut und online: https://emfau88.github.io/Hex-Rework/runden/ (Abschnitt 6).
 Du hast sie am 20.11.2026 gespielt und entschieden: **Der Rundenmodus wird in diesem Zweig ausgebaut**
 (Abschnitt 12). Offen ist noch, ob er die Echtzeit ersetzt oder neben ihr bleibt. Der Ausbau ist in Blöcke
@@ -9,7 +9,8 @@ Ein Kriterium ist knapp verfehlt: Gleich starke Gegner auf „Schwer“ verkeile
 deine Entscheidung (Abschnitt 14, „Was offen bleibt“). **Block 2 ist gebaut, aber noch nicht abgenommen**
 (Abschnitt 15). Nach deiner Rückmeldung vom 22.11.2026 ist er überarbeitet: Auch deine eigenen Truppen
 marschieren jetzt sichtbar, die Pfeile sind einer hellen Spur mit Ring gewichen, und der Zuwachs steht am Feld.
-Das Tempo des Zeitraffers passt für dich. Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
+Das Tempo des Zeitraffers passt für dich. Dazu erklärt das Spiel jetzt Turm, Hof, Zuwachs und Deckung
+(Abschnitt 16). Offen sind dein Urteil zur neuen Darstellung und der Test am Handy.
 
 ## 1 · Worum es geht
 
@@ -689,4 +690,64 @@ So habe ich sie verstanden (meine Lesart):
 ### Noch offen aus deinen Antworten
 
 Bauen, Zahl der Befehle und Spannung (Abschnitt 12) sind nicht beantwortet. Daran habe ich nichts geändert.
+
+## 16 · Erklärungen im Spiel (22.11.2026)
+
+### Deine Fragen und was vorher galt
+
+Du hast gefragt, ob klar ist, was Turm und Hof bringen, wie viel ein Feld einbringt, ob erhöhte Felder mehr
+kosten als ihre Zahl, und ob man den Nachschub-Schalter im Rundenmodus braucht. Der Stand davor (im Code
+nachgelesen):
+
+- **Turm und Hof:** Die Hilfe des Rundenmodus sagte nur, wie man baut, nicht wozu. Die Erklärung stand nur in der
+  Hilfe des Echtzeitspiels.
+- **Zuwachs je Feld:** nirgends, nur als Summe am Rand auf breiten Bildschirmen.
+- **Deckung:** nirgends. Die Zahl am Feld ist nur die Besatzung.
+
+### Was jetzt gebaut ist
+
+- **Hilfe im Rundenmodus,** drei neue Absätze: Turm und Hof (Preis, Nutzen, wo es lohnt), Zuwachs je Gelände und
+  die Grenzen, Deckung je Gelände mit einem Beispiel.
+- **An den Bau-Knöpfen** steht, was das Gebäude bringt: „+60 % Deckung“ und „+2,5/Zug“. Steht dem Bau etwas im
+  Weg, steht dort wie bisher der Grund („ab 11 Truppen“).
+- **In der Angriffs-Vorschau** steht über dem Ergebnis, was die Verteidiger deckt und wie stark, etwa
+  „Hügel · Deckung +45 %“ oder „Hügel + Turm · Deckung +105 %“. Auf offener Wiese steht nichts. Im Sturm sinkt
+  die Zahl mit, weil er die Deckung abbaut.
+- **Die Auskunft am gewählten Feld** verschwindet, solange eine Angriffs-Vorschau steht, damit sich die beiden
+  nicht überdecken.
+- **Nur im Rundenmodus.** Das Echtzeitspiel zeigt nichts davon.
+
+### Die Zahlen (aus den Regeln, die Angreifer mit dem echten Kampf gerechnet)
+
+| | Nutzen | Preis |
+|---|---|---|
+| Turm | +60 % Deckung für die Besatzung | 10 Truppen, jeder weitere 5 mehr, 1 Befehl |
+| Hof | +2,5 Truppen pro Zug auf dem Feld, nur auf Wiese | 8 Truppen, jeder weitere 3 mehr, 1 Befehl |
+
+So viele Angreifer braucht ein Feld (von einer Seite / von zwei Seiten):
+
+| Besatzung | Wiese | Wald (+25 %) | Hügel (+45 %) | Wiese mit Turm | Hügel mit Turm |
+|---|---|---|---|---|---|
+| 8 | 9 / 9 | 10 / 9 | 10 / 10 | 11 / 11 | 13 / 12 |
+| 12 | 14 / 13 | 16 / 14 | 18 / 15 | 19 / 16 | 23 / 18 |
+| 20 | 30 / 21 | 36 / 24 | 41 / 27 | 45 / 29 | 56 / 34 |
+
+### Wie geprüft
+
+- **Tests:** `node --test`, 110 Tests grün (2 neue). Einer vergleicht jede Zahl in den neuen Hilfe-Absätzen mit
+  den Regeln und rechnet die Angreifer-Beispiele mit dem echten Kampf nach. Ändert jemand eine Regel, schlägt
+  der Test an, bis die Hilfe stimmt.
+- **Browser** (eingebauter Browser, 800 × 827 und Handyformat 375 × 812): Hilfe mit den neuen Absätzen (sie
+  lässt sich scrollen), Bau-Knöpfe mit „+60 % Deckung“ und „+2,5/Zug“, Vorschau auf einen Hügel mit „Hügel ·
+  Deckung +45 %“. Keine Fehlermeldung.
+
+### Noch nicht entschieden (deine Fragen, meine Einschätzung)
+
+- **Nachschub an/aus.** Der Nachschub arbeitet auch im Rundenmodus, am Ende deines Zugs. Der Schalter nützt nur
+  beim Bauen, weil der Nachschub das Hinterland sonst jeden Zug leert. Vermutet, nicht gemessen: Als
+  Alles-oder-nichts-Schalter verwirrt er eher. Besser wäre, der Nachschub lässt von selbst genug für ein Gebäude
+  stehen. Nicht angefasst.
+- **Karte drehen.** Technisch nah (die Kamera hat schon einen Winkel). Mein Vorschlag: ein Knopf, der in
+  Schritten von 60 Grad dreht, statt freiem Drehen; Aufwand geschätzt 1 Sitzung, nach den Missionen. Nicht
+  angefasst.
 
