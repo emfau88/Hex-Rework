@@ -196,7 +196,13 @@ Die Verbesserungen sind bewusst klein. Jede Mission muss mit jeder Wahl zu schaf
       mit seinen Befehlen, bei dir mit den Sekunden je Zug. Den Text kannst du Claude einfügen.
 - [x] Zugang für Proben: Neue Missionen sind nur über einen eigenen Link erreichbar, wie die Figurenschau.
       Die Adresse endet auf `?probe=` und den Namen der Mission, zum Beispiel `?probe=trollwald`.
-- [ ] Du spielst Mission 1 einmal mit Zeitmessung. Das ist der erste echte Wert für „Minuten pro Runde“.
+- [x] Du spielst Mission 1 einmal mit Zeitmessung. Das ist der erste echte Wert für „Minuten pro Runde“.
+      **Dein Wert vom 24.11.2026:** Sieg in Zug 16 nach 4:30 Minuten, 11 Felder verloren, also zwei von drei
+      Sternen. Das sind rund 17 Sekunden je Runde. Zum Vergleich, je 60 Partien mit zwei Würfelsätzen: Der
+      kluge Testspieler gewinnt frühestens in Zug 16 bis 17, meist in Zug 21 bis 22, der Anfänger meist in
+      Zug 22. Auffällig: Von Zug 9 bis 15 ging es vor EMBERs Burg hin und her, vier einzelne Angriffe mit 19
+      Truppen scheiterten. Mission 1 (56 Felder, 16 Züge) ist damit größer und länger als Mission 2
+      (41 Felder, 9 Züge).
 
 **Fertig, wenn** Mission 1 am Ende Minuten und Runden zeigt, du einen ersten Wert hast und das normale Spiel
 unverändert läuft.
