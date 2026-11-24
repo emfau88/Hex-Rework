@@ -13,6 +13,11 @@ nicht mehr, es zählt die Form der Front.
   [docs/RUNDEN-PLAN.md](docs/RUNDEN-PLAN.md). Die Regeln stehen in `src/sim/turns.js`, die Bedienung im Browser in
   `src/ui/turnplay.js`. Spielen: `node serve.mjs 4181`, im Menü „Rundenmodus · Test“ → „Duell in Runden“. Messen
   mit `node tools/simulate-turns.mjs`.
+- **Kampagne „Die Krone ist weg“ (im Bau):** Plan zum Abhaken in
+  [docs/UMSETZUNG-RUNDEN.md](docs/UMSETZUNG-RUNDEN.md). Missionen auf Probe stehen nicht im Menü, jede hat ihren
+  eigenen Link. Mission 2 „Im Trollwald“:
+  [emfau88.github.io/Hex-Rework/runden/?probe=trollwald](https://emfau88.github.io/Hex-Rework/runden/?probe=trollwald),
+  lokal `http://localhost:4180/?probe=trollwald`. Messen mit `node tools/audit/mission.mjs trollwald`.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
