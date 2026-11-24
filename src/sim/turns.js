@@ -192,6 +192,14 @@ export class TurnGame extends Game {
     return this.wild >= 0 && this.lairs.some((id) => this.tiles[id].lair);
   }
 
+  /** Whether a raid sets out in the move of the wilds that is beginning or running (for the screen). */
+  raidDue() {
+    return this.lairs.some((id) => {
+      const lair = this.tiles[id].lair;
+      return Boolean(lair) && lair.marked && lair.target >= 0 && this.time >= lair.at - 1e-9;
+    });
+  }
+
   /** Start of the move of the wilds: the lairs breed and line up for their raids. */
   _startWild(f) {
     this.entry = { turn: this.turn, owner: f.id, growth: [], supply: [], commands: [] };

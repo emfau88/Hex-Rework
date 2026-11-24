@@ -373,6 +373,7 @@ export class Overlay {
     }
 
     if (ui.tutorialMark) this._mark(ctx, game, renderer, ui.tutorialMark, time, hexPx, fs);
+    if (ui.goalMark && ui.showNumbers) this._mark(ctx, game, renderer, ui.goalMark, time, hexPx, fs);
     if (ui.assault) this._assault(ctx, game, renderer, ui, fs);
     if (ui.march && ui.march.result) this._marchResult(ctx, game, renderer, ui.march, fs);
     if (ui.floaters && ui.floaters.length) this._floaters(ctx, game, renderer, ui.floaters, time, fs);
@@ -485,7 +486,9 @@ export class Overlay {
         continue;
       }
       const s = Math.max(0, Math.ceil((lair.at - game.time) / (ui.pace || 1) - 1e-6));
-      const text = i18n.t('raidIn', { s });
+      // Turn mode counts in turns: the raid sets out in the move of the wilds, after everybody else.
+      const n = game.T ? Math.round((lair.at - game.time) / game.T.seconds) : 0;
+      const text = !game.T ? i18n.t('raidIn', { s }) : n <= 0 ? i18n.t('raidNow') : n === 1 ? i18n.t('raidIn1') : i18n.t('raidInTurns', { n });
       const p = renderer.tileAnchor(t);
       ctx.font = `800 ${tagSize}px ${FONT}`;
       const tw = ctx.measureText(text).width + tagSize * 1.1;
@@ -845,12 +848,13 @@ export class Overlay {
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    if (!mark.taps) return;
-    const text = i18n.t('tapTwice');
+    // A sign above the field: "tap twice" in the guided steps (it bobs), or a fixed word such as "GOAL".
+    if (!mark.taps && !mark.text) return;
+    const text = mark.text || i18n.t('tapTwice');
     ctx.font = `800 ${fs + 1}px ${FONT}`;
     const w = ctx.measureText(text).width + 18;
     const h = fs + 11;
-    const y = p.y - hexPx * 0.62 - 6 * Math.abs(Math.sin(time * 3));
+    const y = p.y - hexPx * (mark.text ? 0.56 : 0.62) - (mark.taps ? 6 * Math.abs(Math.sin(time * 3)) : 0);
     pill(ctx, p.x, y, w, h);
     ctx.fillStyle = color;
     ctx.fill();

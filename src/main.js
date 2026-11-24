@@ -2,7 +2,7 @@
 
 import { Game } from './sim/game.js';
 import { TurnGame } from './sim/turns.js';
-import { CAMPAIGN as CAMPAIGN_MISSIONS, SHOWCASE } from './sim/missions.js';
+import { CAMPAIGN as CAMPAIGN_MISSIONS, PROBES, SHOWCASE } from './sim/missions.js';
 import { SKIRMISH } from './sim/maps.js';
 import { TURN_RULES } from './sim/rules.js';
 import { TurnPlay } from './ui/turnplay.js';
@@ -31,6 +31,8 @@ const inTurns = (m) => Object.freeze({ ...m, turnMode: true });
 const CAMPAIGN = CAMPAIGN_MISSIONS.map(inTurns);
 const FREE_PLAY = SKIRMISH.filter((m) => m.random).map(inTurns);
 const ALL_MISSIONS = [...CAMPAIGN, ...FREE_PLAY];
+// Missions on trial (docs/UMSETZUNG-RUNDEN.md): not in the menu, each has its own link …?probe=<id>.
+const PROBE_MISSIONS = PROBES.map(inTurns);
 // While maps are still untuned, every mission is open: a mission that cannot be won yet must not
 // lock the ones after it away from being tried.
 const OPEN_FOR_TESTING = ALL_MISSIONS.some((m) => !m.turnsTuned);
@@ -95,6 +97,9 @@ class App {
     this.startAttract();
     // The figure showcase has its own link and is not in the menu: …/index.html?schau
     if (new URLSearchParams(location.search).has('schau')) this.startLab();
+    // So does every mission on trial: …/index.html?probe=trollwald opens its briefing.
+    const probe = PROBE_MISSIONS.find((m) => m.id === new URLSearchParams(location.search).get('probe'));
+    if (probe) this.openMission(probe);
     requestAnimationFrame((ms) => this.frame(ms));
   }
 
@@ -160,6 +165,7 @@ class App {
     this.ui.assault = null;
     this.ui.tutorialPath = null;
     this.ui.tutorialMark = null;
+    this.ui.goalMark = null;
     this.game = new Game({ mission: ATTRACT, seed: (Math.random() * 1e9) | 0, difficulty: 'hard', human: -1, wide: this.wide() });
     this.setHint('');
     this.setMode('menu');
@@ -179,7 +185,8 @@ class App {
     const inTurnMode = Boolean(mission.turnMode);
     $('#brief-text').textContent = inTurnMode && mission.briefTurns ? i18n.pick(mission.briefTurns).replace('{n}', holdTurns(mission)) : i18n.pick(mission.brief);
     $('#brief-lesson').textContent = i18n.pick(mission.lesson);
-    $('#brief-goal').textContent = !hold ? i18n.t('goalConquerLong')
+    $('#brief-goal').textContent = mission.objective?.type === 'lair' ? i18n.t('goalLairLong', { n: mission.turns?.turnLimit ?? TURN_RULES.turnLimit })
+      : !hold ? i18n.t('goalConquerLong')
       : inTurnMode ? i18n.t('goalCitadelLongTurns', { n: holdTurns(mission) })
       : i18n.t('goalCitadelLong', { s: mission.objective.seconds });
     $('#brief-stars').innerHTML = this.goalLabels(mission)
@@ -207,6 +214,12 @@ class App {
       wide: this.wide(),
     });
     this.turns = mission.turnMode ? new TurnPlay(this) : null;
+    // For the end of the match: how long it was played, and how long the person took for each move.
+    this.playMs = 0;
+    this.moveTimes = [];
+    this.raidHints = 0;
+    // A goal on the map (the great cave) stays marked until it is taken.
+    this.ui.goalMark = this.game.objective.type === 'lair' ? { tile: this.game.objective.tile, text: i18n.t('goalMark') } : null;
     this.ui.human = 0;
     this.ui.assault = null;
     this.ui.turnPreview = null;
@@ -229,7 +242,7 @@ class App {
       this.later(16000, () => this.setHint(''));
     } else if (this.turns) this.flash(i18n.t('turnFirst'), 9000);
     else this.setHint('');
-    this.banner(i18n.t(`intro${this.game.factions.length}`), '#f2c36b', 2600);
+    this.banner(i18n.t(this.game.objective.type === 'lair' ? 'introLair' : `intro${this.game.factions.length}`), '#f2c36b', 2600);
   }
 
   /** A hint that goes away by itself after `ms`, unless another one replaces it. */
@@ -263,6 +276,7 @@ class App {
     this.ui.assault = null;
     this.ui.tutorialPath = null;
     this.ui.tutorialMark = null;
+    this.ui.goalMark = null;
     this.events = [];
     this.buildLab();
     this.setMode('play');
@@ -405,7 +419,8 @@ class App {
 
   /** Name of a side as shown on screen; the wilds are named in the player's language. */
   nameOf(f) {
-    return f.wild ? i18n.t('wildName') : f.name;
+    // A mission against one kind of monsters calls them by their name ("TROLLE").
+    return f.wild ? (this.mission?.wildName ? i18n.pick(this.mission.wildName) : i18n.t('wildName')) : f.name;
   }
 
   /** Wide screens get a landscape island, phones in portrait a tall one. */
@@ -542,6 +557,15 @@ class App {
     $('#btn-quit').addEventListener('click', () => this.startAttract());
     $('#btn-retry').addEventListener('click', again);
     $('#btn-menu').addEventListener('click', () => this.startAttract());
+    $('#btn-log').addEventListener('click', async () => {
+      const b = $('#btn-log');
+      try {
+        await navigator.clipboard.writeText(this.protocol());
+        b.textContent = i18n.t('copied');
+      } catch {
+        b.textContent = i18n.t('copyFailed');
+      }
+    });
     $('#btn-next').addEventListener('click', () => {
       const next = CAMPAIGN[CAMPAIGN.indexOf(this.mission) + 1];
       if (!next) return;
@@ -825,6 +849,8 @@ class App {
   frame(ms) {
     const now = ms / 1000;
     const dt = Math.min(0.1, Math.max(0, now - this.last));
+    // Time on the clock a person has played this match (a tab left alone for a while does not count).
+    if (this.mode === 'play' && this.ui.human >= 0 && now - this.last < 30) this.playMs = (this.playMs || 0) + (now - this.last) * 1000;
     this.last = now;
     const game = this.game;
 
@@ -932,6 +958,8 @@ class App {
         // Monsters mark their next target: a warning for whoever owns it.
         if (mine(e.defender)) this.sfx.play('alarm', 0.7);
         this.note(i18n.t('evRaid', { name: name(e.defender) }), mine(e.defender));
+        // Turn mode: the first marks come with a sentence on what can be done about them.
+        if (this.turns && mine(e.defender) && this.raidHints++ < 2) this.flash(i18n.t('raidHint'), 9000);
         break;
       case 'lair':
         if (mine(e.by)) this.sfx.play('castle', 0.6);
@@ -995,6 +1023,15 @@ class App {
       bar.hidden = true;
       return;
     }
+    if (game.objective.type === 'lair') {
+      // A mission against the wilds: the goal is their great cave, and the clock is the number of turns.
+      const left = game.T ? game.T.turnLimit - game.turn + 1 : 0;
+      text.textContent = left > 1 ? i18n.t('goalLair', { n: left }) : i18n.t('goalLair1');
+      text.style.color = left <= 3 ? '#ff8d7f' : '';
+      bar.hidden = true;
+      if (this.ui.goalMark && !game.tiles[game.objective.tile].lair) this.ui.goalMark = null;
+      return;
+    }
     if (game.objective.type !== 'hold') {
       const left = game.factions.filter((f) => f.alive && !f.wild && f.id !== this.ui.human).length;
       text.textContent = i18n.t('goalConquer', { n: left });
@@ -1041,7 +1078,9 @@ class App {
     view.title = i18n.t('viewReset');
     $('#btn-turn').setAttribute('aria-label', i18n.t('viewTurn'));
     $('#btn-turn').title = i18n.t('viewTurn');
-    $('#clock').textContent = this.turns ? i18n.t('turnLabel', { n: game.turn }) : clock(game.time);
+    // A mission with its own limit of turns shows it next to the turn.
+    const limit = this.turns && this.mission?.turns?.turnLimit ? game.T.turnLimit : 0;
+    $('#clock').textContent = !this.turns ? clock(game.time) : limit ? i18n.t('turnLabelOf', { n: Math.min(game.turn, limit), m: limit }) : i18n.t('turnLabel', { n: game.turn });
     $('#clock').classList.toggle('storm', game.storm);
     if (this.turns) this.turns.hud();
     $('#share-bar').innerHTML = stats.factions.map((f) => `<i style="width:${((f.tiles / stats.playable) * 100).toFixed(1)}%;background:${PALETTE_HEX[f.color]}"></i>`).join('');
@@ -1134,19 +1173,49 @@ class App {
     title.className = `sheet-title big ${won ? 'win' : 'loss'}`;
     const byHold = game.reason === 'hold';
     const lostTo = game.factions[game.winner];
-    $('#result-sub').textContent = won ? i18n.t(byHold ? 'victoryHold' : 'victorySub')
-      : game.reason === 'turns' ? i18n.t('defeatTurns', { n: game.T.turnLimit })
+    // A mission of the campaign may tell its own two sentences: how it went on, or why it was too late.
+    $('#result-sub').textContent = won ? (m.after ? i18n.pick(m.after) : i18n.t(byHold ? 'victoryHold' : game.reason === 'lair' ? 'victoryLair' : 'victorySub'))
+      : game.reason === 'turns' ? (m.late ? i18n.pick(m.late) : i18n.t('defeatTurns', { n: game.T.turnLimit }))
       : !lostTo ? i18n.t('defeatWild')
       : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: lostTo.name });
     const labels = this.goalLabels(m);
     $('#result-stars').innerHTML = goals.map((g, i) => `<div class="${g ? 'got' : ''}">${star}<span>${labels[i]}</span></div>`).join('');
     const spent = this.turns ? `<div><b>${Math.min(game.turn, game.T.turnLimit)}</b>${i18n.t('turnsStat')}</div>` : `<div><b>${clock(game.time)}</b>${i18n.t('time')}</div>`;
-    $('#result-stats').innerHTML = `${spent}<div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;
+    // Turn mode also says how long the match took on the clock: missions are meant to last 5 to 15 minutes.
+    const took = this.turns ? `<div><b>${clock((this.playMs || 0) / 1000)}</b>${i18n.t('duration')}</div>` : '';
+    $('#result-stats').innerHTML = `${spent}${took}<div><b>${stats.captured}</b>${i18n.t('fields')}</div><div><b>${stats.lost}</b>${i18n.t('lost')}</div>`;
+    const log = $('#btn-log');
+    log.hidden = !this.turns;
+    log.textContent = i18n.t('copyLog');
     const hasNext = won && CAMPAIGN.indexOf(m) >= 0 && CAMPAIGN.indexOf(m) < CAMPAIGN.length - 1;
     $('#btn-next').hidden = !hasNext;
     $('#btn-retry').classList.toggle('primary', !hasNext);
     this.setHint('');
     this.setMode('result');
+  }
+
+  /**
+   * The match in turn mode as a short text, to paste where it can be looked at: one line per move with
+   * its commands, and for the person the seconds the move took.
+   *   A12:14+  attack on field 12 with 14 troops, taken (− held)   M3>9:6  moved 6 from 3 to 9   B7:farm
+   */
+  protocol() {
+    const game = this.game;
+    const m = this.mission;
+    const human = this.ui.human;
+    const head = `${m.id} · ${this.store.difficulty} · Startwert ${this.seed} · ${game.winner === human ? 'Sieg' : 'kein Sieg'} (${game.reason || 'läuft'}) · Zug ${game.turn} · ${clock((this.playMs || 0) / 1000)} min · Verloren ${game.humanStats.lost}`;
+    const times = new Map((this.moveTimes || []).map((x) => [x.turn, x.s]));
+    const lines = game.log.map((e) => {
+      const who = e.owner === human ? 'ich' : this.nameOf(game.factions[e.owner]);
+      const cmds = e.commands.map((c) => {
+        if (c.type === 'attack') return `A${c.target}:${c.plan.reduce((s, p) => s + p.units, 0)}${c.won ? '+' : '−'}`;
+        if (c.type === 'move') return `M${c.from}>${c.to}:${c.units}`;
+        return `B${c.tile}:${c.building}`;
+      });
+      const secs = e.owner === human && times.has(e.turn) ? ` ${times.get(e.turn)}s` : '';
+      return `Z${e.turn} ${who}${secs}: ${cmds.join(' ') || '–'}`;
+    });
+    return [head, 'A Ziel:Truppen+ genommen / − abgewehrt · M von>nach:Truppen · B Feld:Gebäude', ...lines].join('\n');
   }
 
   // --------------------------------------------------------------- tutorial

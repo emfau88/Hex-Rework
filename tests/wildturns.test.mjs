@@ -67,6 +67,7 @@ test('a raid: the weakest kingdom field is marked one round ahead, then exactly 
   let events = until(game, W.first - W.warn, game.wild);
   assert.equal(events.filter((e) => e.type === 'raidwarn').length, 0, 'no mark before its time');
   assert.ok(!den.lair.marked);
+  assert.ok(!game.raidDue(), 'and no raid sets out in this move of the wilds');
   events = until(game, W.first, 0);
   const warn = events.find((e) => e.type === 'raidwarn');
   assert.ok(warn, 'marked one round ahead');
@@ -76,6 +77,7 @@ test('a raid: the weakest kingdom field is marked one round ahead, then exactly 
   // After the mark the other field becomes the weaker one: the raid still goes where it was announced.
   strong.units = 2;
   until(game, W.first, game.wild);
+  assert.ok(game.raidDue(), 'the screen is told that a raid sets out now');
   const raid = aiNext(game, game.factions[game.wild], {});
   assert.deepEqual(raid, { type: 'attack', target: weak.id, parts: [{ origin: den.id, units: W.raid }] });
   const before = den.units;

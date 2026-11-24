@@ -155,6 +155,16 @@ export const PROBES = [
       de: 'Jede Höhle überfällt alle drei Züge dein schwächstes Feld am Waldrand. Das Ziel ist einen Zug vorher markiert, und jeder Überfall einer Höhle ist stärker als ihr letzter.',
       en: 'Every third turn each cave raids your weakest field at the rim of the woods. The target is marked one turn ahead, and every raid of a cave is stronger than its last.',
     },
+    // What the screen says when the mission is won, and when the clock has run out.
+    after: {
+      de: 'In der Höhle liegt keine Krone: Die Trolle haben sie längst gegen eine Ziege getauscht. Dafür sitzt dort Ritter Kunibert im Kochtopf. Er hatte „alles im Griff“.',
+      en: 'There is no crown in the cave: the trolls swapped it for a goat long ago. But Sir Kunibert sits there in the cooking pot. He had "everything under control".',
+    },
+    late: {
+      de: 'Zu spät. Die Trolle tragen jetzt goldene Ohrringe.',
+      en: 'Too late. The trolls are wearing golden earrings now.',
+    },
+    wildName: { de: 'TROLLE', en: 'TROLLS' },
     factions: 1,
     wild: true,
     objective: { type: 'lair' },

@@ -35,6 +35,7 @@ export class TurnPlay {
     this.reports = []; // summaries of the rivals' moves since the person's last move
     this.readyAt = 0; // performance.now() from which "end move" is taken again
     this.acting = null; // the person's command whose troops are marching: { cmd, before, armies, start, dur, until }
+    this.moveStart = performance.now(); // when the person's current move began, for the match log
   }
 
   get game() {
@@ -164,6 +165,8 @@ export class TurnPlay {
     if (!this.myMove() || performance.now() < this.readyAt) return;
     this.flush();
     if (this.game.phase !== 'running') return;
+    // How long the person took for this move, for the match log.
+    this.app.moveTimes?.push({ turn: this.game.turn, s: Math.round((performance.now() - (this.moveStart ?? performance.now())) / 1000) });
     this.busy = true;
     this.reports = [];
     this._march(this.game.shipSupply(), 'supply', now, BEAT.supply);
@@ -193,6 +196,13 @@ export class TurnPlay {
       return;
     }
     const f = g.factions[g.current];
+    if (f.wild && !this.memo && !g.raidDue()) {
+      // The wilds with no raid to send: their lairs breed and mark their prey, and nothing is to be watched.
+      aiNext(g, f, {});
+      g.shipSupply();
+      this._pass();
+      return;
+    }
     if (!this.memo) {
       // A rival begins: its fields have grown. A short moment before its first command.
       this.memo = {};
@@ -353,11 +363,17 @@ export class TurnPlay {
     g.passOn();
   }
 
+  /** What a side is called on screen: monsters go by the name the mission gives them. */
+  _name(f) {
+    return this.app.nameOf ? this.app.nameOf(f) : f.name;
+  }
+
   /** One line on what a rival did in its move, for the list of events and the hint. */
   _report(s) {
     const g = this.game;
     const f = g.factions[s.owner];
-    const name = `<span style="color:${PALETTE_HEX[f.color]}">${f.name}</span>`;
+    const called = this._name(f);
+    const name = `<span style="color:${PALETTE_HEX[f.color]}">${called}</span>`;
     const parts = [];
     if (s.took) parts.push(i18n.t(s.took === 1 ? 'sumTook1' : 'sumTook', { n: s.took }) + (s.mine ? ` (${i18n.t('sumMine', { n: s.mine })})` : ''));
     if (s.held) parts.push(i18n.t('sumHeld', { n: s.held }));
@@ -365,7 +381,7 @@ export class TurnPlay {
     if (s.moved) parts.push(i18n.t('sumMoved'));
     if (!parts.length) parts.push(i18n.t('sumNothing'));
     const html = `${name}: ${parts.join(' · ')}`;
-    this.reports.push({ html, text: `${f.name}: ${parts.join(' · ')}`, bad: s.mine > 0 });
+    this.reports.push({ html, text: `${called}: ${parts.join(' · ')}`, bad: s.mine > 0 });
     this.app.note(html, s.mine > 0);
   }
 
@@ -379,9 +395,13 @@ export class TurnPlay {
     const at = this.app.last ?? 0;
     this.app.ui.floaters = g.entry && g.entry.owner === this.human ? g.entry.growth.map((x) => ({ tile: x.tile, units: x.units, at })) : [];
     this.readyAt = performance.now() + GRACE;
+    this.moveStart = performance.now();
     g.armies = [];
     const n = g.commandsLeft;
-    this.app.banner(i18n.t('turnStart', { n: g.turn }), '#f2c36b', 1600);
+    // A mission with its own limit of turns counts the last ones down.
+    const left = g.mission.turns?.turnLimit ? g.T.turnLimit - g.turn + 1 : Infinity;
+    if (left <= 3) this.app.banner(left > 1 ? i18n.t('turnsLeft', { n: left }) : i18n.t('turnLast'), '#ff8d7f', 2200);
+    else this.app.banner(i18n.t('turnStart', { n: g.turn }), '#f2c36b', 1600);
     const text = this.reports.map((r) => r.text).join(' — ');
     // While a mission still guides the first steps, its sentence keeps the hint line: what the rivals
     // did was just shown on the board and stands in the list of events.
@@ -411,11 +431,13 @@ export class TurnPlay {
     const title = $('#turn-title');
     const sub = $('#turn-sub');
     if (this.busy && !mine) {
-      title.textContent = i18n.t('turnRival', { name: f.name });
+      // Monsters with a name of their own come in the plural ("TROLLE ziehen").
+      title.textContent = i18n.t(f.wild && g.mission.wildName ? 'turnRivals' : 'turnRival', { name: this._name(f) });
       title.style.color = PALETTE_HEX[f.color];
       // A command on its way counts already: its troops are marching.
       const playing = this.beat?.kind === 'attack' || this.beat?.kind === 'move' ? 1 : 0;
-      sub.textContent = i18n.t('turnRivalSub', { n: Math.min(max, max - g.commandsLeft + playing), m: max });
+      // The wilds give no commands: their lairs raid.
+      sub.textContent = f.wild ? i18n.t('turnWildSub') : i18n.t('turnRivalSub', { n: Math.min(max, max - g.commandsLeft + playing), m: max });
     } else if (this.busy) {
       title.textContent = i18n.t('turnMine');
       title.style.color = '';
@@ -429,7 +451,7 @@ export class TurnPlay {
     }
     const left = this.busy && mine ? 0 : mine ? this.left() : g.commandsLeft;
     const color = this.busy && !mine ? PALETTE_HEX[f.color] : PALETTE_HEX[g.factions[this.human].color];
-    const pips = Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}" style="--c:${color}"></i>`).join('');
+    const pips = this.busy && f.wild ? '' : Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}" style="--c:${color}"></i>`).join('');
     const el = $('#turn-pips');
     if (el.innerHTML !== pips) el.innerHTML = pips;
     const undo = $('#btn-undo');

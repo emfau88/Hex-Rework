@@ -1380,3 +1380,17 @@ p.note {
     justify-content: space-between;
   }
 }
+
+/* A quiet text button under the buttons of a sheet (the match log on the result sheet). */
+.textbtn {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 10px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
