@@ -1,7 +1,10 @@
 # Rundenmodus · Umsetzungsplan: Kampagne „Die Krone ist weg“
 
-Stand 24.11.2026 · Zweig `runden` · **Gebaut sind Bündel 0 und Bündel 1 bis auf deine Spielproben.** Alles
-andere ist Plan.
+Stand 24.11.2026 · Zweig `runden` · **Gebaut sind die Bündel 0, 1 und 2.** Offen ist dort nur noch, dass du die
+Kette Mission 1 → Wahl → „Im Trollwald“ einmal spielst. Alles andere ist Plan.
+
+**Zum Spielen:** Die Kampagne auf Probe beginnt mit `?probe=kampagne` am Ende der Adresse. Eine einzelne Mission
+öffnet `?probe=trollwald`. Im Menü steht davon nichts.
 
 Den Rahmen (Geschichte, zehn Missionen, Belohnungen, Trollstamm als erste neue Fraktion) hast du am 24.11.2026
 bestätigt. Alle Zahlen sind Startwerte. Die zweite Hälfte der Kampagne ist ein Entwurf.
@@ -15,7 +18,9 @@ Dieser Plan ersetzt die erste Fassung vom selben Tag („Systeme zuerst, Mission
 ## Das Ziel
 
 - Eine Kampagne im Rundenmodus mit zuerst **zehn Missionen.**
-- Jede Mission dauert **5 bis 15 Minuten.**
+- Jede Mission dauert **3 bis 7 Minuten.** Zuerst hieß es 5 bis 15; nach deiner ersten Partie hast du gesagt, dass
+  kurz gut ist.
+- **Der Einstieg ist einfach,** und von Mission zu Mission kommt etwas dazu. Nichts wird nebenbei vorausgesetzt.
 - Jede Mission fühlt sich anders an als die davor: ein neues Ding, öfter ein Gegner mit eigenen Regeln.
 - Der Spieler wird von Mission zu Mission reicher an Möglichkeiten: Held, Zauber, Ungeheuer, Verbesserungen.
 - Eine kleine Geschichte mit Humor trägt das Ganze.
@@ -51,23 +56,27 @@ Dieser Plan ersetzt die erste Fassung vom selben Tag („Systeme zuerst, Mission
 - Eine eigene Aktion wirkt, reine Stärke kaum (grobe Probe, nur ein Maßstab).
 - Vier feste Befehle statt drei verkürzen ein Duell von Zug 31 bis 33 auf Zug 21 bis 22. Das ist sehr stark.
 
-**Geschätzt, nicht gemessen:**
+**Gemessen an dir** (deine erste Partie „Im Trollwald“, 24.11.2026, aus dem Protokoll):
 
-- Eine Runde dauert 20 bis 40 Sekunden. Sicher im Rahmen von 5 bis 15 Minuten wären dann 10 bis 25 Runden.
-- Karten mit 30 bis 50 Feldern enden noch schneller als Mission 1.
+- Sieg in Zug 9 nach 3:14 Minuten, mit allen drei Sternen.
+- Du brauchst 14 bis 25 Sekunden je Zug, mit dem Zug der Trolle rund 22 Sekunden je Runde.
+- 3 bis 7 Minuten sind bei dir also etwa 8 bis 19 Runden.
+- Du warst schneller als jeder Testspieler. Der schnellste, der Zielstrebige, braucht 10 Züge.
 
-**Vermutet:** alles, was Spaß betrifft. Trolle als Fraktion in Zügen, die Verbesserungen und alle neuen Missionen
-sind nicht erprobt.
+**Vermutet:** alles, was Spaß betrifft. Die Verbesserungen, die Sprechblasen und alle weiteren Missionen hast du
+noch nicht gespielt.
 
 ---
 
 ## So ist jede Mission gebaut
 
-- **Klein:** 30 bis 50 Felder, 10 bis 20 Runden.
+- **Klein:** 30 bis 50 Felder, 8 bis 19 Runden.
 - **Ein klares Ziel,** auf der Karte sichtbar. Nicht immer „Burg nehmen“.
-- **Genau ein neues Ding.** Die Karte ist so gebaut, dass es der Schlüssel ist.
+- **Genau ein neues Ding.** Die Karte ist so gebaut, dass es der Schlüssel ist. Was noch nicht erklärt wurde,
+  darf keine Rolle spielen.
 - **Zwei Wege zum Sieg,** damit es kein Rätsel mit nur einer Lösung wird.
-- **Zwei, drei Sätze Geschichte** davor und danach.
+- **Wenig Text vor dem Start.** Die Geschichte und das neue Ding erklärt der Hauptmann im Spiel, in kurzen
+  Sprechblasen an deiner Burg.
 - **Eine Belohnung** am Ende.
 
 **Abnahme, gilt für jede Mission**
@@ -76,7 +85,7 @@ sind nicht erprobt.
 - Sein Sieg liegt in der Mitte bei höchstens 20 Zügen.
 - Der kluge Testspieler gewinnt mindestens 90 %.
 - Das gilt mit jeder Wahl an Verbesserungen, die bis dahin möglich ist.
-- Deine eigene Partie dauert 5 bis 15 Minuten.
+- Deine eigene Partie dauert 3 bis 7 Minuten.
 - Mindestens drei deiner vier Fragen fallen gut aus.
 
 **Deine vier Fragen nach jeder Spielprobe**
@@ -113,7 +122,23 @@ Der laufende Witz: Alle, die du retten sollst, brauchen es nicht. Und alle Rette
   ein Bild mit Sprechblase, keine Figur auf der Karte.
 - **EMBER** ist das Nachbarreich und hätte die Krone selbst gern.
 
-Die Texte bleiben kurz: zwei, drei Sätze vor und nach jeder Mission.
+Die Texte bleiben kurz: ein Satz zum Start, ein paar Sprechblasen im Spiel, zwei Sätze nach dem Sieg.
+
+## Was wann neu dazukommt
+
+Je Mission genau ein neues Ding. So wird es von Mission zu Mission mehr, ohne dass eine überfordert.
+
+| Mission | Neu | Schon bekannt |
+|---|---|---|
+| 1 · Erste Krone | Truppen schicken, sich ausbreiten, von mehreren Seiten angreifen, die Burg nehmen | – |
+| 2 · Im Trollwald | Überfälle, die einen Zug vorher angekündigt sind | alles aus Mission 1 |
+| 3 · Wegzoll | dein Held mit eigenem Angriff | Überfälle |
+| 4 · Der Türsteher | ein Boss, den nur das Einkreisen fällt | Held |
+| 5 · Donnerwetter | Macht und Blitz | Boss |
+
+- **Gelände** (Wald und Hügel geben Deckung) ist noch nicht eingeordnet. Bis es eine eigene Mission oder einen
+  eigenen Satz des Hauptmanns bekommt, hängt keine Mission davon ab.
+- **Von mehreren Seiten angreifen zu müssen** wird erst in Mission 4 zur Aufgabe. In Mission 2 hilft es nur.
 
 ## Die zehn Missionen
 
@@ -148,7 +173,7 @@ Die Texte bleiben kurz: zwei, drei Sätze vor und nach jeder Mission.
 **Die Verbesserungen im Einzelnen (Startwerte)**
 
 - **Trommler:** In jedem dritten Zug hast du 4 statt 3 Befehle.
-- **Kornspeicher:** Höfe bringen 1 Zuwachs mehr, deine Burg fasst 50 statt 40.
+- **Kornspeicher:** Deine Burg beginnt mit 12 Truppen mehr und fasst 50 statt 40. Höfe bringen 1 Zuwachs mehr.
 - **Sturmleitern:** Türme schützen gegen dich nur halb.
 - **Feldschanzen:** Ein frisch erobertes Feld ist eine Runde lang doppelt so gut geschützt.
 - **Ritter setzt nach:** Gewinnt sein Angriff, darf er vom neuen Feld aus einmal weiter angreifen.
@@ -185,7 +210,8 @@ unverändert läuft.
 **Steckbrief**
 
 - **Gegner:** der Trollstamm, kein Königreich.
-- **Ziel:** die große Höhle nehmen, bevor Zug 18 vorbei ist.
+- **Ziel:** die große Höhle nehmen, bevor Zug 18 vorbei ist. Sie muss nicht von drei Seiten fallen; das wäre für
+  den Einstieg zu viel.
 - **Karte:** 41 Felder, zwei kleine Höhlen und eine große.
 - **Zwei Wege:** erst die kleinen Höhlen ausräuchern und dann in Ruhe die große nehmen. Oder gleich zur großen
   durchstoßen und die Überfälle aushalten.
@@ -198,8 +224,10 @@ unverändert läuft.
 - Die kleinen Höhlen fassen 22 Trolle, die große 34. Jede füllt sich um 4 je Zug.
 - Jede Höhle überfällt alle 3 Züge dein schwächstes Feld am Waldrand. Die erste Höhle beginnt in Zug 2, die
   nächsten je einen Zug später. Einen Zug vorher ist das Ziel markiert.
-- Ein Überfall hat 12 Trolle. Jeder weitere derselben Höhle hat 3 mehr. Knapp ein Drittel der Höhle bleibt immer
-  zu Hause, und wer auszieht, fehlt der Höhle danach.
+- Ein Überfall hat immer 12 Trolle. Knapp ein Drittel der Höhle bleibt zu Hause, und wer auszieht, fehlt der
+  Höhle danach.
+- Ein angekündigter Überfall fällt aus, wenn die Trolle nicht mehr an das Feld herankommen oder die Höhle zu
+  schwach ist. Das Spiel meldet es.
 - Gewinnen die Trolle ein Feld, wird es Trollwald. Sie füllen es nicht nach und halten keine Front.
 - Die Trolle ziehen nach dir.
 - **Nach Zug 18 ist die Mission verloren.** Das ist die Uhr.
@@ -217,13 +245,23 @@ unverändert läuft.
 
 | Testspieler | gewinnt | Sieg in Zug (Mitte) | verliert Felder |
 |---|---|---|---|
-| Anfänger | 80 % | 15 | 6,5 bis 7,3 |
-| Kluger | 97 bis 100 % | 13 | 6,2 bis 6,5 |
-| Zielstrebiger (geht direkt aufs Ziel) | 100 % | 10 | 5,5 |
+| Anfänger | 73 bis 77 % | 16 | 5,8 bis 6,2 |
+| Kluger | 100 % | 13 bis 14 | 5,7 bis 6,0 |
+| Zielstrebiger (geht direkt aufs Ziel) | 100 % | 10 | 5,8 bis 6,0 |
 | Wartender (gibt keinen Befehl) | 0 %, verliert an der Zuggrenze | – | 0 |
+| **Du** (eine Partie) | Sieg | 9 | 3 |
 
-Die Trolle überfallen 8 bis 10 Mal je Partie, 70 bis 95 % der Überfälle nehmen ein Feld. Die Testspieler
-verteidigen ein markiertes Feld nie; ein Mensch kann das.
+Die Trolle überfallen 9 bis 11 Mal je Partie, 57 bis 95 % der Überfälle nehmen ein Feld. Die Testspieler
+verteidigen ein markiertes Feld nie. Du hast es getan: mit einem Turm auf dem markierten Feld.
+
+**Nach deiner ersten Partie geändert**
+
+- Jeder Überfall hat 12 Trolle. In deiner Partie waren es 12, 12, 15, 12, 12, 12; der Satz „jeder Überfall ist
+  stärker als der letzte“ stimmte nicht und ist gestrichen.
+- Das Spiel meldet, wenn ein Überfall ausfällt. In deinem Zug 3 blieb einer aus, ohne dass es jemand sagte.
+- Die Einweisung ist kürzer. Was die Überfälle sind und was man tun kann, sagt der Hauptmann, wenn es so weit ist.
+- **Nicht geändert:** Länge und Härte. Mein Vorschlag, die Mission länger und die Höhle härter zu machen, ist
+  nach deinem Hinweis vom Tisch.
 
 **Schritte**
 
@@ -239,8 +277,9 @@ verteidigen ein markiertes Feld nie; ein Mensch kann das.
 - [x] Rechnerprobe mit den Testspielern, dazu ein dritter, der direkt aufs Ziel geht.
 - [x] Startwerte nachstellen.
 - [x] Texte: Einweisung, Lehrsatz, Geschichte danach, Satz bei Niederlage.
-- [ ] Du spielst die Mission 2 bis 3 Mal und beantwortest die vier Fragen. Die Dauer steht am Ende.
-- [ ] Entscheidung: Die Richtung stimmt, ändern oder verwerfen.
+- [x] Du hast die Mission einmal gespielt (Sieg in Zug 9, 3:14 Minuten) und das Protokoll geschickt.
+- [x] Entscheidung vom 24.11.2026: weiter in dieser Richtung, mit einfachem Einstieg und kurzen Missionen.
+- [ ] Offen: deine vier Fragen. Vor allem, ob die Überfälle spannend oder lästig sind.
 
 **Worauf du beim Spielen achten könntest**
 
@@ -259,14 +298,49 @@ entstehen.
 
 **Wozu:** Aus einzelnen Missionen wird eine Kampagne. · **Aufwand:** klein bis mittel
 
-- [ ] Bild nach dem Sieg: entweder eine feste Belohnung oder die Wahl aus zwei.
-- [ ] Die Wahl wird gespeichert und gilt in allen späteren Missionen. Der schon gespeicherte Fortschritt der
-      Spieler bleibt erhalten.
-- [ ] Die erste Wahl nach Mission 1 bauen: Trommler oder Kornspeicher.
-- [ ] Rechnerprobe: Mission 2 einmal mit Trommler, einmal mit Kornspeicher.
-- [ ] Geschichte: kurze Texte vor und nach Mission 1 und 2, als Bild mit Sprechblase.
-- [ ] Mission 1 bleibt, wie sie ist. Es kommen nur der Text danach und die Wahl dazu.
-- [ ] Du spielst Mission 1, wählst, und spielst Mission 2.
+- [x] Bild nach dem Sieg: entweder eine feste Belohnung („Neu dabei: Ritter Kunibert“) oder die Wahl aus zwei.
+- [x] Die Wahl wird gespeichert und gilt in den späteren Missionen der Kampagne auf Probe. Der schon gespeicherte
+      Fortschritt bleibt erhalten. Wer Mission 1 noch einmal gewinnt, kann neu wählen.
+- [x] Die erste Wahl nach Mission 1: Trommler oder Kornspeicher. Die nächste Mission wartet auf die Wahl.
+- [x] Rechnerprobe: „Im Trollwald“ ohne Verbesserung, mit Trommler und mit Kornspeicher (Tabelle unten).
+- [x] Geschichte: zwei Sätze nach dem Sieg in Mission 1 und 2, dazu die Sprechblasen des Hauptmanns im Spiel
+      (siehe nächster Abschnitt). Ein eigenes Bild vor der Mission gibt es nicht mehr.
+- [x] Mission 1 bleibt, wie sie ist. Es kommen nur der Text danach und die Wahl dazu, und nur in der Kampagne auf
+      Probe. Die Mission 1 im Menü ist unberührt.
+- [x] Die Kette: `?probe=kampagne` öffnet Mission 1, „Nächste Mission“ führt zu „Im Trollwald“.
+- [ ] Du spielst Mission 1, wählst, und spielst „Im Trollwald“.
+
+**Gemessen** („Im Trollwald“, 60 Partien je Testspieler, zwei Würfelsätze)
+
+| | Anfänger gewinnt | Kluger | Zielstrebiger | Anfänger verliert Felder |
+|---|---|---|---|---|
+| ohne Verbesserung | 73 bis 77 % | 100 %, Zug 13 bis 14 | 100 %, Zug 10 | etwa 6 |
+| mit Trommler | 65 bis 72 % | 100 %, Zug 13 | 100 %, Zug 10 | etwa 6 |
+| mit Kornspeicher | 85 bis 87 % | 100 %, Zug 12 | 100 %, Zug 10 | etwa 3 |
+
+- Beide Wahlen lassen die Mission im Rahmen. Keine kippt sie.
+- Der Kornspeicher hilft dem vorsichtigen Spieler deutlich, der Trommler kaum messbar. Ob eine Wahl die klar
+  bessere ist, zeigt erst deine Spielprobe.
+- Der Kornspeicher hatte in der ersten Fassung (nur Höfe und größere Burg) gar keine messbare Wirkung. Mit voller
+  Burg zu Beginn war er zu stark (Anfänger 82 bis 88 %, Zielstrebiger Zug 9). Jetzt beginnt die Burg mit 12
+  Truppen mehr.
+
+### Sprechblasen im Spiel (deine Idee vom 24.11.2026)
+
+Statt vor dem Start viel zu lesen, meldet sich der Hauptmann aus deiner Burg, wenn etwas zum ersten Mal wichtig
+wird. Die erste Fassung ist gebaut.
+
+- Eine Sprechblase erscheint an deiner Burg, bleibt ein paar Sekunden und schließt sich. Ein Tipp schließt sie
+  sofort.
+- Jeder Satz kommt in einer Partie nur einmal. Mehrere warten aufeinander.
+- „Im Trollwald“ hat sieben Sätze: zum Start, beim ersten markierten Feld, nach einem abgewehrten Überfall, nach
+  einem verlorenen Feld, wenn ein Überfall ausfällt, vor der großen Höhle und drei Züge vor Schluss.
+
+Offen, für später:
+
+- [ ] Mehr Stimmen: Ritter Kunibert und die Prinzessin, sobald sie dabei sind.
+- [ ] Sätze für Mission 1. Dort führen bisher die vier geführten Schritte.
+- [ ] Der Ton: Wie viel Witz, wie oft? Das zeigt deine Spielprobe.
 
 **Fertig, wenn** Mission 2 mit beiden Wahlen die Abnahme erfüllt und du beide Wahlen reizvoll findest. Keine darf
 die klar bessere sein.
@@ -463,6 +537,9 @@ Diese Punkte aus der ersten Fassung sind nicht verworfen, aber nicht Teil der er
 - **Die großen Karten abstimmen** (Vier Reiche, alte Missionen 2 und 3): nicht Teil der Kampagne.
 - **Verschmelzen zu einer Garde:** nicht weiterverfolgt. Die Lehre daraus steckt im Ritter: eine eigene Aktion
   statt bloßer Stärke.
+- **Überfälle, die jedes Mal stärker werden:** für Mission 2 gestrichen. Möglich für eine spätere Mission mit
+  größeren Höhlen.
+- **„Im Trollwald“ länger und härter:** verworfen. Kurz ist gut, und der Einstieg soll einfach sein.
 
 ## Entscheidungen, die bei dir liegen
 
