@@ -20,9 +20,11 @@ export class TurnGame extends Game {
   /**
    * Takes the same options as Game, plus:
    * @param {number} [o.first]  kingdom that moves first (default: the person, or kingdom 0)
+   * @param {string[]} [o.perks]  improvements the person has earned in the campaign (TURN_RULES.perks)
    */
   constructor(o) {
     super(o);
+    this.perks = new Set(o.perks || []);
     const mission = this.mission;
     this.T = mission.turns
       ? Object.freeze({ ...TURN_RULES, ...mission.turns, troll: Object.freeze({ ...TURN_RULES.troll, ...(mission.turns.troll || null) }) })
@@ -41,6 +43,11 @@ export class TurnGame extends Game {
       lair.raids = 0;
     });
     this.raidQueue = [];
+    // The granary: the castle of the person starts with more troops.
+    if (this.human >= 0 && this.perks.has('granary')) {
+      const home = this.tiles[this.factions[this.human].castle];
+      home.units = Math.min(this.cap(home), home.units + this.T.perks.granary.start);
+    }
     const diff = TURN_DIFFICULTY[this.difficulty] || TURN_DIFFICULTY.normal;
     for (const f of this.factions) {
       if (f.wild || f.human) continue;
@@ -77,8 +84,19 @@ export class TurnGame extends Game {
     if (!t.passable || t.owner < 0 || t.owner === this.wild) return 0;
     const T = this.T;
     let v = t.castle >= 0 ? T.income.castle : T.income[t.terrain] ?? T.income.plain;
-    if (t.building === 'farm') v += T.farmBonus;
+    if (t.building === 'farm') v += T.farmBonus + (this.perk('granary', t.owner) ? T.perks.granary.farm : 0);
     return v * this.factions[t.owner].incomeMul;
+  }
+
+  /** Whether `owner` plays with the improvement `name`: only the person ever does. */
+  perk(name, owner) {
+    return this.human >= 0 && owner === this.human && Boolean(this.perks) && this.perks.has(name);
+  }
+
+  /** The granary lets the person's castle feed more troops. */
+  cap(t) {
+    const cap = super.cap(t);
+    return t.castle >= 0 && this.T && this.perk('granary', t.owner) ? cap + this.T.perks.granary.castle : cap;
   }
 
   /** Building happens at once or not at all: what would have to be saved up for has to wait. */
@@ -156,6 +174,8 @@ export class TurnGame extends Game {
     }
     // Whoever begins may give fewer commands in the very first move, against the edge of moving first.
     this.commandsMax = this.turn === 1 && this.current === this.starter && T.firstCommands != null ? T.firstCommands : T.commands;
+    // The drummer: one more command in every third turn.
+    if (this.perk('drummer', f.id) && this.turn % T.perks.drummer.every === 0) this.commandsMax += T.perks.drummer.commands;
     this.commandsLeft = this.commandsMax;
     this.entry = { turn: this.turn, owner: f.id, growth: [], supply: [], commands: [] };
     this.log.push(this.entry);
@@ -238,9 +258,13 @@ export class TurnGame extends Game {
         lair.target = -1;
         lair.marked = false;
         const party = Math.min(W.raid + W.more * lair.raids, Math.floor(t.units) - Math.ceil(lair.size * W.home));
-        if (!prey || prey.owner < 0 || prey.owner === this.wild || party < W.raid) continue;
         const parts = [{ origin: id, units: party }];
-        if (!this._plan(this.wild, prey.id, parts)) continue;
+        // The raid is off: the field is no kingdom's any more, the lair cannot spare a party, or the
+        // way through the monsters' land has been cut. Whoever was marked is told.
+        if (!prey || prey.owner < 0 || prey.owner === this.wild || party < W.raid || !this._plan(this.wild, prey.id, parts)) {
+          if (prey && prey.owner >= 0 && prey.owner !== this.wild) this.events.push({ type: 'raidoff', tile: id, target: prey.id, defender: prey.owner, beast: lair.kind });
+          continue;
+        }
         lair.raids++;
         return { type: 'attack', target: prey.id, parts };
       }

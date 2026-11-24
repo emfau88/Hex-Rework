@@ -136,11 +136,29 @@ export const CAMPAIGN = [
 export const MISSIONS = [...CAMPAIGN, ...SKIRMISH];
 
 /**
- * Missions on trial (docs/UMSETZUNG-RUNDEN.md): played in turns, reached only through their own link
- * (…/index.html?probe=trollwald), not through the menu. They are built one at a time for the campaign
- * "Die Krone ist weg" and move into CAMPAIGN once they have been played and approved.
+ * The campaign "Die Krone ist weg" as far as it is built, in order (docs/UMSETZUNG-RUNDEN.md). It is on
+ * trial: played in turns and reached only through its own links, not through the menu.
+ *   …/index.html?probe=kampagne    the first mission; "next mission" leads on through this list
+ *   …/index.html?probe=trollwald   one mission directly
+ * What a mission of the campaign may carry on top of the usual:
+ *   after   two sentences on the result sheet when it is won       late   the same when the clock ran out
+ *   reward  { choice: [perk, perk] } the person picks one improvement, or { gift: name } something new
+ *           that comes along; improvements count in every later mission of this list (TURN_RULES.perks)
+ *   talk    short lines of the captain during the match, each said once: start, raid (the first mark on
+ *           an own field), held (a raid bounced off), lost (a field fell to a raid), off (a raid was
+ *           called off), near (an own field touches the goal), late (three turns left)
  */
 export const PROBES = [
+  {
+    // Mission 1 is the first mission of the menu, unchanged, with what the campaign adds to it.
+    ...CAMPAIGN[0],
+    probe: true,
+    after: {
+      de: 'Die Krone gehört dir. Beim Krönungsfest ist sie dann plötzlich weg. Am Fenster: große, haarige Fußspuren.',
+      en: 'The crown is yours. At the coronation feast it is suddenly gone. At the window: large, hairy footprints.',
+    },
+    reward: { choice: ['drummer', 'granary'] },
+  },
   {
     id: 'trollwald',
     no: 2,
@@ -148,12 +166,43 @@ export const PROBES = [
     name: { de: 'Im Trollwald', en: 'In the Troll Woods' },
     blurb: { de: 'Trollstamm · Höhlen', en: 'Troll tribe · caves' },
     brief: {
-      de: 'Trolle haben deine Krone gestohlen und sitzen damit in ihrem Wald. Hier gibt es kein Königreich zu schlagen: Nimm ihre große Höhle, bevor sie die Krone zu Ohrringen einschmelzen.',
-      en: 'Trolls have stolen your crown and sit on it in their woods. There is no kingdom to beat here: take their great cave before they melt the crown down for earrings.',
+      de: 'Trolle haben deine Krone gestohlen und sitzen damit in ihrem Wald. Nimm ihre große Höhle.',
+      en: 'Trolls have stolen your crown and sit on it in their woods. Take their great cave.',
     },
     lesson: {
-      de: 'Jede Höhle überfällt alle drei Züge dein schwächstes Feld am Waldrand. Das Ziel ist einen Zug vorher markiert, und jeder Überfall einer Höhle ist stärker als ihr letzter.',
-      en: 'Every third turn each cave raids your weakest field at the rim of the woods. The target is marked one turn ahead, and every raid of a cave is stronger than its last.',
+      de: 'Jede Höhle überfällt alle drei Züge dein schwächstes Feld am Waldrand. Das Ziel ist einen Zug vorher markiert.',
+      en: 'Every third turn each cave raids your weakest field at the rim of the woods. The target is marked one turn ahead.',
+    },
+    reward: { gift: 'knight' },
+    talk: {
+      start: {
+        de: 'Die Trolle sitzen mit unserer Krone in der großen Höhle im Osten. Holen wir sie, bevor sie Ohrringe daraus machen.',
+        en: 'The trolls sit on our crown in the great cave in the east. Let us fetch it before they turn it into earrings.',
+      },
+      raid: {
+        de: 'Sie rüsten zum Überfall! Das markierte Feld ist nach unserem Zug dran. Schick Truppen hin, bau einen Turm, oder nimm ihnen das Waldfeld davor.',
+        en: 'They are getting ready to raid! The marked field is next, after our move. Send troops, build a tower, or take the forest field in front of it.',
+      },
+      held: {
+        de: 'Abgewehrt! In der Höhle sitzen jetzt weniger Trolle. Ein guter Moment für einen Besuch.',
+        en: 'Beaten off! There are fewer trolls in that cave now. A good moment for a visit.',
+      },
+      lost: {
+        de: 'Ein Feld ist weg. Halb so wild: Zurückholen kostet nur einen Befehl.',
+        en: 'A field is gone. No harm done: taking it back costs just one command.',
+      },
+      off: {
+        de: 'Der Überfall fällt aus: Sie kommen nicht mehr an das Feld heran.',
+        en: 'The raid is off: they cannot get at the field any more.',
+      },
+      near: {
+        de: 'Wir stehen vor der großen Höhle. Von mehreren Seiten zugleich geht es leichter.',
+        en: 'We stand before the great cave. From several sides at once it is easier.',
+      },
+      late: {
+        de: 'Die Trolle heizen schon den Schmelzofen an. Noch drei Züge!',
+        en: 'The trolls are firing up the furnace already. Three turns left!',
+      },
     },
     // What the screen says when the mission is won, and when the clock has run out.
     after: {
@@ -174,10 +223,14 @@ export const PROBES = [
     // Nobody else moves first here, so the opening move has all its commands. After turn 18 the
     // mission is lost: the clock that keeps it short. The trolls raid often and far: every cave every
     // third round, against the weakest field anywhere at the rim of their woods.
+    // Every raid has twelve trolls (`more` 0): with small caves the parties hardly grew anyway, and the
+    // sentence "every raid is stronger than the last" was not true.
     // Measured with the stand-in players (tools/audit/mission.mjs, 60 matches, two sets of dice): the
-    // beginner wins 80 % (around turn 15), the clever one 97 to 100 % (turn 13), the single-minded
-    // one always (turn 10); the trolls raid 8 to 10 times and take 6 to 7 fields.
-    turns: { firstCommands: null, turnLimit: 18, troll: { reach: 99, first: 2, stagger: 1, every: 3, raid: 12, more: 3, home: 0.3, grow: 4 } },
+    // beginner wins 73 to 77 % (around turn 16), the clever one always (turn 13 to 14), the
+    // single-minded one always (turn 10); the trolls raid 9 to 11 times and take about 6 fields.
+    // With the drummer the beginner wins 65 to 72 %, with the granary 85 to 87 %; the others always.
+    // The person who played it first (24.11.2026) won in turn 9 after 3:14 minutes.
+    turns: { firstCommands: null, turnLimit: 18, troll: { reach: 99, first: 2, stagger: 1, every: 3, raid: 12, more: 0, home: 0.3, grow: 4 } },
     rules: { startRing: 10 },
     // The woods of the trolls fill the east: forest fields with trolls on them, two small caves at
     // the rim (north and south) and the great cave behind them. The west is free land for the kingdom.

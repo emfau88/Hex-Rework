@@ -4,6 +4,7 @@
 //   node tools/audit/mission.mjs trollwald 1 --trace      eine Partie Zug für Zug (Anfänger; --clever, --seeker)
 //   node tools/audit/mission.mjs trollwald 60 --turns='{"troll":{"raid":12}}' --rules='{"startRing":8}'
 //   node tools/audit/mission.mjs trollwald 60 --layout=datei.json   andere Karte (Liste von Zeilen)
+//   node tools/audit/mission.mjs trollwald 60 --perks=drummer        mit einer Verbesserung (drummer, granary)
 //
 // Die Testspieler sind dieselben wie in tools/simulate-turns.mjs. Dazu kommen der Zielstrebige, der jeden
 // Befehl auf das Feld setzt, das dem Ziel am nächsten liegt, und ein Wartender, der nie einen Befehl gibt. Gemessen wird, was die Abnahme verlangt: wie oft der Anfänger und der Kluge gewinnen, in welchem
@@ -24,6 +25,7 @@ const difficulty = opt('level', 'normal');
 const turns = JSON.parse(opt('turns', '{}'));
 const rules = JSON.parse(opt('rules', '{}'));
 const layoutFile = opt('layout', null);
+const perks = opt('perks', '').split(',').filter(Boolean); // improvements of the person: drummer, granary
 const trace = args.includes('--trace');
 
 const BEGINNER = Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, idleBuild: false, incomeMul: 1, humanBias: 1, rushAfter: 160 });
@@ -85,7 +87,7 @@ const pct = (a, b) => (b ? `${Math.round((100 * a) / b)} %` : '–');
 
 /** One match. `person` plans for kingdom 0; 'idle' only ends the move. Returns the game and what the wilds did. */
 function play(seed, person, log) {
-  const g = new TurnGame({ mission, seed, difficulty, human: 0, wide: true });
+  const g = new TurnGame({ mission, seed, difficulty, human: 0, wide: true, perks });
   if (person !== 'idle' && person !== SEEKER) g.factions[0].ai = person;
   const w = { raids: 0, won: 0, lost: 0 };
   while (g.phase === 'running') {
@@ -114,7 +116,7 @@ function play(seed, person, log) {
 
 const sample = new TurnGame({ mission, seed: 1000, human: 0, wide: true });
 console.log(`${id}: ${sample.tiles.filter((t) => t.passable).length} spielbare Felder, ${sample.kingdoms} Reich(e), Höhlen ${sample.lairs.length} · Stufe ${difficulty}${shift ? ' · andere Würfel' : ''}`);
-console.log(`Wildnis ${JSON.stringify(sample.T.troll)} · Zuggrenze ${sample.T.turnLimit}`);
+console.log(`Wildnis ${JSON.stringify(sample.T.troll)} · Zuggrenze ${sample.T.turnLimit}${perks.length ? ` · Verbesserungen ${perks.join(', ')}` : ''}`);
 
 if (trace) {
   const { g } = play(1000 + shift, args.includes('--clever') ? CLEVER : args.includes('--seeker') ? SEEKER : BEGINNER, (line) => console.log(line));

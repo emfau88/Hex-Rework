@@ -127,6 +127,10 @@ export const TURN_RULES = Object.freeze({
   // land. A party has `raid` trolls plus `more` for every raid the cave has sent before; the share `home`
   // of the cave's size always stays at home. Starting values, to be measured mission by mission.
   troll: Object.freeze({ grow: 2, every: 5, warn: 1, raid: 8, more: 2, reach: 3, home: 0.4, first: 4, stagger: 2 }),
+  // Improvements the person earns in the campaign (docs/UMSETZUNG-RUNDEN.md). The rivals never have them.
+  //   drummer  one more command in every `every`-th turn
+  //   granary  a farm gives `farm` more troops per turn; the castle feeds `castle` more and starts with `start` more
+  perks: Object.freeze({ drummer: Object.freeze({ every: 3, commands: 1 }), granary: Object.freeze({ farm: 1, castle: 10, start: 12 }) }),
 });
 
 // The same planner as in real time, with as many commands as a person. The strengths differ in how
