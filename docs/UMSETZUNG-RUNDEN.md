@@ -1,6 +1,7 @@
 # Rundenmodus · Umsetzungsplan: Kampagne „Die Krone ist weg“
 
-Stand 24.11.2026 · Zweig `runden` · **Nichts in dieser Datei ist gebaut.**
+Stand 24.11.2026 · Zweig `runden` · **Gebaut sind Bündel 0 und Bündel 1 bis auf deine Spielproben.** Alles
+andere ist Plan.
 
 Den Rahmen (Geschichte, zehn Missionen, Belohnungen, Trollstamm als erste neue Fraktion) hast du am 24.11.2026
 bestätigt. Alle Zahlen sind Startwerte. Die zweite Hälfte der Kampagne ist ein Entwurf.
@@ -163,11 +164,13 @@ Die Verbesserungen sind bewusst klein. Jede Mission muss mit jeder Wahl zu schaf
 **Wozu:** Wir brauchen echte Minuten statt Schätzungen und ein Werkzeug, das nicht verloren geht. ·
 **Aufwand:** klein
 
-- [ ] Messwerkzeug ins Projekt legen. Es liegt bisher nur in einem Arbeitsordner.
-- [ ] Die Nachmessung vom 24.11.2026 in die Ideenliste eintragen.
-- [ ] Dauer messen: Das Spiel zeigt am Ende jeder Partie Minuten und Runden.
-- [ ] Protokoll einer Partie herausgeben. Das Spiel merkt sich schon jeden Befehl, gibt ihn aber nicht heraus.
-- [ ] Zugang für Proben: Neue Missionen sind nur über einen eigenen Link erreichbar, wie die Figurenschau.
+- [x] Messwerkzeug ins Projekt legen: `tools/audit/nachmessung.mjs`.
+- [x] Die Nachmessung vom 24.11.2026 in die Ideenliste eintragen (dort Abschnitt 7).
+- [x] Dauer messen: Im Rundenmodus zeigt das Spiel am Ende jeder Partie Züge und Minuten.
+- [x] Protokoll einer Partie herausgeben: Knopf „Protokoll kopieren“ auf dem Schlussbild. Er kopiert jeden Zug
+      mit seinen Befehlen, bei dir mit den Sekunden je Zug. Den Text kannst du Claude einfügen.
+- [x] Zugang für Proben: Neue Missionen sind nur über einen eigenen Link erreichbar, wie die Figurenschau.
+      Die Adresse endet auf `?probe=` und den Namen der Mission, zum Beispiel `?probe=trollwald`.
 - [ ] Du spielst Mission 1 einmal mit Zeitmessung. Das ist der erste echte Wert für „Minuten pro Runde“.
 
 **Fertig, wenn** Mission 1 am Ende Minuten und Runden zeigt, du einen ersten Wert hast und das normale Spiel
@@ -182,38 +185,68 @@ unverändert läuft.
 **Steckbrief**
 
 - **Gegner:** der Trollstamm, kein Königreich.
-- **Ziel:** die große Höhle nehmen. Du verlierst, wenn deine Burg fällt.
-- **Karte:** etwa 40 Felder, zwei kleine Höhlen und eine große.
+- **Ziel:** die große Höhle nehmen, bevor Zug 18 vorbei ist.
+- **Karte:** 41 Felder, zwei kleine Höhlen und eine große.
 - **Zwei Wege:** erst die kleinen Höhlen ausräuchern und dann in Ruhe die große nehmen. Oder gleich zur großen
   durchstoßen und die Überfälle aushalten.
 - **Geschichte:** Die Trolle haben die Krone gestohlen. In der Höhle findest du statt der Krone Ritter Kunibert.
 - **Belohnung:** der Ritter (kommt in Bündel 3 ins Spiel).
 
-**Die Regeln des Trollstamms (Startwerte)**
+**Die Regeln des Trollstamms (Stand nach der Rechnerprobe vom 24.11.2026)**
 
-- Trolle haben kein Land und keine Burg. Sie leben in Höhlen.
-- Eine Höhle fasst 30 Trolle und füllt sich um 2 je Zug.
-- Alle 5 Züge überfällt eine Höhle mit 8 Trollen das schwächste Feld in ihrer Nähe. Einen Zug vorher ist das Ziel
-  markiert.
-- Jeder Überfall einer Höhle ist um 2 Trolle stärker als ihr letzter. Das ist die Uhr der Mission.
-- Gewinnen die Trolle ein Feld, wird es Wildnis. Sie füllen es nicht nach und halten keine Front.
-- Die Wildnis zieht nach dir.
+- Trolle haben keine Burg. Sie leben in Höhlen, und ihr Wald ist ihr Land: Waldfelder mit ein paar Trollen.
+- Die kleinen Höhlen fassen 22 Trolle, die große 34. Jede füllt sich um 4 je Zug.
+- Jede Höhle überfällt alle 3 Züge dein schwächstes Feld am Waldrand. Die erste Höhle beginnt in Zug 2, die
+  nächsten je einen Zug später. Einen Zug vorher ist das Ziel markiert.
+- Ein Überfall hat 12 Trolle. Jeder weitere derselben Höhle hat 3 mehr. Knapp ein Drittel der Höhle bleibt immer
+  zu Hause, und wer auszieht, fehlt der Höhle danach.
+- Gewinnen die Trolle ein Feld, wird es Trollwald. Sie füllen es nicht nach und halten keine Front.
+- Die Trolle ziehen nach dir.
+- **Nach Zug 18 ist die Mission verloren.** Das ist die Uhr.
+
+**Was sich gegenüber den Startwerten geändert hat, und warum**
+
+- **Die Uhr ist die Zuggrenze, nicht die Burg.** Ein einzelner Überfall ist für deine Burg zu schwach, und in
+  480 Messpartien fiel sie kein einziges Mal. „Du verlierst, wenn deine Burg fällt“ wäre eine leere Drohung.
+- **Die Überfälle sind häufiger und stärker.** Mit den Startwerten (alle 5 Züge, 8 Trolle) wehrten die
+  Testspieler jeden Überfall ab und gewannen immer.
+- **Überfälle treffen den ganzen Waldrand,** nicht nur Felder nahe der Höhle. Das ist leichter zu erklären.
+- **Weniger freies Land.** Auf der ersten Karte überrannte das Reich die Trolle allein durch seine Größe.
+
+**Gemessen** (60 Partien je Testspieler, zwei Würfelsätze, Stufe Normal)
+
+| Testspieler | gewinnt | Sieg in Zug (Mitte) | verliert Felder |
+|---|---|---|---|
+| Anfänger | 80 % | 15 | 6,5 bis 7,3 |
+| Kluger | 97 bis 100 % | 13 | 6,2 bis 6,5 |
+| Zielstrebiger (geht direkt aufs Ziel) | 100 % | 10 | 5,5 |
+| Wartender (gibt keinen Befehl) | 0 %, verliert an der Zuggrenze | – | 0 |
+
+Die Trolle überfallen 8 bis 10 Mal je Partie, 70 bis 95 % der Überfälle nehmen ein Feld. Die Testspieler
+verteidigen ein markiertes Feld nie; ein Mensch kann das.
 
 **Schritte**
 
-- [ ] Den Ablauf des Trolls für Züge bauen. Er läuft bisher nur in Echtzeit.
-- [ ] Eine Mission ohne gegnerisches Königreich möglich machen: nur du und die Wildnis.
-- [ ] Neues Missionsziel „Nimm die große Höhle“, auf der Karte markiert.
-- [ ] Die Karte bauen.
-- [ ] Anzeige: das markierte Ziel des Überfalls und der Zug der Wildnis, am Handy lesbar.
-- [ ] Tests: Die Ankündigung kommt immer vor dem Überfall, die Vorschau stimmt, alle bisherigen Karten laufen
-      unverändert.
-- [ ] Die Testspieler können gegen die Wildnis spielen und greifen Höhlen an.
-- [ ] Rechnerprobe mit beiden Testspielern.
-- [ ] Startwerte nachstellen, immer nur eine Zahl.
-- [ ] Texte: Einweisung, Lehrsatz, Geschichte davor und danach.
-- [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
+- [x] Den Ablauf des Trolls für Züge bauen: Die Wildnis hat einen eigenen Zug am Ende jeder Runde.
+- [x] Eine Mission ohne gegnerisches Königreich möglich machen: nur du und die Wildnis.
+- [x] Neues Missionsziel „Nimm die große Höhle“, auf der Karte mit „ZIEL“ markiert.
+- [x] Die Karte bauen: 41 Felder, davon 13 frei und 21 Trollwald.
+- [x] Anzeige: Pfeil und Ring am markierten Feld, „Überfall nach dem Zug“ an der Höhle, der Zug der Trolle wird
+      abgespielt, oben stehen die verbleibenden Züge. Am PC und im Handy-Format geprüft.
+- [x] Tests: Die Ankündigung kommt immer vor dem Überfall, die Vorschau stimmt, alle bisherigen Karten laufen
+      unverändert. 10 neue Tests, alle 128 bestehen.
+- [x] Die Testspieler können gegen die Wildnis spielen und greifen Höhlen an (`tools/audit/mission.mjs`).
+- [x] Rechnerprobe mit den Testspielern, dazu ein dritter, der direkt aufs Ziel geht.
+- [x] Startwerte nachstellen.
+- [x] Texte: Einweisung, Lehrsatz, Geschichte danach, Satz bei Niederlage.
+- [ ] Du spielst die Mission 2 bis 3 Mal und beantwortest die vier Fragen. Die Dauer steht am Ende.
 - [ ] Entscheidung: Die Richtung stimmt, ändern oder verwerfen.
+
+**Worauf du beim Spielen achten könntest**
+
+- Fast jede Runde kommt ein Überfall. Ist das spannend oder lästig?
+- Fühlt sich die Zuggrenze nach Druck an oder nach Stress?
+- Wie lange dauert eine Partie in Minuten?
 
 **Fertig, wenn** die Abnahme für jede Mission erfüllt ist (siehe oben).
 
