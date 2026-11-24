@@ -233,7 +233,11 @@ class App {
     this.moveTimes = [];
     this.raidHints = 0;
     // A goal on the map (the great cave) stays marked until it is taken.
-    this.ui.goalMark = this.game.objective.type === 'lair' ? { tile: this.game.objective.tile, text: i18n.t('goalMark') } : null;
+    // In a mission with `goalSign` the castle of the first rival carries the same sign.
+    const goalTile = this.game.objective.type === 'lair' ? this.game.objective.tile
+      : mission.goalSign ? this.game.factions.find((f) => !f.wild && f.id !== 0)?.castle ?? -1
+      : -1;
+    this.ui.goalMark = goalTile >= 0 ? { tile: goalTile, text: i18n.t('goalMark') } : null;
     this.ui.human = 0;
     this.ui.assault = null;
     this.ui.turnPreview = null;
@@ -283,6 +287,25 @@ class App {
     this.sayQueue.push(line);
   }
 
+  /**
+   * The captain's lines that depend on where the person stands: `meet` once an own field touches a
+   * rival's field, `near` once one touches a rival's castle.
+   */
+  talkAtBorders() {
+    const talk = this.mission?.talk;
+    if (!talk || !this.said) return;
+    const game = this.game;
+    const me = this.ui.human;
+    if (talk.meet && !this.said.has('meet')) {
+      const rival = (id) => game.tiles[id].owner >= 0 && game.tiles[id].owner !== me && !game.isWild(game.tiles[id].owner);
+      if (game.tiles.some((t) => t.owner === me && t.neighbors.some(rival))) this.speak('meet');
+    }
+    if (talk.near && !this.said.has('near')) {
+      const castles = game.factions.filter((f) => f.alive && !f.wild && f.id !== me).map((f) => game.tiles[f.castle]);
+      if (castles.some((c) => c.neighbors.some((n) => game.tiles[n].owner === me))) this.speak('near');
+    }
+  }
+
   /** Closes the speech bubble; the next line that waits follows a moment later. */
   hush() {
     this.saying = null;
@@ -297,16 +320,19 @@ class App {
       if (!el.hidden) el.hidden = true;
       return;
     }
-    if (this.saying && now >= this.saying.until) this.hush();
+    // A line stays long enough to be read; once the next one waits, it makes room after a short while.
+    if (this.saying && (now >= this.saying.until || (this.sayQueue.length && now >= this.saying.since + 3))) this.hush();
     if (!this.saying && this.sayQueue.length && now >= (this.sayAfter || 0)) {
       const text = i18n.pick(this.sayQueue.shift());
-      this.saying = { until: now + 3.5 + text.length * 0.055 };
+      this.saying = { since: now, until: now + 3.5 + text.length * 0.055 };
       $('#say-who').textContent = i18n.t('whoCaptain');
       $('#say-text').textContent = text;
     }
     if (!this.saying) return;
     el.hidden = false;
-    // Above the castle where there is room, else below it; never off the screen.
+    // Where the castle stands in the lower half of the screen (a phone held upright), the fields in front
+    // of it lie above: the bubble then hangs below the castle, if it fits above the bars at the bottom.
+    // Otherwise above the castle where there is room, else below it; never off the screen.
     const home = this.game.tiles[this.game.factions[this.ui.human]?.castle];
     if (!home) return;
     const p = this.renderer.tileAnchor(home);
@@ -314,7 +340,10 @@ class App {
     const h = el.offsetHeight;
     const W = this.el.clientWidth;
     const left = Math.max(8, Math.min(W - w - 8, p.x - w / 2));
-    const above = p.y - h - 58 > 54;
+    const bar = $('#turnbar');
+    const floor = (bar && !bar.hidden && bar.offsetHeight ? bar.offsetTop : $('#bottom').offsetTop) - 8;
+    const fitsBelow = p.y + 22 + h <= floor;
+    const above = !(fitsBelow && p.y > this.el.clientHeight / 2) && p.y - h - 58 > 54;
     el.classList.toggle('below', !above);
     el.style.left = `${left}px`;
     el.style.top = `${above ? p.y - h - 58 : p.y + 22}px`;
@@ -1012,11 +1041,13 @@ class App {
         }
         break;
       case 'capture':
-        if (mine(e.owner)) this.sfx.play('capture');
-        else if (mine(e.previous)) {
+        if (mine(e.owner)) {
+          this.sfx.play('capture');
+          this.speak('first');
+        } else if (mine(e.previous)) {
           this.sfx.play('lost');
           this.note(i18n.t('evLost', { name: name(e.owner) }), true);
-          if (game.isWild(e.owner)) this.speak('lost');
+          this.speak(game.isWild(e.owner) ? 'lost' : 'taken');
         }
         else this.sfx.play('capture', 0.22 * quiet);
         if (e.citadel) this.banner(i18n.t('citadel', { name: name(e.owner) }), null, 2200);
@@ -1141,6 +1172,8 @@ class App {
       text.textContent = i18n.t('goalConquer', { n: left });
       text.style.color = '';
       bar.hidden = true;
+      if (this.ui.goalMark && game.tiles[this.ui.goalMark.tile].owner === this.ui.human) this.ui.goalMark = null;
+      this.talkAtBorders();
       return;
     }
     const hold = game.hold;
