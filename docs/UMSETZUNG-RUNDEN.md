@@ -1,76 +1,82 @@
-# Rundenmodus · Umsetzungsplan: Zauber, Ungeheuer, Wildnis
+# Rundenmodus · Umsetzungsplan: Kampagne „Die Krone ist weg“
 
-Stand 24.11.2026 · Zweig `runden` · **Nichts in dieser Datei ist gebaut.** Die Reihenfolge ist die Empfehlung von
-Claude und von dir noch nicht bestätigt.
+Stand 24.11.2026 · Zweig `runden` · **Nichts in dieser Datei ist gebaut.**
 
-Dieser Plan macht aus den Vorschlägen vom 24.11.2026 Bündel zum Abhaken. Er ergänzt drei andere Pläne:
+Den Rahmen (Geschichte, zehn Missionen, Belohnungen, Trollstamm als erste neue Fraktion) hast du am 24.11.2026
+bestätigt. Alle Zahlen sind Startwerte. Die zweite Hälfte der Kampagne ist ein Entwurf.
 
-- [IDEEN-RUNDEN.md](IDEEN-RUNDEN.md): alle Ideen mit Kürzel, der Prüfweg, die Grenzen für Messungen.
+Dieser Plan ersetzt die erste Fassung vom selben Tag („Systeme zuerst, Missionen zuletzt“). Er ergänzt:
+
+- [IDEEN-RUNDEN.md](IDEEN-RUNDEN.md): alle Ideen mit Kürzel und der Prüfweg.
 - [RUNDEN-PLAN.md](RUNDEN-PLAN.md): die geltenden Regeln und alle bisherigen Messungen.
 - [INHALTE-PLAN.md](INHALTE-PLAN.md): der Figurenpool und wie eine Figur entsteht.
 
+## Das Ziel
+
+- Eine Kampagne im Rundenmodus mit zuerst **zehn Missionen.**
+- Jede Mission dauert **5 bis 15 Minuten.**
+- Jede Mission fühlt sich anders an als die davor: ein neues Ding, öfter ein Gegner mit eigenen Regeln.
+- Der Spieler wird von Mission zu Mission reicher an Möglichkeiten: Held, Zauber, Ungeheuer, Verbesserungen.
+- Eine kleine Geschichte mit Humor trägt das Ganze.
+
 ## Überblick
 
-- [ ] **Bündel 0 · Vorbereitung** – Probekarte, Messwerkzeug, Protokoll einer Partie
-- [ ] **Bündel 1 · Macht und Zauber** – Machtleiste, Blitz, Meteor
-- [ ] **Bündel 2 · Unterbau** – früheres Ende, schnellerer Anfang
-- [ ] **Bündel 3 · Wildnis** – Troll in Zügen, Höhle als Beute, erstes neues Ungeheuer
-- [ ] **Bündel 4 · Boss** – der Totenbeschwörer
-- [ ] **Bündel 5 · Ausbau** – Nebel, Hydra, Kraftort, Drache, erwachender Boss, Portal
-- [ ] **Bündel 6 · Missionen** – Mission 2, Mission 3, Vier Reiche, Stärken der Gegner
+- [ ] **Bündel 0 · Grundlage** – Dauer messen, Messwerkzeug sichern, Zugang für Proben
+- [ ] **Bündel 1 · Mission 2 „Im Trollwald“** – die Probe für die ganze Richtung
+- [ ] **Bündel 2 · Belohnungen und Geschichte** – die erste Wahl, Speichern, kurze Texte
+- [ ] **Bündel 3 · Der Ritter und Mission 3 „Wegzoll“**
+- [ ] **Bündel 4 · Mission 4 „Der Türsteher“** – der erste Boss
+- [ ] **Bündel 5 · Macht, Blitz und Mission 5 „Donnerwetter“**
+- [ ] **Halt · Rückblick nach Mission 5** – die zweite Hälfte neu ansehen
+- [ ] **Bündel 6 · Missionen 6 bis 10** (Entwurf)
+- [ ] **Bündel 7 · Abschluss** – Menü, alte Karten, Gesamtdurchlauf, Veröffentlichen
 
 ## Warum diese Reihenfolge
 
-1. **Erst das System, dann die Figuren.** Die Machtleiste trifft die Wurzel: Aus Überschuss werden Aktionen. Sie
-   läuft auf jeder vorhandenen Karte und braucht wenige Knöpfe.
-2. **Der Unterbau ist klein und hängt an nichts.** Bündel 2 kann jederzeit vorgezogen werden.
-3. **Die Wildnis baut auf Vorhandenem auf.** Den Troll und seine Höhle gibt es schon.
-4. **Neue Figuren sind am teuersten.** Sie kommen, wenn das Fundament steht, und zuerst in die Figurenschau.
-5. **Missionen zuletzt.** Jede Neuerung verschiebt alle Zahlen. Vorher abzustimmen wäre doppelte Arbeit.
+1. **Mission 2 zuerst, weil sie am meisten beweist und am wenigsten kostet.** Kleine Karte, neue Fraktion, neues
+   Ziel, aber keine neue Figur: Troll und Höhle gibt es schon.
+2. **Macht sie Spaß, stimmt die Richtung.** Wenn nicht, haben wir wenig verloren und besprechen neu.
+3. **Danach kommt je Bündel genau ein neues Ding.** So wissen wir immer, was gewirkt hat.
+4. **Nach Mission 5 halten wir an.** Dann wissen wir, wie lange Missionen wirklich dauern und was trägt.
 
 ## Ausgangslage
 
-**Gemessen** (Computer gegen Computer, Stufe Normal, zwei Kartensätze, Nachmessung vom 24.11.2026):
+**Gemessen** (Computer gegen Computer, Stufe Normal, zwei Kartensätze, 24.11.2026):
 
-- Mission 2: Nur 13 bis 15 % der Partien haben einen Sieger. Das Ende liegt in der Mitte bei Zug 54 bis 55.
-- Ab Zug 21 verfallen 22 bis 34 % des Zuwachses. Das sind 12 bis 30 Truppen je Zug.
-- Ab Zug 21 greifen nur 9 bis 10 % der Truppen pro Zug an.
-- Der Computer gewinnt jeden Angriff auf einen Gegner, den er beginnt. Es fehlt nicht an Stärke.
-- Ein Gegnerfeld zu erobern kostet 7 bis 12 Truppen. Es zurückzuholen kostet fast gleich viel.
-- 54 bis 84 % der Eroberungen sind nach zwei Zügen wieder verloren.
-- Wer 60 % der Felder zwei Runden hält, gewinnt in 350 von 351 Fällen. Die Partie läuft danach noch 6 bis 14 Züge.
-- Mission 3: Die Testspieler gewinnen 0 von 40 Partien.
+- Mission 1 (56 Felder) endet um Zug 23 bis 24. In 90 bis 95 % der Partien gibt es einen Sieger.
+- Die große Mission 2 (92 Felder) endet um Zug 54 bis 55. Selbst der kluge Testspieler braucht 43 bis 44 Züge.
+- Karten mit 3 oder 4 Reichen enden um Zug 42 bis 47. Der Anfänger-Testspieler gewinnt dort 0 bis 8 von 40.
+- Ein Gegnerfeld zu erobern und es zurückzuholen kostet fast gleich viel. Daraus entsteht das Hin und Her.
+- Eine eigene Aktion wirkt, reine Stärke kaum (grobe Probe, nur ein Maßstab).
+- Vier feste Befehle statt drei verkürzen ein Duell von Zug 31 bis 33 auf Zug 21 bis 22. Das ist sehr stark.
 
-**Aus einer groben Probe** (keine echte Figur, deshalb nur ein Maßstab):
+**Geschätzt, nicht gemessen:**
 
-- Eine Einheit, die ihren eigenen Angriff mitbringt, half: Mission 2 hatte in 74 % der Partien einen Sieger.
-- Eine Einheit, die nur stärker ist, half kaum: 24 bis 30 %.
-- Viele starke Einheiten schadeten: In Mission 3 hatten nur noch 27 bis 34 % der Partien einen Sieger statt 90 %.
+- Eine Runde dauert 20 bis 40 Sekunden. Sicher im Rahmen von 5 bis 15 Minuten wären dann 10 bis 25 Runden.
+- Karten mit 30 bis 50 Feldern enden noch schneller als Mission 1.
 
-**Vermutet:** alles, was Spaß betrifft. Keine Idee in diesem Plan ist erprobt. Alle Zahlen in den Regeln unten
-sind Startwerte.
+**Vermutet:** alles, was Spaß betrifft. Trolle als Fraktion in Zügen, die Verbesserungen und alle neuen Missionen
+sind nicht erprobt.
 
-## Regeln für den Weg
+---
 
-- **Fünf Stufen je Idee**, wie im Prüfweg: Karte, Bauchprobe, Rechnerprobe, Spielprobe, Einbau.
-- **Immer nur eine neue Idee je Probe.** Sonst weiß man nicht, was gewirkt hat.
-- **Jede Probe hat vorher ein Abbruchkriterium.** Was durchfällt, bleibt mit dem Grund in der Ideenliste stehen.
-- **Rechnerprobe:** 60 Partien je Karte, zwei Würfelsätze. Immer nur eine Zahl verstellen, dann neu messen.
-- **Spielprobe:** Du spielst 2 bis 3 Partien mit und ohne die Neuerung und beantwortest deine vier Fragen.
-- **Neues steckt nur auf der Probekarte**, hinter eigenem Link und Schalter. Missionen und das normale Spiel
-  bleiben unverändert, bis du den Einbau freigibst.
-- **Die Vorschau bleibt ehrlich**, Gefahren sind angekündigt, alles ist am Handy lesbar, und der Computergegner
-  kann es spielen.
-- **Figuren kommen zuerst in die Figurenschau.**
-- **Kleine Schritte, lokal gespeichert.** Veröffentlicht wird nur nach deinem Ja. Ausnahme wie bisher: reine
-  Figurenschau-Arbeit.
+## So ist jede Mission gebaut
 
-**Grenzen der Rechnerprobe** (aus dem Prüfweg, gelten am Ende von Bündel 2 für alle Karten):
+- **Klein:** 30 bis 50 Felder, 10 bis 20 Runden.
+- **Ein klares Ziel,** auf der Karte sichtbar. Nicht immer „Burg nehmen“.
+- **Genau ein neues Ding.** Die Karte ist so gebaut, dass es der Schlüssel ist.
+- **Zwei Wege zum Sieg,** damit es kein Rätsel mit nur einer Lösung wird.
+- **Zwei, drei Sätze Geschichte** davor und danach.
+- **Eine Belohnung** am Ende.
 
-- Ende der Partie in der Mitte bei Zug 20 bis 30.
-- Mindestens 90 % der Partien haben einen Sieger.
-- Wer beginnt, gewinnt im Duell höchstens 65 %.
-- Die Testspieler gewinnen nicht plötzlich alles oder nichts mehr.
+**Abnahme, gilt für jede Mission**
+
+- Der Anfänger-Testspieler gewinnt 60 bis 85 % der Partien.
+- Sein Sieg liegt in der Mitte bei höchstens 20 Zügen.
+- Der kluge Testspieler gewinnt mindestens 90 %.
+- Das gilt mit jeder Wahl an Verbesserungen, die bis dahin möglich ist.
+- Deine eigene Partie dauert 5 bis 15 Minuten.
+- Mindestens drei deiner vier Fragen fallen gut aus.
 
 **Deine vier Fragen nach jeder Spielprobe**
 
@@ -79,32 +85,251 @@ sind Startwerte.
 3. War etwas unklar oder lästig?
 4. Würde ich es vermissen, wenn es wieder weg wäre?
 
+**Regeln für den Weg**
+
+- Neue Missionen sind zuerst nur über einen eigenen Link erreichbar. Das Menü und das normale Spiel bleiben
+  unverändert, bis du den Einbau freigibst.
+- Neue Figuren kommen zuerst in die Figurenschau.
+- Die Vorschau bleibt ehrlich, Gefahren sind angekündigt, alles ist am Handy lesbar.
+- Rechnerprobe: 60 Partien, zwei Würfelsätze. Immer nur eine Zahl verstellen, dann neu messen.
+- Kleine Schritte, lokal gespeichert. Veröffentlicht wird nur nach deinem Ja. Ausnahme wie bisher: reine
+  Figurenschau-Arbeit.
+- Besondere Mittel (Held, Zauber, Ungeheuer, Verbesserungen) hat in der Kampagne nur der Spieler. Der
+  Computergegner muss sie nicht beherrschen.
+
 ---
 
-## Bündel 0 · Vorbereitung
+## Die Geschichte
 
-**Wozu:** Macht jede spätere Probe billig und vergleichbar. · **Aufwand:** klein bis mittel
+Du gewinnst deine Krone, und beim Krönungsfest stehlen sie die Trolle. Danach jagst du ihr hinterher, und sie
+wechselt immer wieder den Besitzer.
 
-- [ ] Messwerkzeug ins Projekt legen. Es liegt bisher nur in einem Arbeitsordner und kann verloren gehen.
-- [ ] Die Nachmessung vom 24.11.2026 in die Ideenliste eintragen (Abschnitt „Nachmessen“).
-- [ ] Probekarte bauen: ein kleines Duell mit einem Pass, einem Turmhügel und einem Platz für eine Höhle. Eine
-      Partie dauert etwa 20 Minuten.
-- [ ] Die Probekarte ist nur über einen eigenen Link erreichbar, wie die Figurenschau.
-- [ ] Schalter auf der Probekarte: jede Neuerung einzeln an und aus. So spielst du „mit“ und „ohne“ direkt
-      nacheinander.
+Der laufende Witz: Alle, die du retten sollst, brauchen es nicht. Und alle Retter müssen selbst gerettet werden.
+
+- **Ritter Kunibert** zog aus, um die Krone zu holen, und sitzt seitdem bei den Trollen fest. Er hatte „alles im
+  Griff“.
+- **Die Prinzessin** wollte gar nicht gerettet werden. Sie kommt mit, weil ihre Tür nun kaputt ist. Sie ist nur
+  ein Bild mit Sprechblase, keine Figur auf der Karte.
+- **EMBER** ist das Nachbarreich und hätte die Krone selbst gern.
+
+Die Texte bleiben kurz: zwei, drei Sätze vor und nach jeder Mission.
+
+## Die zehn Missionen
+
+| Nr. | Mission | Gegner | Ziel | Neu |
+|---|---|---|---|---|
+| 1 | Erste Krone (gibt es) | Königreich EMBER | Burg nehmen | die Grundlagen |
+| 2 | Im Trollwald | Trollstamm | die große Höhle nehmen | Überfälle mit Ankündigung |
+| 3 | Wegzoll | EMBER hinter einem Pass | den Pass nehmen | dein Held |
+| 4 | Der Türsteher | Steinriese | den Riesen einkreisen | ein Boss |
+| 5 | Donnerwetter | Trollfestung | alle Höhlen nehmen | Macht und Blitz |
+| 6 | Das Moor | Untote | 12 Züge überleben | Gefallene stehen auf |
+| 7 | Der Höllenhund | Cerberus | seinen Bau nehmen | ein Gegner, der nachsetzt |
+| 8 | Drei Reiche | EMBER und ein zweites Reich | Zitadelle halten | alles ausspielen |
+| 9 | Die Gruft | Totenbeschwörer | Gruft nehmen, bevor sein Heer zu groß ist | ein Boss mit Uhr |
+| 10 | Eine Krone | EMBER, dazwischen Trolle | Burg nehmen | das Finale |
+
+## Was der Spieler bekommt
+
+| Nach Mission | Belohnung |
+|---|---|
+| 1 | Wahl: **Trommler** oder **Kornspeicher** |
+| 2 | fest: **der Ritter** |
+| 3 | Wahl: **Sturmleitern** oder **Feldschanzen** |
+| 4 | fest: **die Prinzessin** mit Machtleiste und Blitz |
+| 5 | Wahl des zweiten Zaubers: **Meteor** oder **Nebel** |
+| 6 | Wahl für den Ritter: **nachsetzen** oder **standhafter** |
+| 7 | fest: **Cerberus** |
+| 8 | Wahl: der andere Zauber oder ein stärkerer Blitz |
+| 9 | die Krone, fast |
+| 10 | die Krone |
+
+**Die Verbesserungen im Einzelnen (Startwerte)**
+
+- **Trommler:** In jedem dritten Zug hast du 4 statt 3 Befehle.
+- **Kornspeicher:** Höfe bringen 1 Zuwachs mehr, deine Burg fasst 50 statt 40.
+- **Sturmleitern:** Türme schützen gegen dich nur halb.
+- **Feldschanzen:** Ein frisch erobertes Feld ist eine Runde lang doppelt so gut geschützt.
+- **Ritter setzt nach:** Gewinnt sein Angriff, darf er vom neuen Feld aus einmal weiter angreifen.
+- **Ritter standhafter:** Sein Feld hält länger stand, und er kehrt nach einer Niederlage schneller zurück.
+- **Stärkerer Blitz:** Er tötet 12 statt 8.
+
+Die Verbesserungen sind bewusst klein. Jede Mission muss mit jeder Wahl zu schaffen sein.
+
+---
+
+## Bündel 0 · Grundlage
+
+**Wozu:** Wir brauchen echte Minuten statt Schätzungen und ein Werkzeug, das nicht verloren geht. ·
+**Aufwand:** klein
+
+- [ ] Messwerkzeug ins Projekt legen. Es liegt bisher nur in einem Arbeitsordner.
+- [ ] Die Nachmessung vom 24.11.2026 in die Ideenliste eintragen.
+- [ ] Dauer messen: Das Spiel zeigt am Ende jeder Partie Minuten und Runden.
 - [ ] Protokoll einer Partie herausgeben. Das Spiel merkt sich schon jeden Befehl, gibt ihn aber nicht heraus.
-      Damit sieht Claude, wo du festhingst.
-- [ ] Die Probekarte ohne Neuerungen messen. Das ist der Vergleichswert für alles Weitere.
+- [ ] Zugang für Proben: Neue Missionen sind nur über einen eigenen Link erreichbar, wie die Figurenschau.
+- [ ] Du spielst Mission 1 einmal mit Zeitmessung. Das ist der erste echte Wert für „Minuten pro Runde“.
 
-**Fertig, wenn** du die Probekarte per Link öffnen und eine normale Partie spielen kannst, das normale Spiel
-unverändert läuft und der Vergleichswert steht.
+**Fertig, wenn** Mission 1 am Ende Minuten und Runden zeigt, du einen ersten Wert hast und das normale Spiel
+unverändert läuft.
 
 ---
 
-## Bündel 1 · Macht und Zauber
+## Bündel 1 · Mission 2 „Im Trollwald“
 
-**Trifft:** verfallender Zuwachs, verkeilte Fronten, „ein großes Reich fühlt sich nicht mächtiger an“ ·
-**Kürzel:** `D3`, `E2` · **Aufwand:** mittel je Schritt
+**Wozu:** die Probe für die ganze Richtung · **Aufwand:** mittel · **Neue Figur:** keine
+
+**Steckbrief**
+
+- **Gegner:** der Trollstamm, kein Königreich.
+- **Ziel:** die große Höhle nehmen. Du verlierst, wenn deine Burg fällt.
+- **Karte:** etwa 40 Felder, zwei kleine Höhlen und eine große.
+- **Zwei Wege:** erst die kleinen Höhlen ausräuchern und dann in Ruhe die große nehmen. Oder gleich zur großen
+  durchstoßen und die Überfälle aushalten.
+- **Geschichte:** Die Trolle haben die Krone gestohlen. In der Höhle findest du statt der Krone Ritter Kunibert.
+- **Belohnung:** der Ritter (kommt in Bündel 3 ins Spiel).
+
+**Die Regeln des Trollstamms (Startwerte)**
+
+- Trolle haben kein Land und keine Burg. Sie leben in Höhlen.
+- Eine Höhle fasst 30 Trolle und füllt sich um 2 je Zug.
+- Alle 5 Züge überfällt eine Höhle mit 8 Trollen das schwächste Feld in ihrer Nähe. Einen Zug vorher ist das Ziel
+  markiert.
+- Jeder Überfall einer Höhle ist um 2 Trolle stärker als ihr letzter. Das ist die Uhr der Mission.
+- Gewinnen die Trolle ein Feld, wird es Wildnis. Sie füllen es nicht nach und halten keine Front.
+- Die Wildnis zieht nach dir.
+
+**Schritte**
+
+- [ ] Den Ablauf des Trolls für Züge bauen. Er läuft bisher nur in Echtzeit.
+- [ ] Eine Mission ohne gegnerisches Königreich möglich machen: nur du und die Wildnis.
+- [ ] Neues Missionsziel „Nimm die große Höhle“, auf der Karte markiert.
+- [ ] Die Karte bauen.
+- [ ] Anzeige: das markierte Ziel des Überfalls und der Zug der Wildnis, am Handy lesbar.
+- [ ] Tests: Die Ankündigung kommt immer vor dem Überfall, die Vorschau stimmt, alle bisherigen Karten laufen
+      unverändert.
+- [ ] Die Testspieler können gegen die Wildnis spielen und greifen Höhlen an.
+- [ ] Rechnerprobe mit beiden Testspielern.
+- [ ] Startwerte nachstellen, immer nur eine Zahl.
+- [ ] Texte: Einweisung, Lehrsatz, Geschichte davor und danach.
+- [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
+- [ ] Entscheidung: Die Richtung stimmt, ändern oder verwerfen.
+
+**Fertig, wenn** die Abnahme für jede Mission erfüllt ist (siehe oben).
+
+**Umkehr, wenn** du nach drei Partien sagst, dass es nicht trägt. Dann besprechen wir neu, bevor weitere Missionen
+entstehen.
+
+---
+
+## Bündel 2 · Belohnungen und Geschichte
+
+**Wozu:** Aus einzelnen Missionen wird eine Kampagne. · **Aufwand:** klein bis mittel
+
+- [ ] Bild nach dem Sieg: entweder eine feste Belohnung oder die Wahl aus zwei.
+- [ ] Die Wahl wird gespeichert und gilt in allen späteren Missionen. Der schon gespeicherte Fortschritt der
+      Spieler bleibt erhalten.
+- [ ] Die erste Wahl nach Mission 1 bauen: Trommler oder Kornspeicher.
+- [ ] Rechnerprobe: Mission 2 einmal mit Trommler, einmal mit Kornspeicher.
+- [ ] Geschichte: kurze Texte vor und nach Mission 1 und 2, als Bild mit Sprechblase.
+- [ ] Mission 1 bleibt, wie sie ist. Es kommen nur der Text danach und die Wahl dazu.
+- [ ] Du spielst Mission 1, wählst, und spielst Mission 2.
+
+**Fertig, wenn** Mission 2 mit beiden Wahlen die Abnahme erfüllt und du beide Wahlen reizvoll findest. Keine darf
+die klar bessere sein.
+
+**Abbruch, wenn** eine Wahl die Mission kippt (Anfänger über 95 % oder unter 50 %) und keine einzelne Zahl das
+behebt. Dann wird sie ersetzt.
+
+---
+
+## Bündel 3 · Der Ritter und Mission 3 „Wegzoll“
+
+**Wozu:** der erste Held, und die große Mission 2 bekommt eine kurze Nachfolgerin · **Aufwand:** mittel bis groß ·
+**Neue Figur:** Ritter
+
+**Der Ritter (Startwerte)**
+
+- Er steht als Figur auf einem Feld und zieht mit dessen Truppen.
+- Sein Feld greift jeden Zug einmal an, ohne dass es einen Befehl kostet.
+- Bei seinem Angriff kämpfen 12 statt 8 Truppen an der Kante.
+- Fällt sein Feld, kehrt er in deine Burg zurück und fehlt 3 Züge.
+
+**Steckbrief der Mission**
+
+- **Gegner:** EMBER hinter einem Pass mit Turm.
+- **Ziel:** den Pass nehmen, nicht die Burg.
+- **Karte:** ein Umbau von „Die zwei Pässe“ auf etwa die halbe Größe, rund 45 Felder.
+- **Zwei Wege:** den Pass mit dem Ritter stürmen. Oder den Vorposten abschneiden und über die Flanke kommen.
+- **Geschichte:** EMBER verlangt Wegzoll: eine Krone. Die suchst du ja gerade.
+- **Belohnung:** Wahl aus Sturmleitern oder Feldschanzen.
+
+**Schritte**
+
+- [ ] Den Ritter für die Figurenschau bauen: Modell, Bewegung, Angriff. Am PC und am Handy geprüft.
+- [ ] Du schaust ihn an: bleibt, ändern oder raus.
+- [ ] Die Regel des Helden für Züge bauen, mit Tests für die Vorschau.
+- [ ] Bedienung klären: Wie bewegt man ihn? Mit einem Trupp schicken oder eigens antippen.
+- [ ] Der Computergegner geht mit dem Helden um: Er weiß, dass dessen Feld gefährlich ist.
+- [ ] Neues Missionsziel „Nimm dieses Feld“.
+- [ ] Die Karte bauen.
+- [ ] Die zweite Wahl bauen: Sturmleitern oder Feldschanzen.
+- [ ] Rechnerprobe mit jeder Wahl aus Bündel 2.
+- [ ] Texte: Einweisung, Lehrsatz, Geschichte.
+- [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
+- [ ] Entscheidung: behalten, ändern oder verwerfen.
+
+**Fertig, wenn** die Abnahme für jede Mission erfüllt ist und du den Ritter in der nächsten Mission dabeihaben
+willst.
+
+**Abbruch, wenn** der Ritter die Mission allein entscheidet (Anfänger über 95 %) oder wenn seine Bedienung am
+Handy lästig bleibt.
+
+---
+
+## Bündel 4 · Mission 4 „Der Türsteher“
+
+**Wozu:** der erste Boss, eine Mission ganz ohne Königreich als Gegner · **Aufwand:** mittel bis groß ·
+**Neue Figur:** Steinriese
+
+**Der Steinriese (Startwerte aus dem Figurenpool)**
+
+- Sehr stark (60) und ortsfest.
+- An seinen Kanten kämpfen nur 3 Angreifer statt 8.
+- Sein Stampfen trifft alle Angreifer an allen Kanten zugleich. Er hebt vorher den Fuß.
+- Wird er von weniger als 4 Seiten angegriffen, heilt er.
+- Das Gegenmittel: rundum einkreisen.
+
+**Steckbrief der Mission**
+
+- **Gegner:** der Steinriese vor dem Turm der Prinzessin, dazu ein paar wilde Trupps auf den Feldern ringsum.
+- **Ziel:** den Riesen fällen.
+- **Karte:** etwa 35 Felder, der Riese in der Mitte.
+- **Zwei Wege:** gründlich alle sechs Seiten besetzen. Oder schnell von fünf Seiten mit dem Ritter.
+- **Geschichte:** Die Prinzessin wollte nicht gerettet werden. Der Riese war ihr Türsteher.
+- **Belohnung:** die Prinzessin. Sie bringt die Machtleiste und den Blitz.
+
+**Schritte**
+
+- [ ] Den Steinriesen für die Figurenschau bauen. Am PC und am Handy geprüft.
+- [ ] Du schaust ihn an: bleibt, ändern oder raus.
+- [ ] Seine Regel für Züge bauen, mit Tests: Die Vorschau stimmt auch mit Stampfen und Heilen.
+- [ ] Neues Missionsziel „Besiege den Boss“.
+- [ ] Die Karte bauen.
+- [ ] Rechnerprobe mit jeder bisher möglichen Wahl.
+- [ ] Texte: Einweisung, Lehrsatz, Geschichte. Dazu das Bild der Prinzessin.
+- [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
+- [ ] Entscheidung: behalten, ändern oder verwerfen.
+
+**Fertig, wenn** die Abnahme für jede Mission erfüllt ist.
+
+**Abbruch, wenn** die Mission nur eine einzige Lösung hat und sich wie eine Rechenaufgabe anfühlt.
+
+---
+
+## Bündel 5 · Macht, Blitz und Mission 5 „Donnerwetter“
+
+**Wozu:** der erste Zauber · **Aufwand:** mittel · **Neue Figur:** keine
 
 **Die Regel (Startwerte)**
 
@@ -112,222 +337,111 @@ unverändert läuft und der Vergleichswert steht.
 - Zauber kosten Macht, keinen Befehl. Höchstens ein Zauber pro Zug.
 - **Blitz** (kostet 15): tötet 8 Truppen auf einem Gegnerfeld, das an dein Land grenzt. Mindestens eine Truppe
   bleibt stehen, ein Blitz erobert nichts. Er wirkt sofort, die Vorschau danach stimmt.
-- **Meteor** (kostet 40): Du markierst ein Feld. Er schlägt zu Beginn deines nächsten Zugs ein, bis dahin sieht
-  jeder seinen Schatten. Das Zielfeld verliert die Hälfte seiner Truppen und seinen Turm. Jedes Nachbarfeld
-  verliert 4 Truppen, auch deine eigenen. Burgen sind kein Ziel.
-- Alle Reiche haben dieselbe Leiste, auch die Computergegner.
+- Nur der Spieler zaubert.
 
-**Schritt A · Machtleiste und Blitz**
+**Offene Frage:** Auf kleinen, kurzen Karten verfällt weniger Zuwachs als auf den großen, auf denen gemessen
+wurde. Vielleicht braucht die Macht dort eine zweite Quelle, zum Beispiel ein wenig Macht pro Zug oder pro
+erobertem Feld. Das klärt die erste Messung.
 
-- [ ] Rechnerprobe: die Regel als Fassung im Messwerkzeug, ohne das Spiel zu ändern.
-- [ ] Der Computergegner zaubert nach einer festen Regel: Blitz, wenn dadurch ein Angriff gelingt, der sonst
-      nicht gelänge.
-- [ ] Messen auf Duell, Mission 1, 2, 3 und Vier Reiche.
-- [ ] Startwerte nachstellen (Kosten, Schaden, Obergrenze), immer nur eine Zahl.
-- [ ] Spielprobe: Leiste und Blitz-Knopf auf der Probekarte, am PC und am Handy geprüft.
-- [ ] Du spielst 2 bis 3 Partien mit und ohne und beantwortest die vier Fragen.
-- [ ] Entscheidung: behalten, ändern oder verwerfen.
+**Steckbrief der Mission**
 
-**Schritt B · Meteor** (erst, wenn Schritt A bestanden ist)
-
-- [ ] Rechnerprobe wie oben. Zusätzlich: Der Computergegner weicht dem Schatten aus oder schlägt vorher zu.
-- [ ] Spielprobe: Schatten, Einschlag und Turmruine auf der Probekarte, am Handy lesbar.
-- [ ] Du spielst 2 bis 3 Partien und beantwortest die vier Fragen.
-- [ ] Entscheidung: behalten, ändern oder verwerfen.
-
-**Fertig, wenn** (Rechnerprobe, Schritt A)
-
-- Mission 2: Mindestens die Hälfte der Partien hat einen Sieger (heute 13 bis 15 %), das Ende liegt in der Mitte
-  vor Zug 40 (heute Zug 54 bis 55). Die 90 % aus dem Prüfweg gelten erst zusammen mit Bündel 2.
-- Ab Zug 21 verfallen weniger als 15 % des Zuwachses (heute 22 bis 34 %).
-- Im Duell gewinnt, wer beginnt, höchstens 65 %.
-- Mission 3 wird nicht schlechter: mindestens 85 % der Partien mit Sieger (heute 90 %).
-
-**Fertig, wenn** (Spielprobe): Mindestens drei deiner vier Fragen fallen gut aus, und du willst den Zauber
-behalten.
-
-**Abbruch, wenn** Mission 2 unter einem Drittel bleibt, Mission 3 unter 75 % fällt oder im Duell über 70 %
-gewinnt, wer beginnt, und keine einzelne Zahl das behebt.
-
----
-
-## Bündel 2 · Unterbau: früheres Ende, schnellerer Anfang
-
-**Trifft:** lange Schlussphasen, zäher Anfang · **Kürzel:** `N2` · **Aufwand:** klein
-
-Beide Regeln sind im Rechner schon gemessen. Es fehlen die Anzeige und deine Spielprobe.
-
-**Schritt A · Krönung (früheres Ende)**
-
-Regel: Wer 60 % der Felder hält, wird angekündigt: „Krönung in 2 Runden“. Hält er sie zwei Runden lang, gewinnt
-er. Der Gegner hat so eine letzte, sichtbare Chance.
-
-- [ ] Anzeige und Ankündigung auf der Probekarte.
-- [ ] Klären, wie die Krönung neben der Zitadelle in Mission 3 gilt.
-- [ ] Rechnerprobe auf allen Karten wiederholen.
-- [ ] Du spielst und beantwortest die vier Fragen.
-- [ ] Entscheidung: behalten, ändern oder verwerfen.
-
-**Schritt B · Schnellerer Anfang**
-
-Regel: Freies Land zu nehmen kostet keinen Befehl.
-
-Gemessen: Mission 2 hat dann in 71 bis 84 % der Partien einen Sieger, das Ende liegt bei Zug 32 bis 35. Die
-Nebenwirkung: Wer beginnt, gewinnt 72 bis 87 %. Das braucht einen Ausgleich.
-
-- [ ] Ausgleich im Rechner suchen, je Fassung eine Messung:
-  - [ ] höchstens 2 freie Landnahmen pro Zug
-  - [ ] freie Landnahme nur bis Zug 10
-  - [ ] wer als Zweiter zieht, beginnt mit etwas Macht
-- [ ] Die beste Fassung auf die Probekarte.
-- [ ] Du spielst und beantwortest die vier Fragen.
-- [ ] Entscheidung: behalten, ändern oder verwerfen.
-
-**Fertig, wenn** zusammen mit Bündel 1 alle vier Grenzen der Rechnerprobe halten und nach der Ankündigung der
-Krönung höchstens 3 Züge vergehen.
-
-**Abbruch für Schritt B, wenn** kein Ausgleich den Vorteil des Beginnenden unter 65 % bringt. Dann bleibt der
-Anfang, wie er ist.
-
----
-
-## Bündel 3 · Wildnis
-
-**Trifft:** „immer derselbe Gegner“, Ziele abseits der Front, untätige Truppen · **Kürzel:** `F5`, `F6`, `A7` ·
-**Aufwand:** Schritt A mittel, Schritt B klein, Schritt C mittel bis groß
-
-**Schritt A · Der Troll in Zügen**
-
-Regel (Skizze aus dem Rundenplan): Die Wildnis hat einen eigenen Zug nach allen Reichen. Die Höhle überfällt alle
-5 Züge das schwächste Nachbarfeld. Einen Zug vorher ist das Ziel markiert.
-
-- [ ] Den Ablauf des Trolls für Züge bauen. Er läuft bisher nur in Echtzeit.
-- [ ] Tests: Die Ankündigung kommt immer vor dem Überfall, die Vorschau stimmt, Partien ohne Wildnis laufen
-      unverändert.
-- [ ] Eine Höhle auf die Probekarte setzen.
-- [ ] Rechnerprobe: Die Wildnis darf Partien um höchstens 2 Züge verlängern.
-- [ ] Du spielst und beantwortest die vier Fragen.
-
-**Schritt B · Die Höhle als Beute**
-
-Regel: Wer die Höhle erobert, dem dient sie. Sie überfällt weiter, aber nur noch die anderen. Das kostet keinen
-Befehl.
-
-- [ ] Rechnerprobe: Wird die Höhle angegriffen, lohnt sie sich also? Wer sie hält, gewinnt höchstens 65 %.
-- [ ] Der Computergegner kennt den Wert der Höhle.
-- [ ] Du spielst und beantwortest die vier Fragen.
-
-**Schritt C · Das erste neue Ungeheuer als Einheit**
-
-Empfehlung: **Cerberus.** Die Wahl liegt bei dir, der Riese steht als zweite Fassung daneben.
-
-- **Cerberus (Startwerte):** Er lebt in einem Bau in der Wildnis. Wer den Bau erobert, bekommt ihn. Er steht als
-  Figur auf einem Feld und zieht mit dessen Truppen. Von seinem Feld aus gibt es jeden Zug einen Angriff ohne
-  Befehl. Gewinnt er, zieht er mit ins neue Feld und darf von dort wieder angreifen, höchstens zweimal
-  hintereinander. Er verstärkt die Verteidigung seines Feldes nicht. Fällt sein Feld, kehrt er in den Bau zurück.
-- **Riese (Startwerte):** Auch er ist eine Figur, die mit einem Trupp zieht. Wo er angreift, zählen Turm und
-  Hügel nicht. Er setzt nicht nach und kommt nur ein Feld pro Zug voran.
-
-- [ ] Du wählst: Cerberus oder Riese.
-- [ ] Die Figur für die Figurenschau bauen: Modell, Bewegung, Angriff. Am PC und am Handy geprüft.
-- [ ] Du schaust sie an: bleibt, ändern oder raus.
-- [ ] Rechnerprobe der Regel auf der Probekarte.
-- [ ] Spielprobe: Bau und Figur auf der Probekarte.
-- [ ] Du spielst und beantwortest die vier Fragen.
-- [ ] Entscheidung: behalten, ändern oder verwerfen.
-
-**Fertig, wenn** du die Probekarte mit Wildnis gespielt hast und sie behalten willst, und die Grenzen der
-Rechnerprobe weiter halten.
-
-**Abbruch, wenn** die Höhle oder das Ungeheuer die Partie allein entscheidet (wer es hat, gewinnt über 75 %),
-oder wenn die Wildnis Partien spürbar verlängert.
-
----
-
-## Bündel 4 · Boss: der Totenbeschwörer
-
-**Trifft:** den Gleichstand beim Erobern und Zurückholen, „immer derselbe Gegner“, Partien ohne Zeitdruck ·
-**Kürzel:** `F7`, Figurenpool Nr. 7 · **Aufwand:** mittel bis groß
-
-**Die Regel (Startwerte)**
-
-- Er sitzt in einer Gruft in der Wildnis und bewegt sich nicht.
-- Sein Umkreis von 2 Feldern ist sichtbar. Fallen dort Truppen, egal von wem, steht ein Drittel davon als
-  Skelette in der Gruft auf.
-- Alle 4 Züge schickt er Skelette gegen das schwächste Feld im Umkreis. Einen Zug vorher ist das Ziel markiert.
-- Je länger die Partie dauert, desto größer sein Heer. Das ist die Uhr der Partie.
-- Wer die Gruft nimmt, hat ihn besiegt. Ob er danach dem Sieger dient, entscheiden wir erst, wenn der Boss Spaß
-  macht.
+- **Gegner:** eine Trollfestung. Die Höhlen sind so voll, dass sie ohne Blitz kaum zu nehmen sind.
+- **Ziel:** alle Höhlen nehmen.
+- **Karte:** etwa 40 Felder.
+- **Zwei Wege:** die Macht für wenige große Stürme sparen. Oder oft und früh blitzen und die Überfälle klein halten.
+- **Geschichte:** Die Prinzessin probiert endlich aus, was sie im Turm gelernt hat.
+- **Belohnung:** Wahl des zweiten Zaubers, Meteor oder Nebel.
 
 **Schritte**
 
-- [ ] Die Figur für die Figurenschau bauen: Gestalt, Skelette, sichtbarer Umkreis.
-- [ ] Du schaust sie an: bleibt, ändern oder raus.
-- [ ] Die Fassung für Züge bauen, mit Tests für Ankündigung und Vorschau.
-- [ ] Rechnerprobe auf der Probekarte: Endet die Partie? Wächst er den Testspielern über den Kopf?
-- [ ] Du spielst und beantwortest die vier Fragen.
-- [ ] Erst nach deinem Ja: eine Mission um ihn herum.
+- [ ] Rechnerprobe der Machtleiste: Wie viel Macht entsteht auf einer kleinen Karte in 15 Zügen?
+- [ ] Die Quelle der Macht festlegen (siehe offene Frage).
+- [ ] Leiste und Blitz-Knopf bauen, am PC und am Handy geprüft.
+- [ ] Tests: Die Vorschau nach einem Blitz stimmt.
+- [ ] Die Testspieler können blitzen: wenn dadurch ein Angriff gelingt, der sonst nicht gelänge.
+- [ ] Die Karte bauen.
+- [ ] Rechnerprobe mit jeder bisher möglichen Wahl.
+- [ ] Texte: Einweisung, Lehrsatz, Geschichte.
+- [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
+- [ ] Entscheidung: behalten, ändern oder verwerfen.
 
-**Fertig, wenn** die Testspieler ihn auf der Probekarte in etwa der Hälfte der Partien besiegen und du ihn
-behalten willst.
+**Fertig, wenn** die Abnahme für jede Mission erfüllt ist und du in einer Partie mindestens dreimal blitzen
+konntest.
 
-**Abbruch, wenn** er entweder nie gefährlich wird oder die Partie regelmäßig allein beendet.
-
----
-
-## Bündel 5 · Ausbau
-
-Ein Vorrat. Jede Zeile ist eine eigene Probe mit denselben fünf Stufen. Die Reihenfolge ist die Empfehlung, deine
-Bauchprobe darf sie umstellen.
-
-- [ ] **Nebel** (Zauber): Ein frisch erobertes Feld ist eine Runde lang nicht angreifbar. Trifft das Hin und Her.
-      Hinweis aus der groben Probe: Ein ähnlicher Schutz senkte das Zurückholen um etwa 10 Punkte, machte Partien
-      allein aber nicht kürzer.
-- [ ] **Hydra** (Einheit): Wird sie nicht in einem Zug besiegt, ist sie wieder voll. Das gilt nur auf erobertem
-      Boden, damit sie keine Mauer an der eigenen Grenze wird. Trifft das Hin und Her.
-- [ ] **Kraftort** (Feld der Wildnis): Wer ihn hält, füllt seine Machtleiste schneller. Ein Brennpunkt abseits
-      der Front.
-- [ ] **Riese oder Cerberus:** der jeweils andere aus Bündel 3.
-- [ ] **Drache:** zwei Fassungen zur Wahl. Als Ungeheuer der Wildnis verbrennt er in festen Abständen die Hälfte
-      des vollsten Feldes, mit Vorwarnung (so steht er im Figurenpool). Als deine Einheit fliegt er über die
-      Front und greift bis drei Felder weit an.
-- [ ] **Erwachender Boss statt Sturm:** Ab einem festen Zug erwacht etwas und zwingt die Entscheidung. Ersetzt
-      den Sturm ab Zug 40 durch ein Ereignis.
-- [ ] **Portal** (Zauber): ein Angriff auf ein Feld, das nicht angrenzt. Zuletzt, weil es schwer abzustimmen ist
-      und das Abschneiden entwerten kann.
+**Abbruch, wenn** der Blitz entweder nie den Unterschied macht oder jede Höhle allein knackt.
 
 ---
 
-## Bündel 6 · Missionen
+## Halt · Rückblick nach Mission 5
 
-**Wann:** erst, wenn Bündel 1 und 2 stehen · **Aufwand:** mittel, vor allem Messen
+- [ ] Die echte Dauer jeder Mission in Minuten nebeneinanderlegen.
+- [ ] Was hat Spaß gemacht, was nicht? Deine vier Fragen über alle fünf Missionen.
+- [ ] Die zweite Hälfte der Kampagne neu ansehen und diesen Plan anpassen.
+- [ ] Du entscheidest, ob die ersten fünf Missionen schon veröffentlicht werden.
 
-- [ ] Du entscheidest, was von der Probekarte ins echte Spiel kommt.
-- [ ] Mission 2 neu abstimmen. Ziel: Du findest sie nicht mehr zäh.
-- [ ] Mission 3 umbauen. Die Testspieler gewinnen heute 0 von 40 Partien, in jeder bisher gemessenen Fassung
-      höchstens 2 von 40. Zwei Rivalen gegen einen: Das braucht eine eigene Lösung.
-- [ ] „Vier Reiche“ abstimmen.
-- [ ] Die Stärken der Gegner nachstellen. In der groben Probe gewann der Anfänger Mission 1 und 2 fast immer.
-- [ ] Erklärungen im Spiel für alles Neue.
-- [ ] Du entscheidest, welche Mission Wildnis, Ungeheuer oder Boss bekommt.
+---
+
+## Bündel 6 · Missionen 6 bis 10 (Entwurf)
+
+Jede Mission läuft durch dieselben Schritte wie oben. Die Einzelheiten schreiben wir nach dem Rückblick.
+
+- [ ] **Der zweite Zauber.** Weil der Spieler wählt, müssen beide gebaut sein.
+  - [ ] **Meteor:** Du markierst ein Feld. Er schlägt zu Beginn deines nächsten Zugs ein. Das Zielfeld verliert
+        die Hälfte seiner Truppen und seinen Turm, jedes Nachbarfeld 4 Truppen, auch deine eigenen.
+  - [ ] **Nebel:** Ein frisch erobertes Feld ist eine Runde lang nicht angreifbar.
+- [ ] **Mission 6 „Das Moor“.** Gegner: Untote, die zweite neue Fraktion. Sie wachsen nicht aus Land, sondern
+      aus Gefallenen: Fällt in ihrer Nähe eine Truppe, steht ein Teil als Skelett auf. Ziel: 12 Züge überleben.
+      Neue Figur: Skelette.
+- [ ] **Mission 7 „Der Höllenhund“.** Gegner: Cerberus vor dem Tor zur Gruft. Er setzt nach einem Sieg nach.
+      Ziel: seinen Bau nehmen. Danach gehört er dir. Neue Figur: Cerberus.
+- [ ] **Mission 8 „Drei Reiche“.** Ein Umbau der alten Mission 3, kleiner. Gegner: EMBER und ein zweites Reich,
+      die sich auch gegenseitig bekämpfen. Ziel: die Zitadelle halten.
+- [ ] **Mission 9 „Die Gruft“.** Gegner: der Totenbeschwörer, der die Krone trägt. Je länger die Partie dauert,
+      desto größer sein Heer. Ziel: die Gruft nehmen. Neue Figur: Totenbeschwörer.
+- [ ] **Mission 10 „Eine Krone“.** Gegner: EMBER, dazwischen Trolle. Ziel: Burg nehmen. Das Finale mit allem,
+      was du hast, und ein kurzer Abspann.
+
+---
+
+## Bündel 7 · Abschluss
+
+- [ ] Das Menü der Kampagne: zehn Missionen in Reihenfolge, mit Sternen und sichtbaren Belohnungen.
+- [ ] Du entscheidest, was aus den alten großen Karten wird („Die zwei Pässe“, „Drei Reiche“ alt): freie Partien
+      oder raus.
+- [ ] Die Stufen Leicht und Schwer je Mission abstimmen. Bis dahin gilt alles für Normal.
+- [ ] Gesamtdurchlauf: Du spielst die Kampagne am Stück.
 - [ ] Veröffentlichen nach deinem Ja.
 
-**Fertig, wenn** jede Karte die vier Grenzen der Rechnerprobe hält, die Testspieler Mission 3 gewinnen können und
-du Mission 2 nicht mehr zäh findest.
+**Fertig, wenn** jede Mission in deinem Durchlauf 5 bis 15 Minuten dauert und du die Kampagne jemandem zeigen
+würdest.
 
 ---
+
+## Zurückgestellt
+
+Diese Punkte aus der ersten Fassung sind nicht verworfen, aber nicht Teil der ersten zehn Missionen.
+
+- **Sieg durch Übermacht („Krönung“):** Auf kleinen Karten mit klarem Ziel vermutlich selten nötig. Bleibt als
+  billige Option, falls sich das Ende von Mission 1, 8 oder 10 zieht.
+- **Schnellerer Anfang (freies Land ohne Befehl):** Kleine Karten verkürzen den Anfang von selbst. Könnte später
+  eine Verbesserung zur Wahl werden.
+- **Hydra, Riese, Drache, Kraftort, Portal, erwachender Boss:** der Vorrat für eine zweite Kampagne oder als
+  Ersatz, falls eine Mission durchfällt.
+- **Die großen Karten abstimmen** (Vier Reiche, alte Missionen 2 und 3): nicht Teil der Kampagne.
+- **Verschmelzen zu einer Garde:** nicht weiterverfolgt. Die Lehre daraus steckt im Ritter: eine eigene Aktion
+  statt bloßer Stärke.
 
 ## Entscheidungen, die bei dir liegen
 
-- [ ] **Reihenfolge der Bündel.** Empfehlung: wie oben.
-- [ ] **Cerberus oder Riese zuerst.** Empfehlung: Cerberus.
-- [ ] **Hydra und Cerberus in den Figurenpool aufnehmen**, und an welche Stelle. Beide stehen dort noch nicht.
-- [ ] **Der Name der Leiste.** Hier heißt sie „Macht“, in der Ideenliste hieß sie „Kriegsdruck“.
-- [ ] **Zaubern die Computergegner von Anfang an?** Empfehlung: ja, gleiche Regeln für alle, auf „Leicht“ seltener.
+- [ ] **Namen:** Ritter Kunibert, ein Name für die Prinzessin, „Macht“ für die Leiste.
+- [ ] **Die erste Wahl:** Trommler oder Kornspeicher, oder etwas anderes?
+- [ ] **Neue Figuren im Figurenpool:** Cerberus und Skelette stehen dort noch nicht.
+- [ ] **Alte große Karten:** als freie Partien behalten oder herausnehmen?
+- [ ] **Wann veröffentlichen:** nach Mission 5 oder erst mit allen zehn?
 
 ## Was dieser Plan nicht verspricht
 
 - Ob etwas Spaß macht, zeigt erst deine Spielprobe. Der Rechner prüft nur, dass nichts kaputtgeht.
-- Ein Teil der Proben wird durchfallen. Das ist normal und der Grund für kleine, billige Proben.
-- Die ersten zehn Züge löst kein Zauber, weil es dann noch keinen Überschuss gibt. Dafür ist Bündel 2 da.
-- Mission 3 löst keine dieser Ideen von selbst. Dafür ist Bündel 6 da.
+- Ein Teil der Missionen wird beim ersten Versuch durchfallen. Dafür gibt es den Vorrat.
+- Der größte Aufwand sind fünf neue Figuren: Ritter, Steinriese, Skelette, Cerberus, Totenbeschwörer.
+- Die Dauer in Minuten ist bis Bündel 0 nur geschätzt.
