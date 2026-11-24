@@ -107,13 +107,11 @@ test('a raid that is called off tells whoever was marked', () => {
 });
 
 test('the campaign on trial: mission 1 with a choice, then the troll woods', () => {
-  assert.deepEqual(PROBES.map((m) => [m.id, m.no]), [['m1', 1], ['trollwald', 2]]);
+  assert.deepEqual(PROBES.map((m) => [m.id, m.no]), [['erstekrone', 1], ['trollwald', 2]]);
   for (const m of PROBES) assert.ok(m.probe && m.after, `${m.id} is on trial and tells how it went on`);
   const [first, woods] = PROBES;
-  // Mission 1 is the one of the menu: same map, same rules, same rival.
-  assert.equal(first.layout, CAMPAIGN[0].layout);
-  assert.equal(first.guide, CAMPAIGN[0].guide);
   assert.equal(CAMPAIGN[0].reward, undefined, 'the mission of the menu itself is untouched');
+  assert.equal(CAMPAIGN[0].guide, 'basics');
   assert.deepEqual(first.reward.choice, ['drummer', 'granary']);
   for (const id of first.reward.choice) assert.ok(P[id], `${id} is an improvement the rules know`);
   assert.deepEqual(woods.reward, { gift: 'knight' });
@@ -124,4 +122,57 @@ test('the campaign on trial: mission 1 with a choice, then the troll woods', () 
   // Every raid has the same strength now.
   const game = new TurnGame({ mission: woods, human: 0 });
   assert.equal(game.T.troll.more, 0);
+});
+
+test('mission 1 of the campaign: a small open island, explained by the captain', () => {
+  const first = PROBES[0];
+  const game = new TurnGame({ mission: first, human: 0 });
+  const menu = new TurnGame({ mission: CAMPAIGN[0], human: 0 });
+  const fields = (g) => g.tiles.filter((t) => t.passable);
+  assert.equal(fields(game).length, 37);
+  assert.ok(fields(game).length < fields(menu).length * 0.7, 'clearly smaller than the first mission of the menu');
+  assert.ok(fields(game).every((t) => t.terrain === 'plain'), 'no terrain to explain yet');
+  assert.equal(first.guide, undefined, 'the guided steps of the menu mission are gone');
+  for (const key of ['start', 'first', 'meet', 'taken', 'near']) {
+    assert.ok(first.talk[key].de && first.talk[key].en, `the captain has a line for "${key}"`);
+    assert.ok(first.talk[key].de.length <= 110, `"${key}" is short enough to read at a glance`);
+  }
+  // The very first order works: half of a starting field takes the free field next to it.
+  const mine = game.tiles.filter((t) => t.owner === 0 && t.castle < 0);
+  const free = game.tiles.filter((t) => t.passable && t.owner < 0);
+  assert.ok(free.every((t) => t.units === 5));
+  for (const from of mine) {
+    for (const n of from.neighbors.filter((k) => game.tiles[k].passable && game.tiles[k].owner < 0)) {
+      const res = game.preview(0, n, [{ origin: from.id, units: game.sendAmount(from.id, 0.5) }]);
+      assert.ok(res.won, `half of field ${from.id} takes free field ${n}`);
+    }
+  }
+  // Nothing special in the opening move, and a rival that never throws everything at one field.
+  assert.equal(game.commandsLeft, game.T.commands);
+  assert.equal(game.factions[1].ai.patience, 99);
+  assert.equal(game.kingdoms, 2);
+});
+
+test('mission 1 of the campaign: a full castle falls to three full fields next to it', () => {
+  /** Whether the rival's castle with `garrison` troops falls to `sides` fields with 19 troops each. */
+  const falls = (mission, garrison, sides) => {
+    const game = new TurnGame({ mission, human: 0 });
+    const castle = game.tiles[game.factions[1].castle];
+    castle.units = garrison;
+    const parts = castle.neighbors.filter((n) => game.tiles[n].passable).slice(0, sides).map((n) => ({ owner: 0, from: n, units: 19 }));
+    assert.equal(parts.length, sides);
+    return game._battle(castle, parts).fallen;
+  };
+  const first = PROBES[0];
+  const game = new TurnGame({ mission: first, human: 0 });
+  const castle = game.tiles[game.factions[1].castle];
+  assert.equal(game.defense(castle), 1, 'castles have no cover here');
+  assert.equal(castle.neighbors.filter((n) => game.tiles[n].passable).length, 5, 'water behind, three fields towards the rival');
+  assert.ok(falls(first, 40, 3), 'three sides are enough against a full castle');
+  assert.ok(!falls(first, 40, 2), 'two full fields alone are not');
+  assert.ok(falls(first, 30, 2), 'against a castle that is not full, two are');
+  // With the cover of the menu missions the same castle needs a fourth side.
+  const walled = { ...first, rules: { ...first.rules, castleDefense: 0.8 } };
+  assert.ok(!falls(walled, 40, 3));
+  assert.ok(falls(walled, 40, 4));
 });

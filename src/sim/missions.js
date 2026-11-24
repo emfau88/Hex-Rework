@@ -150,14 +150,70 @@ export const MISSIONS = [...CAMPAIGN, ...SKIRMISH];
  */
 export const PROBES = [
   {
-    // Mission 1 is the first mission of the menu, unchanged, with what the campaign adds to it.
-    ...CAMPAIGN[0],
+    // Mission 1 of the campaign: a mission of its own since 24.11.2026, no longer the first one of the
+    // menu. The person who played that one found it large for a start (56 fields, 16 turns, six turns of
+    // back and forth before the castle) and did not want to take every field around a castle before it
+    // can be attacked. So: a small open island without any terrain, and castles with little cover
+    // (`castleDefense` 0.3 instead of 0.8), which fall to an attack from three sides even when full.
+    id: 'erstekrone',
+    no: 1,
     probe: true,
+    name: { de: 'Erste Krone', en: 'First Crown' },
+    blurb: { de: 'Duell · Einstieg', en: 'Duel · first steps' },
+    brief: {
+      de: 'Eine kleine Insel, ein Rivale. EMBER trägt eine Krone, die dir besser stünde. Nimm seine Burg.',
+      en: 'A small island and one rival. EMBER wears a crown that would suit you better. Take his castle.',
+    },
+    lesson: {
+      de: 'Zieh von einem deiner Felder auf ein Nachbarfeld, um Truppen zu schicken. Drei Befehle pro Zug.',
+      en: 'Drag from one of your fields to a neighbour to send troops. Three commands per turn.',
+    },
+    // The captain explains the game while it is played; the guided steps of the menu mission are gone.
+    talk: {
+      start: {
+        de: 'Hauptmann zur Stelle! Zieh von einem unserer Felder auf ein Nachbarfeld, dann marschieren wir.',
+        en: 'Captain reporting! Drag from one of our fields to a neighbour and we march.',
+      },
+      first: {
+        de: 'Unser! Jedes Feld bringt jeden Zug neue Truppen. Du hast drei Befehle, dann ist EMBER dran.',
+        en: 'Ours! Every field brings new troops each turn. You have three commands, then it is EMBER\'s move.',
+      },
+      meet: {
+        de: 'Da drüben steht EMBER. Greif an, wo unsere Zahl größer ist. Die Vorschau zeigt, ob es reicht.',
+        en: 'There is EMBER. Attack where our number is bigger. The preview shows whether it is enough.',
+      },
+      taken: {
+        de: 'EMBER hat ein Feld geholt. Hol es zurück, solange dort noch wenige stehen.',
+        en: 'EMBER has taken a field. Take it back while only a few stand there.',
+      },
+      near: {
+        de: 'Die Burg! Tippe sie zweimal an: Dann greifen alle unsere Felder daneben zugleich an.',
+        en: 'The castle! Tap it twice: then all our fields next to it attack at once.',
+      },
+    },
     after: {
       de: 'Die Krone gehört dir. Beim Krönungsfest ist sie dann plötzlich weg. Am Fenster: große, haarige Fußspuren.',
       en: 'The crown is yours. At the coronation feast it is suddenly gone. At the window: large, hairy footprints.',
     },
     reward: { choice: ['drummer', 'granary'] },
+    factions: 2,
+    goalSign: true,
+    parTurns: 12,
+    seed: 11,
+    // The person begins with all three commands: nothing special to explain in the very first move.
+    turns: { firstCommands: null },
+    // A patient rival: attacks from two fields at most, wants a wide margin and keeps its castle manned.
+    turnAi: { margin: 1.4, sides: 2, reinforce: 1, frontKeep: 7, castleKeep: 24, incomeMul: 0.6, patience: 99 },
+    rules: { startRing: 10, castleDefense: 0 },
+    // 37 fields, all of them plain. Each castle has water behind it and three fields towards the rival.
+    // Free land holds 5 instead of 8: the very first order, half of a starting field (6 of 12), takes it.
+    layout: [
+      'm  .:5 .:5 .:5 .:5 .:5 .:5 .:5 m',
+      '  .  .  .:5 .:5 .:5 .:5 .  .',
+      'w  K0 .  .:5 .:5 .:5 .  K1 w',
+      '  .  .  .:5 .:5 .:5 .:5 .  .',
+      'm  .:5 .:5 .:5 .:5 .:5 .:5 .:5 m',
+    ],
   },
   {
     id: 'trollwald',

@@ -5,6 +5,7 @@
 //   node tools/audit/mission.mjs trollwald 60 --turns='{"troll":{"raid":12}}' --rules='{"startRing":8}'
 //   node tools/audit/mission.mjs trollwald 60 --layout=datei.json   andere Karte (Liste von Zeilen)
 //   node tools/audit/mission.mjs trollwald 60 --perks=drummer        mit einer Verbesserung (drummer, granary)
+//   node tools/audit/mission.mjs erstekrone 60 --ai='{"margin":1.8}'   der Rivale plant anders (mission.turnAi)
 //
 // Die Testspieler sind dieselben wie in tools/simulate-turns.mjs. Dazu kommen der Zielstrebige, der jeden
 // Befehl auf das Feld setzt, das dem Ziel am nächsten liegt, und ein Wartender, der nie einen Befehl gibt. Gemessen wird, was die Abnahme verlangt: wie oft der Anfänger und der Kluge gewinnen, in welchem
@@ -24,6 +25,7 @@ const shift = (Number(opt('shift', '0')) || 0) * 100003;
 const difficulty = opt('level', 'normal');
 const turns = JSON.parse(opt('turns', '{}'));
 const rules = JSON.parse(opt('rules', '{}'));
+const ai = JSON.parse(opt('ai', '{}')); // the rivals' planner in turns (mission.turnAi)
 const layoutFile = opt('layout', null);
 const perks = opt('perks', '').split(',').filter(Boolean); // improvements of the person: drummer, granary
 const trace = args.includes('--trace');
@@ -74,6 +76,7 @@ const mission = {
   ...base,
   turns: { ...(base.turns || {}), ...turns, ...(turns.troll || base.turns?.troll ? { troll: { ...(base.turns?.troll || {}), ...(turns.troll || {}) } } : {}) },
   rules: { ...(base.rules || {}), ...rules },
+  turnAi: { ...(base.turnAi || {}), ...ai },
   ...(layoutFile ? { layout: JSON.parse(fs.readFileSync(layoutFile, 'utf8')) } : {}),
 };
 
@@ -89,7 +92,8 @@ const pct = (a, b) => (b ? `${Math.round((100 * a) / b)} %` : '–');
 function play(seed, person, log) {
   const g = new TurnGame({ mission, seed, difficulty, human: 0, wide: true, perks });
   if (person !== 'idle' && person !== SEEKER) g.factions[0].ai = person;
-  const w = { raids: 0, won: 0, lost: 0 };
+  const w = { raids: 0, won: 0, lost: 0, storm: null };
+  const castles = new Set(g.factions.filter((f) => !f.wild && f.id !== 0).map((f) => f.castle));
   while (g.phase === 'running') {
     const me = g.current;
     const wild = me === g.wild;
@@ -97,6 +101,10 @@ function play(seed, person, log) {
     if (!wild && person === SEEKER) seek(g, me);
     else if (wild || person !== 'idle') aiTurn(g, g.factions[me]);
     for (const c of g.entry.commands) {
+      // How a rival's castle fell to kingdom 0: from how many edges, with how many troops, against how many.
+      if (me === 0 && c.type === 'attack' && c.won && castles.has(c.target)) {
+        w.storm = { sides: new Set(c.plan.map((p) => p.from)).size, sent: c.plan.reduce((s, p) => s + p.units, 0), garrison: Math.round(c.killed) };
+      }
       if (wild && c.type === 'attack') {
         w.raids++;
         if (c.won) w.won++;
@@ -123,13 +131,29 @@ if (trace) {
   console.log(`Ende: ${g.winner === 0 ? 'Sieg' : 'kein Sieg'} in Zug ${g.turn} (${g.reason})`);
 } else {
   for (const [label, skill] of [['Anfänger', BEGINNER], ['Kluger', CLEVER], ['Zielstrebiger', SEEKER], ['Wartender', 'idle']]) {
-    let wins = 0, castle = 0, limit = 0, raids = 0, raidWon = 0, fieldsLost = 0;
+    let wins = 0, castle = 0, limit = 0, raids = 0, raidWon = 0, fieldsLost = 0, fast = 0, kept = 0, all3 = 0;
     const won = [];
+    const lost = [];
+    const sides = [], sent = [], garrison = [];
     for (let i = 0; i < runs; i++) {
       const { g, w } = play(1000 + i * 17 + shift, skill, null);
       raids += w.raids; raidWon += w.won; fieldsLost += w.lost;
-      if (g.winner === 0) { wins++; won.push(g.turn); } else if (g.reason === 'castle') castle++; else limit++;
+      if (g.winner === 0) {
+        wins++;
+        won.push(g.turn);
+        // The stars of the result sheet: fast enough (second), few fields lost to anybody (third).
+        if (w.storm) { sides.push(w.storm.sides); sent.push(w.storm.sent); garrison.push(w.storm.garrison); }
+        const n = g.humanStats.lost;
+        lost.push(n);
+        const f = g.turn <= mission.parTurns;
+        const k = n <= (mission.loseLimit ?? 3);
+        if (f) fast++;
+        if (k) kept++;
+        if (f && k) all3++;
+      } else if (g.reason === 'castle') castle++; else limit++;
     }
     console.log(`${label.padEnd(13)} Siege ${wins}/${runs} (${pct(wins, runs)}) in Zug ${quant(won)} · Burg gefallen ${castle} · Zuggrenze ${limit} · Überfälle je Partie ${(raids / runs).toFixed(1)}, davon erfolgreich ${pct(raidWon, raids)}, eigene Felder verloren ${(fieldsLost / runs).toFixed(1)}`);
+    console.log(`${''.padEnd(13)} Sterne: schnell genug (bis Zug ${mission.parTurns}) ${pct(fast, wins)} der Siege · Felder verloren ${quant(lost)}, höchstens ${mission.loseLimit ?? 3}: ${pct(kept, wins)} · alle drei ${pct(all3, wins)}`);
+    if (sides.length) console.log(`${''.padEnd(13)} Burg des Rivalen: genommen von ${quant(sides)} Seiten mit ${quant(sent)} Truppen gegen ${quant(garrison)}`);
   }
 }
