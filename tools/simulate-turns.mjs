@@ -21,7 +21,7 @@
 //   Befehle    what the commands went to: attacks, moves, buildings (per move of a kingdom)
 
 import { TurnGame, aiTurn } from '../src/sim/turns.js';
-import { MISSIONS } from '../src/sim/missions.js';
+import { MISSIONS, PROBES } from '../src/sim/missions.js';
 
 const args = process.argv.slice(2);
 const runs = Number(args.find((a) => /^\d+$/.test(a))) || 40;
@@ -41,7 +41,7 @@ const people = !args.includes('--no-people');
 const BEGINNER = Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, idleBuild: false, incomeMul: 1, humanBias: 1, rushAfter: 160 });
 const CLEVER = Object.freeze({ margin: 1.1, sides: 6, waves: 2, reinforce: 3, frontKeep: 6, castleKeep: 26, build: 0.5, idleBuild: true, incomeMul: 1, humanBias: 1, rushAfter: 48 });
 
-const base = MISSIONS.find((m) => m.id === only);
+const base = [...MISSIONS, ...PROBES].find((m) => m.id === only);
 if (!base) throw new Error(`unknown map ${only}`);
 const mission = { ...base, turns: { ...(base.turns || {}), ...turns }, turnAi: { ...(base.turnAi || {}), ...aiOver }, rules: { ...(base.rules || {}), ...rules } };
 
@@ -112,7 +112,7 @@ for (const difficulty of levels) {
         if (g.winner === 0) {
           wins++;
           won.push(g.turn);
-        } else if (g.winner >= 0) lost++;
+        } else if (g.reason !== 'turns') lost++;
       }
       line.push(`${label}: Siege ${wins}/${runs} (Niederlagen ${lost})${won.length ? ` in Zug ${quant(won)}` : ''}`);
     }
@@ -121,7 +121,7 @@ for (const difficulty of levels) {
     const fell = [];
     for (let i = 0; i < runs; i++) {
       const g = play(new TurnGame({ mission, seed: 1000 + i * 17 + shift, difficulty, human: 0, wide: true }), 'idle', { moves: 0, attack: 0, move: 0, build: 0 });
-      if (g.winner > 0) {
+      if (g.winner !== 0 && g.reason === 'castle') {
         fallen++;
         fell.push(g.turn);
       }

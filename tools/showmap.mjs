@@ -1,9 +1,9 @@
 // Prints a campaign map with field numbers and checks that every castle can reach every other.
 //   node tools/showmap.mjs m2
 import { Game } from '../src/sim/game.js';
-import { CAMPAIGN } from '../src/sim/missions.js';
+import { CAMPAIGN, PROBES } from '../src/sim/missions.js';
 
-for (const mission of CAMPAIGN.filter((m) => !process.argv[2] || m.id === process.argv[2])) {
+for (const mission of [...CAMPAIGN, ...PROBES].filter((m) => !process.argv[2] || m.id === process.argv[2])) {
   const g = new Game({ mission, human: -1, wide: true });
   const by = new Map(g.tiles.map((t) => [`${t.q},${t.r}`, t]));
   const rows = Math.max(...g.tiles.map((t) => t.r)) + 1;
@@ -13,7 +13,7 @@ for (const mission of CAMPAIGN.filter((m) => !process.argv[2] || m.id === proces
     for (let c = 0; c < 14; c++) {
       const t = by.get(`${c - ((r - (r & 1)) >> 1)},${r}`);
       if (!t) { line += '    '; continue; }
-      const mark = t.castle >= 0 ? `K${t.castle}` : !t.passable ? (t.terrain === 'water' ? '~~' : '^^') : t.owner >= 0 ? `${t.owner}${t.building === 'tower' ? '+' : t.building === 'farm' ? '*' : ' '}` : t.terrain === 'citadel' ? 'CC' : t.terrain === 'hill' ? 'h ' : t.terrain === 'forest' ? 'f ' : '. ';
+      const mark = t.castle >= 0 ? `K${t.castle}` : t.lair ? 'T!' : !t.passable ? (t.terrain === 'water' ? '~~' : '^^') : t.owner >= 0 ? `${t.owner}${t.building === 'tower' ? '+' : t.building === 'farm' ? '*' : ' '}` : t.terrain === 'citadel' ? 'CC' : t.terrain === 'hill' ? 'h ' : t.terrain === 'forest' ? 'f ' : '. ';
       line += mark.padEnd(2) + String(Math.floor(t.units)).padStart(2).replace(' 0', '  ').slice(-2).padEnd(2);
     }
     console.log(line);

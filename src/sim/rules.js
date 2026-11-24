@@ -120,6 +120,13 @@ export const TURN_RULES = Object.freeze({
   stormTurns: 15,
   // Nobody wins after this many turns.
   turnLimit: 80,
+  // The wilds in turns (see TurnGame._startWild): where a lair stands, they move last in every round.
+  // A troll cave breeds `grow` trolls per round. Its first raid comes at the end of round `first` (each
+  // further cave on the map `stagger` rounds later), then every `every` rounds. `warn` rounds before, the
+  // prey is marked: the weakest kingdom field within `reach` steps, counted through the monsters' own
+  // land. A party has `raid` trolls plus `more` for every raid the cave has sent before; the share `home`
+  // of the cave's size always stays at home. Starting values, to be measured mission by mission.
+  troll: Object.freeze({ grow: 2, every: 5, warn: 1, raid: 8, more: 2, reach: 3, home: 0.4, first: 4, stagger: 2 }),
 });
 
 // The same planner as in real time, with as many commands as a person. The strengths differ in how

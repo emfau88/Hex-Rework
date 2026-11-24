@@ -136,6 +136,54 @@ export const CAMPAIGN = [
 export const MISSIONS = [...CAMPAIGN, ...SKIRMISH];
 
 /**
+ * Missions on trial (docs/UMSETZUNG-RUNDEN.md): played in turns, reached only through their own link
+ * (…/index.html?probe=trollwald), not through the menu. They are built one at a time for the campaign
+ * "Die Krone ist weg" and move into CAMPAIGN once they have been played and approved.
+ */
+export const PROBES = [
+  {
+    id: 'trollwald',
+    no: 2,
+    probe: true,
+    name: { de: 'Im Trollwald', en: 'In the Troll Woods' },
+    blurb: { de: 'Trollstamm · Höhlen', en: 'Troll tribe · caves' },
+    brief: {
+      de: 'Trolle haben deine Krone gestohlen und sitzen damit in ihrem Wald. Hier gibt es kein Königreich zu schlagen: Nimm ihre große Höhle, bevor sie die Krone zu Ohrringen einschmelzen.',
+      en: 'Trolls have stolen your crown and sit on it in their woods. There is no kingdom to beat here: take their great cave before they melt the crown down for earrings.',
+    },
+    lesson: {
+      de: 'Jede Höhle überfällt alle drei Züge dein schwächstes Feld am Waldrand. Das Ziel ist einen Zug vorher markiert, und jeder Überfall einer Höhle ist stärker als ihr letzter.',
+      en: 'Every third turn each cave raids your weakest field at the rim of the woods. The target is marked one turn ahead, and every raid of a cave is stronger than its last.',
+    },
+    factions: 1,
+    wild: true,
+    objective: { type: 'lair' },
+    parTurns: 12,
+    seed: 41,
+    storm: false,
+    // Nobody else moves first here, so the opening move has all its commands. After turn 18 the
+    // mission is lost: the clock that keeps it short. The trolls raid often and far: every cave every
+    // third round, against the weakest field anywhere at the rim of their woods.
+    // Measured with the stand-in players (tools/audit/mission.mjs, 60 matches, two sets of dice): the
+    // beginner wins 80 % (around turn 15), the clever one 97 to 100 % (turn 13), the single-minded
+    // one always (turn 10); the trolls raid 8 to 10 times and take 6 to 7 fields.
+    turns: { firstCommands: null, turnLimit: 18, troll: { reach: 99, first: 2, stagger: 1, every: 3, raid: 12, more: 3, home: 0.3, grow: 4 } },
+    rules: { startRing: 10 },
+    // The woods of the trolls fill the east: forest fields with trolls on them, two small caves at
+    // the rim (north and south) and the great cave behind them. The west is free land for the kingdom.
+    layout: [
+      'm  m  .  f  f!:8 f!t:22 f!:8 m  m',
+      '  m  .  .  f  f!:8 f!:10 f!:10 m',
+      'w  .  .  .  f!:8 f!:10 f!:12 m  m',
+      '  .  K0 .  .  f!:8 f!:12 .!t:34 m',
+      'w  .  .  .  f!:8 f!:10 f!:12 m  m',
+      '  m  .  .  f  f!:8 f!:10 f!:10 m',
+      'm  m  .  f  f!:8 f!t:22 f!:8 m  m',
+    ],
+  },
+];
+
+/**
  * Figure showcase: a small test island, reached only through its own link (?schau), not the menu.
  * Here monsters and troops are set by hand and the time can be stopped and slowed down. Nothing
  * here is a match: it never ends, the rival does not play, nobody ships supply by himself, and

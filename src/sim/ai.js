@@ -77,6 +77,12 @@ export function aiThink(game, f) {
       frontier.push(o.castle);
     }
   }
+  // A mission against the wilds: their largest lair is the goal and counts like a rival castle.
+  const lairGoal = game.objective.type === 'lair' && tiles[game.objective.tile].owner !== me ? game.objective.tile : -1;
+  if (lairGoal >= 0) {
+    toCastle[lairGoal] = 0;
+    frontier.push(lairGoal);
+  }
   for (let i = 0; i < frontier.length; i++) {
     for (const n of tiles[frontier[i]].neighbors) {
       if (toCastle[n] < 0 && tiles[n].passable) {
@@ -202,7 +208,7 @@ export function aiThink(game, f) {
     value += game.income(o, true) * 16;
     if (o.building) value += 7;
     if (o.terrain === 'citadel') value += holdGoal ? 140 : 30;
-    if (o.castle >= 0) value += 400;
+    if (o.castle >= 0 || o.id === lairGoal) value += 400;
     else if (toCastle[o.id] > 0) value += 30 / (toCastle[o.id] + 1);
     if (holdGoal && (o.id === prize || prizeRing.has(o.id))) {
       value += o.id === prize ? 20 : 45; // the ring is the way to the citadel

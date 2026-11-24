@@ -62,6 +62,12 @@ export class Game {
     // Lairs breed their monsters and send out raids (see _lairs). Only maps with monsters have any.
     this.lairs = [];
     for (const l of map.lairs || []) this._makeLair(this.tiles[l.id], l.kind, l.size ?? this.R[l.kind].size);
+    // A mission against the wilds: whoever takes their largest lair wins (the first one on a tie).
+    if (goal && goal.type === 'lair' && this.lairs.length) {
+      let best = this.lairs[0];
+      for (const id of this.lairs) if (this.tiles[id].lair.size > this.tiles[best].lair.size) best = id;
+      this.objective = { type: 'lair', tile: best };
+    }
 
     const diff = DIFFICULTY[difficulty] || DIFFICULTY.normal;
     const first = human >= 0 ? playerColor : this.seed % 4;
@@ -823,6 +829,7 @@ export class Game {
     }
     this.events.push({ type: 'capture', owner: winner, previous, tile: t.id, citadel: t.terrain === 'citadel', sides });
     if (t.castle >= 0 && t.castle !== winner) this._conquer(t.castle, winner, t);
+    if (this.objective.type === 'lair' && t.id === this.objective.tile && winner !== this.wild) this._finish(winner, 'lair');
     return true;
   }
 

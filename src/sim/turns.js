@@ -24,8 +24,23 @@ export class TurnGame extends Game {
   constructor(o) {
     super(o);
     const mission = this.mission;
-    this.T = mission.turns ? Object.freeze({ ...TURN_RULES, ...mission.turns }) : TURN_RULES;
-    this.R = Object.freeze({ ...this.R, supplyMin: this.T.supplyMin });
+    this.T = mission.turns
+      ? Object.freeze({ ...TURN_RULES, ...mission.turns, troll: Object.freeze({ ...TURN_RULES.troll, ...(mission.turns.troll || null) }) })
+      : TURN_RULES;
+    const W = this.T.troll;
+    // The screen reads the lairs' clocks in game seconds (`at`, `every`, `warn`), so they are kept that way.
+    this.R = Object.freeze({
+      ...this.R,
+      supplyMin: this.T.supplyMin,
+      troll: Object.freeze({ ...this.R.troll, every: W.every * this.T.seconds, warn: W.warn * this.T.seconds, raid: W.raid }),
+    });
+    // The first raid of the k-th lair comes at the end of round `first` + k × `stagger`.
+    this.lairs.forEach((id, k) => {
+      const lair = this.tiles[id].lair;
+      lair.at = (W.first + k * W.stagger - 1) * this.T.seconds;
+      lair.raids = 0;
+    });
+    this.raidQueue = [];
     const diff = TURN_DIFFICULTY[this.difficulty] || TURN_DIFFICULTY.normal;
     for (const f of this.factions) {
       if (f.wild || f.human) continue;
@@ -135,6 +150,10 @@ export class TurnGame extends Game {
       this.events.push({ type: 'storm' });
     }
     this.history = [];
+    if (f.wild) {
+      this._startWild(f);
+      return;
+    }
     // Whoever begins may give fewer commands in the very first move, against the edge of moving first.
     this.commandsMax = this.turn === 1 && this.current === this.starter && T.firstCommands != null ? T.firstCommands : T.commands;
     this.commandsLeft = this.commandsMax;
@@ -161,6 +180,97 @@ export class TurnGame extends Game {
     }
   }
 
+  // ---------------------------------------------------------------- the wilds
+  //
+  // Where a lair stands, the wilds move last in every round. Their lairs breed, raids that are due set
+  // out, and the prey of the next raid is marked. A raid is an attack like any other (attack), given
+  // by the rules themselves: aiNext hands them out one at a time, so the screen can play them back
+  // like the commands of a rival.
+
+  /** Whether the wilds have a move of their own: only while a lair still stands. */
+  _wildMoves() {
+    return this.wild >= 0 && this.lairs.some((id) => this.tiles[id].lair);
+  }
+
+  /** Start of the move of the wilds: the lairs breed and line up for their raids. */
+  _startWild(f) {
+    this.entry = { turn: this.turn, owner: f.id, growth: [], supply: [], commands: [] };
+    this.log.push(this.entry);
+    this.raidQueue = [];
+    for (const id of this.lairs) {
+      const t = this.tiles[id];
+      if (!t.lair) continue;
+      if (t.units < t.lair.size) {
+        const before = t.units;
+        t.units = Math.min(t.lair.size, t.units + this.T[t.lair.kind].grow);
+        this.entry.growth.push({ tile: id, units: t.units - before });
+      }
+      this.raidQueue.push(id);
+    }
+    this.commandsMax = this.commandsLeft = this.raidQueue.length;
+  }
+
+  /**
+   * The next raid of the wilds in their move, as an attack command, or null when they are done. On the
+   * way the lairs whose raid comes up mark their prey. A raid goes against exactly the field that was
+   * marked, if it still belongs to a kingdom, the way there is still open and the lair can spare a party.
+   */
+  wildNext() {
+    const tiles = this.tiles;
+    const S = this.T.seconds;
+    while (this.raidQueue.length) {
+      const id = this.raidQueue.shift();
+      const t = tiles[id];
+      const lair = t.lair;
+      if (!lair) continue;
+      const W = this.T[lair.kind];
+      if (lair.marked && this.time >= lair.at - 1e-9) {
+        const prey = lair.target >= 0 ? tiles[lair.target] : null;
+        lair.at += W.every * S;
+        lair.target = -1;
+        lair.marked = false;
+        const party = Math.min(W.raid + W.more * lair.raids, Math.floor(t.units) - Math.ceil(lair.size * W.home));
+        if (!prey || prey.owner < 0 || prey.owner === this.wild || party < W.raid) continue;
+        const parts = [{ origin: id, units: party }];
+        if (!this._plan(this.wild, prey.id, parts)) continue;
+        lair.raids++;
+        return { type: 'attack', target: prey.id, parts };
+      }
+      if (!lair.marked && this.time >= lair.at - W.warn * S - 1e-9) {
+        lair.marked = true;
+        lair.target = this.prey(t);
+        if (lair.target >= 0) this.events.push({ type: 'raidwarn', tile: id, target: lair.target, defender: tiles[lair.target].owner, beast: lair.kind });
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The prey of a lair in turns: the weakest kingdom field within `reach` steps of it, counted through
+   * the land of the monsters (a field next to the lair is one step away). On a tie the nearer one.
+   */
+  prey(t) {
+    const W = t.lair && this.T ? this.T[t.lair.kind] : null;
+    if (!W) return super.prey(t);
+    const tiles = this.tiles;
+    const dist = new Map([[t.id, 0]]);
+    const queue = [t.id];
+    let best = null;
+    for (let i = 0; i < queue.length; i++) {
+      const d = dist.get(queue[i]);
+      if (d >= W.reach) continue;
+      for (const n of tiles[queue[i]].neighbors) {
+        if (dist.has(n)) continue;
+        const o = tiles[n];
+        if (!o.passable) continue;
+        dist.set(n, d + 1);
+        if (o.owner === this.wild) queue.push(n);
+        else if (o.owner >= 0 && (!best || o.units < best.units - 1e-9)) best = o;
+      }
+    }
+    return best ? best.id : -1;
+  }
+
   /** Supply: the real-time rules decide what goes where. The columns stay in `armies` until deliver(). */
   _ship(f) {
     if (!f.autoSupply || !f.alive || this.phase !== 'running') return [];
@@ -174,6 +284,8 @@ export class TurnGame extends Game {
    * the screen can show them marching. No more commands after this. deliver() lets them arrive.
    */
   shipSupply() {
+    // The wilds always finish their move: raids nobody played out one by one happen now.
+    if (this.current === this.wild) for (let c = this.wildNext(); c; c = this.wildNext()) this.attack(this.wild, c.target, c.parts);
     this.history = [];
     this.commandsLeft = 0;
     return this.T.supplyAt === 'end' ? this._ship(this.factions[this.current]) : [];
@@ -222,10 +334,23 @@ export class TurnGame extends Game {
     this.history = [];
     this.armies = [];
     let next = this.current;
-    for (let i = 0; i < this.kingdoms; i++) {
-      next = (next + 1) % this.kingdoms;
-      if (next === this.starter) this.turn++;
-      if (this.factions[next].alive) break;
+    if (next === this.wild) {
+      // The wilds moved last: the next round begins with whoever began the match, or the next one alive.
+      this.turn++;
+      next = this.starter;
+      for (let i = 0; i < this.kingdoms && !this.factions[next].alive; i++) next = (next + 1) % this.kingdoms;
+    } else {
+      for (let i = 0; i < this.kingdoms; i++) {
+        next = (next + 1) % this.kingdoms;
+        if (next === this.starter) {
+          if (this._wildMoves()) {
+            next = this.wild;
+            break;
+          }
+          this.turn++;
+        }
+        if (this.factions[next].alive) break;
+      }
     }
     if (this.turn > this.T.turnLimit) {
       this._finish(-1, 'turns');
@@ -367,7 +492,9 @@ export class TurnGame extends Game {
       t.units = res.left;
       this.events.push({ type: 'repel', owner, defender: t.owner, tile: t.id });
     } else {
-      t.pools = res.pools.map((p) => ({ owner: p.owner, from: p.from, units: p.units, since: this.time }));
+      // Monsters that take a field bring their kind along (see _capture).
+      const beast = owner === this.wild ? tiles[plan[0].origin].beast : null;
+      t.pools = res.pools.map((p) => ({ owner: p.owner, from: p.from, units: p.units, since: this.time, ...(beast ? { beast } : null) }));
       t.units = 0;
       this._capture(t);
       t.pools = [];
@@ -493,6 +620,8 @@ export function aiNext(game, f, memo) {
   const me = f.id;
   const P = f.ai;
   if (game.current !== me || !game.canCommand(me)) return null;
+  // The wilds plan nothing: their lairs raid by the clock.
+  if (f.wild) return game.wildNext();
   if (!memo.started) {
     memo.started = true;
     memo.guard = 0;
@@ -548,6 +677,12 @@ export function planBreak(game, f) {
       queue.push(o.castle);
     }
   }
+  // Where the goal is a lair of the wilds, it counts like a rival castle.
+  const lairGoal = game.objective.type === 'lair' && tiles[game.objective.tile].owner !== me ? game.objective.tile : -1;
+  if (lairGoal >= 0) {
+    toCastle[lairGoal] = 0;
+    queue.push(lairGoal);
+  }
   for (let i = 0; i < queue.length; i++) {
     for (const n of tiles[queue[i]].neighbors) {
       if (toCastle[n] < 0 && tiles[n].passable) {
@@ -563,7 +698,7 @@ export function planBreak(game, f) {
       const parts = game.assaultParts(me, id, 1, rear);
       const res = parts.length ? game.preview(me, id, parts) : null;
       if (!res || !res.won) continue;
-      let score = o.castle >= 0 ? 1000 : (10 + 30 / (toCastle[id] + 1)) / (res.lost + 4);
+      let score = o.castle >= 0 || id === lairGoal ? 1000 : (10 + 30 / (toCastle[id] + 1)) / (res.lost + 4);
       if (o.owner === game.human) score *= P.humanBias;
       if (!best || score > best.score) best = { target: id, parts, score };
       break; // what gets through without the fields behind leaves them where they are
@@ -586,7 +721,7 @@ function breakTargets(game, f) {
       const o = tiles[n];
       if (!o.passable || o.owner === me) continue;
       if (o.castle < 0) other = true;
-      if (o.owner >= 0 && !game.factions[o.owner].wild) targets.add(n);
+      if (o.owner >= 0 && (!game.factions[o.owner].wild || game.objective.type === 'lair')) targets.add(n);
     }
   }
   const early = other && game.time < f.ai.rushAfter;
