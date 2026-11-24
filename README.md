@@ -15,9 +15,12 @@ nicht mehr, es zählt die Form der Front.
   mit `node tools/simulate-turns.mjs`.
 - **Kampagne „Die Krone ist weg“ (im Bau):** Plan zum Abhaken in
   [docs/UMSETZUNG-RUNDEN.md](docs/UMSETZUNG-RUNDEN.md). Missionen auf Probe stehen nicht im Menü, jede hat ihren
-  eigenen Link. Mission 2 „Im Trollwald“:
+  eigenen Link. Die Kette ab Mission 1 „Erste Krone“ (eine eigene, kleine Mission, nicht die aus dem Menü):
+  [emfau88.github.io/Hex-Rework/runden/?probe=kampagne](https://emfau88.github.io/Hex-Rework/runden/?probe=kampagne).
+  Nur Mission 2 „Im Trollwald“:
   [emfau88.github.io/Hex-Rework/runden/?probe=trollwald](https://emfau88.github.io/Hex-Rework/runden/?probe=trollwald),
-  lokal `http://localhost:4180/?probe=trollwald`. Messen mit `node tools/audit/mission.mjs trollwald`.
+  lokal `http://localhost:4180/?probe=trollwald`. Messen mit `node tools/audit/mission.mjs erstekrone` oder
+  `… trollwald`.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 

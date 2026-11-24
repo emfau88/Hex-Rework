@@ -1,7 +1,8 @@
 # Rundenmodus · Umsetzungsplan: Kampagne „Die Krone ist weg“
 
-Stand 24.11.2026 · Zweig `runden` · **Gebaut sind die Bündel 0, 1 und 2.** Offen ist dort nur noch, dass du die
-Kette Mission 1 → Wahl → „Im Trollwald“ einmal spielst. Alles andere ist Plan.
+Stand 24.11.2026 · Zweig `runden` · **Gebaut sind die Bündel 0, 1 und 2.** Mission 1 ist seit dem 24.11.2026
+eine eigene, kleine Mission (siehe „Mission 1 neu“). Offen ist, dass du die Kette Mission 1 → Wahl →
+„Im Trollwald“ in der neuen Fassung spielst. Alles andere ist Plan.
 
 **Zum Spielen:** Die Kampagne auf Probe beginnt mit `?probe=kampagne` am Ende der Adresse. Eine einzelne Mission
 öffnet `?probe=trollwald`. Im Menü steht davon nichts.
@@ -130,7 +131,7 @@ Je Mission genau ein neues Ding. So wird es von Mission zu Mission mehr, ohne da
 
 | Mission | Neu | Schon bekannt |
 |---|---|---|
-| 1 · Erste Krone | Truppen schicken, sich ausbreiten, von mehreren Seiten angreifen, die Burg nehmen | – |
+| 1 · Erste Krone | Truppen schicken, sich ausbreiten, die Burg nehmen (Doppeltipp: alle Nachbarn zugleich) | – |
 | 2 · Im Trollwald | Überfälle, die einen Zug vorher angekündigt sind | alles aus Mission 1 |
 | 3 · Wegzoll | dein Held mit eigenem Angriff | Überfälle |
 | 4 · Der Türsteher | ein Boss, den nur das Einkreisen fällt | Held |
@@ -139,12 +140,14 @@ Je Mission genau ein neues Ding. So wird es von Mission zu Mission mehr, ohne da
 - **Gelände** (Wald und Hügel geben Deckung) ist noch nicht eingeordnet. Bis es eine eigene Mission oder einen
   eigenen Satz des Hauptmanns bekommt, hängt keine Mission davon ab.
 - **Von mehreren Seiten angreifen zu müssen** wird erst in Mission 4 zur Aufgabe. In Mission 2 hilft es nur.
+- **Mauern** (die Deckung der Burg) sind noch nicht eingeordnet. In Mission 1 haben Burgen keine Deckung. Später
+  können Mauern als eigenes neues Ding dazukommen, zum Beispiel wenn EMBER wieder auftritt.
 
 ## Die zehn Missionen
 
 | Nr. | Mission | Gegner | Ziel | Neu |
 |---|---|---|---|---|
-| 1 | Erste Krone (gibt es) | Königreich EMBER | Burg nehmen | die Grundlagen |
+| 1 | Erste Krone (neu gebaut, klein) | Königreich EMBER | Burg nehmen | die Grundlagen |
 | 2 | Im Trollwald | Trollstamm | die große Höhle nehmen | Überfälle mit Ankündigung |
 | 3 | Wegzoll | EMBER hinter einem Pass | den Pass nehmen | dein Held |
 | 4 | Der Türsteher | Steinriese | den Riesen einkreisen | ein Boss |
@@ -311,10 +314,12 @@ entstehen.
 - [x] Rechnerprobe: „Im Trollwald“ ohne Verbesserung, mit Trommler und mit Kornspeicher (Tabelle unten).
 - [x] Geschichte: zwei Sätze nach dem Sieg in Mission 1 und 2, dazu die Sprechblasen des Hauptmanns im Spiel
       (siehe nächster Abschnitt). Ein eigenes Bild vor der Mission gibt es nicht mehr.
-- [x] Mission 1 bleibt, wie sie ist. Es kommen nur der Text danach und die Wahl dazu, und nur in der Kampagne auf
-      Probe. Die Mission 1 im Menü ist unberührt.
+- [x] Mission 1 der Kampagne ist seit dem 24.11.2026 eine eigene Mission (siehe „Mission 1 neu“). Die Mission 1
+      im Menü ist unberührt.
 - [x] Die Kette: `?probe=kampagne` öffnet Mission 1, „Nächste Mission“ führt zu „Im Trollwald“.
-- [ ] Du spielst Mission 1, wählst, und spielst „Im Trollwald“.
+- [x] Du hast die alte Mission 1 der Kette gespielt (Zug 16, 4:30 Minuten). Dein Urteil: für den Anfang zu groß,
+      und die Burg soll fallen, ohne dass man alle Felder ringsum nehmen muss.
+- [ ] Du spielst die neue Mission 1, wählst, und spielst „Im Trollwald“.
 
 **Gemessen** („Im Trollwald“, 60 Partien je Testspieler, zwei Würfelsätze)
 
@@ -337,16 +342,60 @@ Statt vor dem Start viel zu lesen, meldet sich der Hauptmann aus deiner Burg, we
 wird. Die erste Fassung ist gebaut.
 
 - Eine Sprechblase erscheint an deiner Burg, bleibt ein paar Sekunden und schließt sich. Ein Tipp schließt sie
-  sofort.
-- Jeder Satz kommt in einer Partie nur einmal. Mehrere warten aufeinander.
+  sofort. Dafür hat sie oben rechts ein Kreuz (dein Hinweis vom 24.11.2026).
+- Steht deine Burg in der unteren Bildhälfte, hängt die Blase unter der Burg. So verdeckt sie nicht die Felder
+  davor.
+- Jeder Satz kommt in einer Partie nur einmal. Mehrere warten aufeinander. Wartet schon der nächste, macht die
+  Blase nach drei Sekunden Platz.
 - „Im Trollwald“ hat sieben Sätze: zum Start, beim ersten markierten Feld, nach einem abgewehrten Überfall, nach
   einem verlorenen Feld, wenn ein Überfall ausfällt, vor der großen Höhle und drei Züge vor Schluss.
 
 Offen, für später:
 
 - [ ] Mehr Stimmen: Ritter Kunibert und die Prinzessin, sobald sie dabei sind.
-- [ ] Sätze für Mission 1. Dort führen bisher die vier geführten Schritte.
+- [x] Sätze für Mission 1: fünf Stück (Start, erstes Feld, erste Grenze zu EMBER, erstes verlorenes Feld, vor
+      der Burg). Die vier geführten Schritte gibt es dort nicht mehr.
 - [ ] Der Ton: Wie viel Witz, wie oft? Das zeigt deine Spielprobe.
+
+### Mission 1 neu (24.11.2026)
+
+Du hast die alte Mission 1 gespielt und zwei Dinge gesagt: Für den Anfang ist sie zu groß. Und man soll nicht alle
+Felder um eine Burg nehmen müssen, um sie wirksam anzugreifen. Die Kampagne hat deshalb eine eigene Mission 1.
+
+| | alte Mission 1 (Menü) | neue Mission 1 (Kampagne) |
+|---|---|---|
+| Felder | 56, mit Wald und Hügeln | 37, nur Wiese |
+| freie Felder | 8 Truppen | 5 Truppen |
+| Deckung der Burg | +80 % | keine |
+| volle Burg (40) fällt | vier vollen Nachbarfeldern | drei vollen Nachbarfeldern |
+| EMBER | holt Felder mit allem zurück | greift höchstens von zwei Feldern an, wächst langsamer |
+| Erklärung | vier geführte Schritte | fünf Sätze des Hauptmanns |
+| dein erster Zug | 1 Befehl | 3 Befehle |
+
+- [x] Karte: kleine offene Insel, hinter jeder Burg Wasser, drei Felder zeigen zum Gegner.
+- [x] Burg ohne Deckung. Gerechnet: Eine volle Burg fällt drei vollen Nachbarfeldern (23 bleiben übrig). Zwei
+      volle Felder reichen gegen eine Burg mit 30. Mit +80 % bräuchte dieselbe Burg vier Seiten.
+- [x] EMBER ohne den „Durchbruch mit allem“. Der hatte das Hin und Her vor der Burg erzeugt: Mit ihm verlor der
+      kluge Testspieler meist 9 bis 10 Felder, ohne ihn 4 bis 5. Wächst EMBER dazu langsamer, sind es 2.
+- [x] Der erste Befehl klappt immer: Die Hälfte eines Startfelds (6 von 12) nimmt ein freies Feld (5).
+- [x] Auf EMBERs Burg steht das Schild „ZIEL“.
+- [x] Das Messwerkzeug zeigt jetzt auch die Sterne und von wie vielen Seiten die Burg fiel.
+- [ ] Du spielst sie. Fragen: Ist sie zu leicht? Kommen die Sätze zur rechten Zeit? Stört eine Blase?
+
+**Gemessen** (60 Partien je Testspieler, zwei Würfelsätze, Stufe Normal)
+
+| | gewinnt | in Zug | verliert Felder | alle drei Sterne |
+|---|---|---|---|---|
+| Kluger | 100 % | 10 bis 13, meist 11 | 0 bis 5, meist 2 | 70 bis 77 % |
+| Zielstrebiger | 100 % | 20 bis 38, meist 26 | sehr viele | nie |
+| Anfänger | 100 % | 21 | 0 bis 2 | nie (zu langsam) |
+
+- Die Burg fiel dem Klugen von 2 bis 3 Seiten, mit 48 bis 70 Truppen gegen 36 bis 40.
+- Der Anfänger-Testspieler greift Burgen nach eigener Regel erst ab Zug 21 an. Sein Zug sagt hier nichts.
+- Der Zielstrebige lässt jedes Feld leer zurück und verliert es wieder. Er gewinnt trotzdem immer, nur spät.
+- Im Browser im Handy-Format durchgespielt (Befehle ausgelöst, nicht getippt): Sieg in Zug 8, ein Feld verloren,
+  alle fünf Sätze kamen an der richtigen Stelle.
+- **Nicht gemessen:** wie lange du brauchst. Geschätzt 7 bis 10 Züge, also etwa 2 bis 3 Minuten.
 
 **Fertig, wenn** Mission 2 mit beiden Wahlen die Abnahme erfüllt und du beide Wahlen reizvoll findest. Keine darf
 die klar bessere sein.
