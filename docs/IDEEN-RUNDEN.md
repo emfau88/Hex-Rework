@@ -341,3 +341,43 @@ node tools/audit/dom.mjs duel 20              ab wann eine Partie in Wahrheit en
 
 Feste Befehlszahl, Feldgrenze und Kantenbreite gehen mit dem vorhandenen Werkzeug:
 `node tools/simulate-turns.mjs 20 --only=m2 --turns='{"commands":5}'` und `--rules='{"frontage":12}'`.
+
+### Nachmessung vom 24.11.2026
+
+Eine zweite, unabhängige Messung mit eigenen Startwerten und eigener Zählung: `tools/audit/nachmessung.mjs`.
+40 Karten je Karte, jedes Reich beginnt einmal, zwei Kartensätze (`--base=7000` und `--base=31000`).
+
+```
+node tools/audit/nachmessung.mjs m2 40                    Ausgangswerte
+node tools/audit/nachmessung.mjs m2 40 --base=31000       dieselbe Messung mit anderen Karten
+node tools/audit/nachmessung.mjs duel 40 --commands=4     vier feste Befehle
+node tools/audit/nachmessung.mjs m2 40 --freeland=3       freies Land kostet keinen Befehl
+node tools/audit/nachmessung.mjs m2 40 --fuse=1 --limit=1 --own=1   grobe Probe: eine Einheit mit eigenem Angriff
+```
+
+**Das Audit bestätigt sich** (Computer gegen Computer, Normal):
+
+| Karte | mit Sieger | Ende (Mitte) | Anfänger gewinnt | Kluger gewinnt |
+|---|---|---|---|---|
+| Mission 1 | 90 bis 95 % | Zug 23 bis 24 | 31 bis 32 von 40 | 39 von 40 |
+| Duell | 75 bis 88 % | Zug 31 bis 33 | 22 bis 26 von 40 | 33 von 40 |
+| Mission 2 | 13 bis 15 % | Zug 54 bis 55 | 13 bis 16 von 40 | 39 bis 40 von 40, um Zug 43 |
+| Mission 3 | 90 % | Zug 45 bis 46 | 0 von 40 | 0 von 40 |
+| Vier Reiche | 65 bis 79 % | Zug 42 bis 47 | 7 bis 8 von 40 | 20 bis 22 von 40 |
+
+**Neu gemessen**
+
+- Ein Gegnerfeld zu erobern kostet 7 bis 12 Truppen, danach stehen dort 9 bis 11. Der Gegner grenzt an fast
+  3 Kanten, und das Zurückholen kostet fast gleich viel. Daraus entsteht das Hin und Her.
+- Ab Zug 21 verfallen 12 bis 30 Truppen Zuwachs je Zug, auf den großen Karten etwa ein volles Feld.
+- Spät fehlt es dem Computer im Duell nicht an Befehlen: Er nutzt in Mission 2 nur in 29 % der Züge alle drei.
+  Knapp sind die Befehle am Anfang, wo zwei von drei auf freies Land gehen.
+- Vier feste Befehle: Duell endet um Zug 21 bis 22, aber wer beginnt, gewinnt 72 bis 81 %.
+- Freies Land ohne Befehl: Mission 2 hat in 71 bis 84 % der Partien einen Sieger, Ende Zug 32 bis 35. Wer
+  beginnt, gewinnt dann 72 bis 87 %.
+- Grobe Probe „volles Feld schlägt als Ganzes zu“ (keine echte Figur): Nur stärker hilft kaum (Mission 2: 24 bis
+  30 % mit Sieger). Mit eigenem Angriff ohne Befehl hilft es (74 %, Ende Zug 31). Viele starke Einheiten schaden
+  (Mission 3: 27 bis 34 % statt 90 %).
+
+**Folge:** Der Plan steht jetzt in [UMSETZUNG-RUNDEN.md](UMSETZUNG-RUNDEN.md): eine Kampagne aus kleinen Missionen
+mit klaren Zielen und öfter einem Gegner mit eigenen Regeln.
