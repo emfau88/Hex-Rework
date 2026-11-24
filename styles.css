@@ -1394,3 +1394,103 @@ p.note {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* A speech bubble at the own castle: short lines of the captain during a match. A tap closes it. */
+#say {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  width: max-content;
+  max-width: min(270px, 72vw);
+  padding: 8px 12px 10px;
+  border-radius: 14px;
+  background: #fff6df;
+  color: #1b2a30;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+#say b {
+  display: block;
+  margin-bottom: 2px;
+  color: #9a6b12;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+#say::after {
+  content: '';
+  position: absolute;
+  left: var(--tail, 50%);
+  bottom: -8px;
+  margin-left: -8px;
+  border: 8px solid transparent;
+  border-top-color: #fff6df;
+  border-bottom: 0;
+}
+
+#say.below::after {
+  top: -8px;
+  bottom: auto;
+  border: 8px solid transparent;
+  border-bottom-color: #fff6df;
+  border-top: 0;
+}
+
+/* The reward on the result sheet: one of two improvements to pick, or something new that comes along. */
+.reward {
+  margin: 0 0 14px;
+  text-align: left;
+}
+
+.reward .eyebrow {
+  margin: 0 0 6px;
+  text-align: center;
+}
+
+.reward .perk {
+  display: block;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reward div.perk {
+  cursor: default;
+}
+
+.reward .perk b {
+  display: block;
+  font-size: 14px;
+}
+
+.reward .perk span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.reward .perk.on {
+  border-color: #f2c36b;
+  background: rgba(242, 195, 107, 0.16);
+}
+
+/* "Next mission" waits for a choice. */
+.actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

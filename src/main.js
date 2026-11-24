@@ -98,8 +98,11 @@ class App {
     // The figure showcase has its own link and is not in the menu: …/index.html?schau
     if (new URLSearchParams(location.search).has('schau')) this.startLab();
     // So does every mission on trial: …/index.html?probe=trollwald opens its briefing.
-    const probe = PROBE_MISSIONS.find((m) => m.id === new URLSearchParams(location.search).get('probe'));
+    // …?probe=kampagne opens the first mission of the campaign on trial.
+    const wanted = new URLSearchParams(location.search).get('probe');
+    const probe = wanted === 'kampagne' ? PROBE_MISSIONS[0] : PROBE_MISSIONS.find((m) => m.id === wanted);
     if (probe) this.openMission(probe);
+    $('#say').addEventListener('click', () => this.hush());
     requestAnimationFrame((ms) => this.frame(ms));
   }
 
@@ -166,6 +169,7 @@ class App {
     this.ui.tutorialPath = null;
     this.ui.tutorialMark = null;
     this.ui.goalMark = null;
+    this.sayQueue = null;
     this.game = new Game({ mission: ATTRACT, seed: (Math.random() * 1e9) | 0, difficulty: 'hard', human: -1, wide: this.wide() });
     this.setHint('');
     this.setMode('menu');
@@ -185,6 +189,11 @@ class App {
     const inTurnMode = Boolean(mission.turnMode);
     $('#brief-text').textContent = inTurnMode && mission.briefTurns ? i18n.pick(mission.briefTurns).replace('{n}', holdTurns(mission)) : i18n.pick(mission.brief);
     $('#brief-lesson').textContent = i18n.pick(mission.lesson);
+    // Where the captain explains the new rule during the match, the briefing stays short.
+    $('#brief-lesson').parentElement.hidden = Boolean(mission.talk);
+    const perks = this.perksFor(mission);
+    $('#brief-perks').hidden = !perks.length;
+    $('#brief-perks').textContent = i18n.t('briefPerks', { list: perks.map((p) => i18n.t(`perk_${p}`)).join(', ') });
     $('#brief-goal').textContent = mission.objective?.type === 'lair' ? i18n.t('goalLairLong', { n: mission.turns?.turnLimit ?? TURN_RULES.turnLimit })
       : !hold ? i18n.t('goalConquerLong')
       : inTurnMode ? i18n.t('goalCitadelLongTurns', { n: holdTurns(mission) })
@@ -212,8 +221,13 @@ class App {
       // Turn mode: the supply always runs (its switch is gone there); real time keeps the setting.
       autoSupply: mission.turnMode ? true : this.store.supply,
       wide: this.wide(),
+      perks: this.perksFor(mission),
     });
     this.turns = mission.turnMode ? new TurnPlay(this) : null;
+    // The captain's lines: which were said already, and which wait for their turn on screen.
+    this.said = new Set();
+    this.sayQueue = [];
+    this.hush();
     // For the end of the match: how long it was played, and how long the person took for each move.
     this.playMs = 0;
     this.moveTimes = [];
@@ -236,13 +250,75 @@ class App {
     this.setMode('play');
     this.updateHud(true);
     if (this.tutorial) this.setHint('');
-    else if (mission.lesson) {
+    else if (mission.talk?.start) {
+      // The captain says why we are here; the new rule follows when it first matters.
+      this.setHint('');
+      this.later(1400, () => this.speak('start'));
+    } else if (mission.lesson) {
       // The new rule of the mission stays on screen for the opening.
       this.setHint(i18n.pick(mission.lesson));
       this.later(16000, () => this.setHint(''));
     } else if (this.turns) this.flash(i18n.t('turnFirst'), 9000);
     else this.setHint('');
     this.banner(i18n.t(this.game.objective.type === 'lair' ? 'introLair' : `intro${this.game.factions.length}`), '#f2c36b', 2600);
+  }
+
+  /**
+   * Improvements that count in `mission`: what the person picked after the earlier missions of the
+   * campaign on trial. The missions of the menu and free play never have any.
+   */
+  perksFor(mission) {
+    if (!mission.probe) return [];
+    return PROBE_MISSIONS.filter((m) => m.no < mission.no).map((m) => this.store.perks[m.id]).filter(Boolean);
+  }
+
+  /**
+   * The captain speaks: a line of the mission (mission.talk[key]) appears as a speech bubble at the own
+   * castle. Every line is said once per match; several wait for each other.
+   */
+  speak(key) {
+    const line = this.mission?.talk?.[key];
+    if (!line || !this.said || this.said.has(key) || this.game.phase !== 'running') return;
+    this.said.add(key);
+    this.sayQueue.push(line);
+  }
+
+  /** Closes the speech bubble; the next line that waits follows a moment later. */
+  hush() {
+    this.saying = null;
+    $('#say').hidden = true;
+    this.sayAfter = (this.last || 0) + 0.6;
+  }
+
+  /** Called every frame: shows the next waiting line, keeps the bubble at the castle, and closes it in time. */
+  updateSay(now) {
+    const el = $('#say');
+    if (this.mode !== 'play' || !this.sayQueue) {
+      if (!el.hidden) el.hidden = true;
+      return;
+    }
+    if (this.saying && now >= this.saying.until) this.hush();
+    if (!this.saying && this.sayQueue.length && now >= (this.sayAfter || 0)) {
+      const text = i18n.pick(this.sayQueue.shift());
+      this.saying = { until: now + 3.5 + text.length * 0.055 };
+      $('#say-who').textContent = i18n.t('whoCaptain');
+      $('#say-text').textContent = text;
+    }
+    if (!this.saying) return;
+    el.hidden = false;
+    // Above the castle where there is room, else below it; never off the screen.
+    const home = this.game.tiles[this.game.factions[this.ui.human]?.castle];
+    if (!home) return;
+    const p = this.renderer.tileAnchor(home);
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const W = this.el.clientWidth;
+    const left = Math.max(8, Math.min(W - w - 8, p.x - w / 2));
+    const above = p.y - h - 58 > 54;
+    el.classList.toggle('below', !above);
+    el.style.left = `${left}px`;
+    el.style.top = `${above ? p.y - h - 58 : p.y + 22}px`;
+    el.style.setProperty('--tail', `${Math.max(16, Math.min(w - 16, p.x - left))}px`);
   }
 
   /** A hint that goes away by itself after `ms`, unless another one replaces it. */
@@ -277,6 +353,7 @@ class App {
     this.ui.tutorialPath = null;
     this.ui.tutorialMark = null;
     this.ui.goalMark = null;
+    this.sayQueue = null;
     this.events = [];
     this.buildLab();
     this.setMode('play');
@@ -566,8 +643,17 @@ class App {
         b.textContent = i18n.t('copyFailed');
       }
     });
+    $('#result-reward').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-perk]');
+      if (!b || !this.mission?.reward?.choice) return;
+      this.store.perks[this.mission.id] = b.dataset.perk;
+      saveStore(this.store);
+      this.sfx.play('select');
+      this.showReward(this.mission.reward);
+    });
     $('#btn-next').addEventListener('click', () => {
-      const next = CAMPAIGN[CAMPAIGN.indexOf(this.mission) + 1];
+      const chain = this.mission.probe ? PROBE_MISSIONS : CAMPAIGN;
+      const next = chain[chain.indexOf(this.mission) + 1];
       if (!next) return;
       // The briefing of the next mission appears over the menu match.
       this.startAttract();
@@ -864,6 +950,7 @@ class App {
       // Turn mode: the rivals' moves play back on screen while the options sheet is closed.
       if (this.turns && this.mode === 'play') this.turns.update(now);
       for (const e of game.drainEvents()) this.onEvent(e, now);
+      this.updateSay(now);
 
       const ui = this.ui;
       if (ui.selected >= 0) {
@@ -929,6 +1016,7 @@ class App {
         else if (mine(e.previous)) {
           this.sfx.play('lost');
           this.note(i18n.t('evLost', { name: name(e.owner) }), true);
+          if (game.isWild(e.owner)) this.speak('lost');
         }
         else this.sfx.play('capture', 0.22 * quiet);
         if (e.citadel) this.banner(i18n.t('citadel', { name: name(e.owner) }), null, 2200);
@@ -936,7 +1024,10 @@ class App {
         break;
       case 'repel':
         if (mine(e.owner)) this.sfx.play('lost', 0.6);
-        else if (this.turns && mine(e.defender)) this.note(i18n.t('evTurnHeld', { name: name(e.owner) }));
+        else if (this.turns && mine(e.defender)) {
+          this.note(i18n.t('evTurnHeld', { name: name(e.owner) }));
+          if (game.isWild(e.owner)) this.speak('held');
+        }
         break;
       case 'build':
         if (mine(e.owner)) {
@@ -958,8 +1049,19 @@ class App {
         // Monsters mark their next target: a warning for whoever owns it.
         if (mine(e.defender)) this.sfx.play('alarm', 0.7);
         this.note(i18n.t('evRaid', { name: name(e.defender) }), mine(e.defender));
-        // Turn mode: the first marks come with a sentence on what can be done about them.
-        if (this.turns && mine(e.defender) && this.raidHints++ < 2) this.flash(i18n.t('raidHint'), 9000);
+        // Turn mode: the first mark comes with a sentence on what can be done about it. Where the mission
+        // has a captain, he says it; otherwise the hint line does, the first two times.
+        if (this.turns && mine(e.defender)) {
+          if (this.mission?.talk?.raid) this.speak('raid');
+          else if (this.raidHints++ < 2) this.flash(i18n.t('raidHint'), 9000);
+        }
+        break;
+      case 'raidoff':
+        // A marked raid does not set out after all: the way was cut, or the lair is too weak.
+        if (mine(e.defender)) {
+          this.note(i18n.t('evRaidOff', { name: name(e.defender) }));
+          this.speak('off');
+        }
         break;
       case 'lair':
         if (mine(e.by)) this.sfx.play('castle', 0.6);
@@ -1030,6 +1132,8 @@ class App {
       text.style.color = left <= 3 ? '#ff8d7f' : '';
       bar.hidden = true;
       if (this.ui.goalMark && !game.tiles[game.objective.tile].lair) this.ui.goalMark = null;
+      // The captain speaks up once the person stands next to the goal.
+      if (this.mission?.talk?.near && !this.said?.has('near') && game.tiles[game.objective.tile].neighbors.some((n) => game.tiles[n].owner === this.ui.human)) this.speak('near');
       return;
     }
     if (game.objective.type !== 'hold') {
@@ -1187,11 +1291,37 @@ class App {
     const log = $('#btn-log');
     log.hidden = !this.turns;
     log.textContent = i18n.t('copyLog');
-    const hasNext = won && CAMPAIGN.indexOf(m) >= 0 && CAMPAIGN.indexOf(m) < CAMPAIGN.length - 1;
+    // A mission of the campaign on trial leads on to the next one of that campaign.
+    const chain = m.probe ? PROBE_MISSIONS : CAMPAIGN;
+    const hasNext = won && chain.indexOf(m) >= 0 && chain.indexOf(m) < chain.length - 1;
     $('#btn-next').hidden = !hasNext;
     $('#btn-retry').classList.toggle('primary', !hasNext);
+    this.showReward(won ? m.reward : null);
     this.setHint('');
     this.setMode('result');
+  }
+
+  /**
+   * The reward of a won mission on the result sheet: one of two improvements to pick (the next mission
+   * waits for the choice, and it can be changed by winning the mission again), or something new that
+   * comes along.
+   */
+  showReward(reward) {
+    const box = $('#result-reward');
+    const next = $('#btn-next');
+    box.hidden = !reward;
+    next.disabled = false;
+    next.textContent = i18n.t('next');
+    if (!reward) return;
+    const card = (id, kind, tag, on) => `<${tag} class="perk${on ? ' on' : ''}"${tag === 'button' ? ` data-perk="${id}"` : ''}><b>${i18n.t(`${kind}_${id}`)}</b><span>${i18n.t(`${kind}_${id}_d`)}</span></${tag}>`;
+    if (reward.gift) {
+      box.innerHTML = `<p class="eyebrow">${i18n.t('rewardNew')}</p>${card(reward.gift, 'gift', 'div', true)}`;
+      return;
+    }
+    const picked = this.store.perks[this.mission.id];
+    box.innerHTML = `<p class="eyebrow">${i18n.t('rewardPick')}</p>${reward.choice.map((id) => card(id, 'perk', 'button', picked === id)).join('')}`;
+    next.disabled = !picked;
+    if (!picked) next.textContent = i18n.t('rewardFirst');
   }
 
   /**

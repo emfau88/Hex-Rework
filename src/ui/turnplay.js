@@ -400,8 +400,13 @@ export class TurnPlay {
     const n = g.commandsLeft;
     // A mission with its own limit of turns counts the last ones down.
     const left = g.mission.turns?.turnLimit ? g.T.turnLimit - g.turn + 1 : Infinity;
-    if (left <= 3) this.app.banner(left > 1 ? i18n.t('turnsLeft', { n: left }) : i18n.t('turnLast'), '#ff8d7f', 2200);
-    else this.app.banner(i18n.t('turnStart', { n: g.turn }), '#f2c36b', 1600);
+    if (left <= 3) {
+      this.app.banner(left > 1 ? i18n.t('turnsLeft', { n: left }) : i18n.t('turnLast'), '#ff8d7f', 2200);
+      if (left === 3 && this.app.speak) this.app.speak('late');
+    } else if (g.commandsMax > g.T.commands) {
+      // The drummer: this turn has one command more.
+      this.app.banner(i18n.t('turnStartDrum', { n: g.turn, m: g.commandsMax }), '#f2c36b', 2200);
+    } else this.app.banner(i18n.t('turnStart', { n: g.turn }), '#f2c36b', 1600);
     const text = this.reports.map((r) => r.text).join(' — ');
     // While a mission still guides the first steps, its sentence keeps the hint line: what the rivals
     // did was just shown on the board and stands in the list of events.

@@ -176,8 +176,8 @@ export const PROBES = [
     reward: { gift: 'knight' },
     talk: {
       start: {
-        de: 'Die Trolle sitzen mit unserer Krone in der großen Höhle im Osten. Holen wir sie, bevor sie Ohrringe daraus machen.',
-        en: 'The trolls sit on our crown in the great cave in the east. Let us fetch it before they turn it into earrings.',
+        de: 'Die Trolle sitzen mit unserer Krone in ihrer großen Höhle hinter dem Wald. Holen wir sie, bevor sie Ohrringe daraus machen.',
+        en: 'The trolls sit on our crown in their great cave behind the woods. Let us fetch it before they turn it into earrings.',
       },
       raid: {
         de: 'Sie rüsten zum Überfall! Das markierte Feld ist nach unserem Zug dran. Schick Truppen hin, bau einen Turm, oder nimm ihnen das Waldfeld davor.',

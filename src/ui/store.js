@@ -5,7 +5,8 @@
 // and so shares its storage: it keeps its own key, so the real game's progress stays untouched.
 const KEY = 'hexwars_runden_v1';
 // `speed` is the pace of a match: 'calm' (the default for a first start), 'normal' or 'fast'.
-const DEFAULTS = { color: 0, difficulty: 'normal', speed: 'calm', sendFraction: 0.5, supply: true, sound: true, lang: null, stars: {}, best: {}, done: {} };
+// `perks` are the improvements picked in the campaign on trial, by the mission that offered them.
+const DEFAULTS = { color: 0, difficulty: 'normal', speed: 'calm', sendFraction: 0.5, supply: true, sound: true, lang: null, stars: {}, best: {}, done: {}, perks: {} };
 
 export function loadStore() {
   try {

@@ -91,6 +91,7 @@
 
   <div id="banner" aria-live="polite"></div>
   <div id="hint"></div>
+  <div id="say" hidden><b id="say-who"></b><span id="say-text"></span></div>
 
   <footer id="bottom" class="bar">
     <button id="btn-send" class="send">
@@ -160,6 +161,7 @@
       <p id="brief-text" class="sub"></p>
       <div class="lesson"><b data-t="newRule"></b><span id="brief-lesson"></span></div>
       <div class="lesson goal"><b data-t="goal"></b><span id="brief-goal"></span></div>
+      <p id="brief-perks" class="sub" hidden></p>
       <div id="brief-stars" class="stars"></div>
       <div class="actions">
         <button id="btn-start" class="primary" data-t="start"></button>
@@ -209,6 +211,7 @@
       <p id="result-sub" class="sub"></p>
       <div id="result-stars" class="stars"></div>
       <div id="result-stats" class="stats"></div>
+      <div id="result-reward" class="reward" hidden></div>
       <div class="actions">
         <button id="btn-next" class="primary" data-t="next"></button>
         <button id="btn-retry" data-t="retry"></button>
