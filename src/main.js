@@ -198,6 +198,7 @@ class App {
     $('#brief-perks').hidden = !perks.length;
     $('#brief-perks').textContent = i18n.t('briefPerks', { list: perks.map((p) => i18n.t(`perk_${p}`)).join(', ') });
     $('#brief-goal').textContent = mission.objective?.type === 'lair' ? i18n.t('goalLairLong', { n: mission.turns?.turnLimit ?? TURN_RULES.turnLimit })
+      : mission.objective?.type === 'take' ? (mission.turns?.turnLimit ? i18n.t('goalTakeLongN', { n: mission.turns.turnLimit }) : i18n.t('goalTakeLong'))
       : !hold ? i18n.t('goalConquerLong')
       : inTurnMode ? i18n.t('goalCitadelLongTurns', { n: holdTurns(mission) })
       : i18n.t('goalCitadelLong', { s: mission.objective.seconds });
@@ -238,7 +239,7 @@ class App {
     this.raidHints = 0;
     // A goal on the map (the great cave) stays marked until it is taken.
     // In a mission with `goalSign` the castle of the first rival carries the same sign.
-    const goalTile = this.game.objective.type === 'lair' ? this.game.objective.tile
+    const goalTile = this.game.objective.type === 'lair' || this.game.objective.type === 'take' ? this.game.objective.tile
       : mission.goalSign ? this.game.factions.find((f) => !f.wild && f.id !== 0)?.castle ?? -1
       : -1;
     this.ui.goalMark = goalTile >= 0 ? { tile: goalTile, text: i18n.t('goalMark') } : null;
@@ -1073,7 +1074,10 @@ class App {
       case 'heroaway':
         // Turn mode: he rides home and sits out a few moves.
         this.say(e.tile, i18n.t('evKnightAway', { n: e.turns }));
-        if (mine(e.owner)) this.note(i18n.t('evKnightAway', { n: e.turns }), true);
+        if (mine(e.owner)) {
+          this.note(i18n.t('evKnightAway', { n: e.turns }), true);
+          this.speak('away');
+        }
         break;
       case 'heroback':
         this.say(e.tile, i18n.t('evKnightBack'));
@@ -1193,6 +1197,16 @@ class App {
       bar.hidden = true;
       if (this.ui.goalMark && !game.tiles[game.objective.tile].lair) this.ui.goalMark = null;
       // The captain speaks up once the person stands next to the goal.
+      if (this.mission?.talk?.near && !this.said?.has('near') && game.tiles[game.objective.tile].neighbors.some((n) => game.tiles[n].owner === this.ui.human)) this.speak('near');
+      return;
+    }
+    if (game.objective.type === 'take') {
+      // A field to take (a pass): the mission names it; with a turn limit the clock shows too.
+      const w = this.mission?.goalWord ? i18n.pick(this.mission.goalWord) : i18n.t('goalTakeWord');
+      const left = this.mission?.turns?.turnLimit && game.T ? game.T.turnLimit - game.turn + 1 : 0;
+      text.textContent = !left ? i18n.t('goalTake', { w }) : left > 1 ? i18n.t('goalTakeN', { w, n: left }) : i18n.t('goalTake1', { w });
+      text.style.color = left && left <= 3 ? '#ff8d7f' : '';
+      bar.hidden = true;
       if (this.mission?.talk?.near && !this.said?.has('near') && game.tiles[game.objective.tile].neighbors.some((n) => game.tiles[n].owner === this.ui.human)) this.speak('near');
       return;
     }
@@ -1341,7 +1355,7 @@ class App {
     const byHold = game.reason === 'hold';
     const lostTo = game.factions[game.winner];
     // A mission of the campaign may tell its own two sentences: how it went on, or why it was too late.
-    $('#result-sub').textContent = won ? (m.after ? i18n.pick(m.after) : i18n.t(byHold ? 'victoryHold' : game.reason === 'lair' ? 'victoryLair' : 'victorySub'))
+    $('#result-sub').textContent = won ? (m.after ? i18n.pick(m.after) : i18n.t(byHold ? 'victoryHold' : game.reason === 'lair' ? 'victoryLair' : game.reason === 'take' ? 'victoryTake' : 'victorySub'))
       : game.reason === 'turns' ? (m.late ? i18n.pick(m.late) : i18n.t('defeatTurns', { n: game.T.turnLimit }))
       : !lostTo ? i18n.t('defeatWild')
       : i18n.t(byHold ? 'defeatHold' : 'defeatSub', { name: lostTo.name });

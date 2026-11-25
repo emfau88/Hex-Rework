@@ -146,7 +146,11 @@ export const MISSIONS = [...CAMPAIGN, ...SKIRMISH];
  *           that comes along; improvements count in every later mission of this list (TURN_RULES.perks)
  *   talk    short lines of the captain during the match, each said once: start, raid (the first mark on
  *           an own field), held (a raid bounced off), lost (a field fell to a raid), off (a raid was
- *           called off), near (an own field touches the goal), late (three turns left)
+ *           called off), near (an own field touches the goal), late (three turns left), away (the
+ *           person's hero rides home)
+ *   hero    a hero of the person who waits at the castle from the start ('knight')
+ *   objective { type: 'take' }  whoever takes the field marked with @ on the map wins
+ *   goalWord the name of that field in the goal line at the top ("Ziel: Pass · noch 5 Züge")
  */
 export const PROBES = [
   {
@@ -298,6 +302,76 @@ export const PROBES = [
       'w  .  .  .  f!:8 f!:10 f!:12 m  m',
       '  m  .  .  f  f!:8 f!:10 f!:10 m',
       'm  m  .  f  f!:8 f!t:22 f!:8 m  m',
+    ],
+  },
+  {
+    id: 'wegzoll',
+    no: 3,
+    probe: true,
+    name: { de: 'Wegzoll', en: 'Toll Road' },
+    blurb: { de: 'Duell · Pass', en: 'Duel · mountain pass' },
+    brief: {
+      de: 'EMBER sitzt auf dem einzigen Pass und verlangt Wegzoll: eine Krone. Die suchst du ja gerade. Nimm den Pass.',
+      en: 'EMBER sits on the only pass and demands a toll: one crown. Which is just what you are looking for. Take the pass.',
+    },
+    lesson: {
+      de: 'Ritter Kunibert reitet mit den Truppen seines Felds. Sein erster Angriff in jedem Zug kostet keinen Befehl.',
+      en: 'Sir Kunibert rides with the troops of his field. His first attack in each turn costs no command.',
+    },
+    talk: {
+      start: {
+        de: 'Kunibert reitet wieder mit uns. Sein erster Angriff in jedem Zug kostet keinen Befehl. Die goldene Raute unten zeigt, ob er noch frei ist.',
+        en: 'Sir Kunibert rides with us again. His first attack in each turn costs no command. The golden diamond below shows whether he is still free.',
+      },
+      away: {
+        de: 'Kunibert ist abgeworfen und reitet heim. Drei Züge ohne ihn. Schick ihn nur, wenn es sicher reicht.',
+        en: 'Kunibert was thrown and rides home. Three turns without him. Only send him when it is surely enough.',
+      },
+      near: {
+        de: 'Wir stehen am Pass. Der Turm auf dem Hügel macht ihn zäh. Greif von zwei Seiten an, oder nimm erst den Vorposten im Wald und komm von hinten.',
+        en: 'We stand at the pass. The tower on the hill makes it tough. Attack from two sides, or take the outpost in the woods first and come from behind.',
+      },
+      late: {
+        de: 'EMBER will den Pass zumauern. Noch drei Züge!',
+        en: 'EMBER wants to wall up the pass. Three turns left!',
+      },
+    },
+    after: {
+      de: 'Der Pass ist frei. Im Zollhaus liegt keine Krone, aber der Zöllner redet gern: Sie ging zum Turm der Prinzessin. Kunibert putzt schon seine Rüstung.',
+      en: 'The pass is open. There is no crown in the toll house, but the toll keeper likes to talk: it went to the princess\'s tower. Kunibert is already polishing his armour.',
+    },
+    late: {
+      de: 'Zu spät. EMBER hat den Pass zugemauert und verlangt jetzt zwei Kronen.',
+      en: 'Too late. EMBER has walled up the pass and now wants two crowns.',
+    },
+    goalWord: { de: 'Pass', en: 'pass' },
+    hero: 'knight',
+    objective: { type: 'take' },
+    factions: 2,
+    goalSign: false,
+    parTurns: 12,
+    seed: 53,
+    // After turn 18 the mission is lost. A patient rival: it sits on the pass like on a castle (see
+    // keep in ai.js) and attacks from two fields at most.
+    // Measured with the stand-in players (tools/audit/mission.mjs, 60 matches, two sets of dice,
+    // 25.11.2026): the beginner wins 82 to 85 % (turn 8/12/16), the clever one 88 to 93 % (turn 11),
+    // the single-minded one always (turn 8 to 9). Where they lose, it is the clock or their castle.
+    // Without the knight's free attack the beginner wins 2 % and the clever one 15 %: he carries the
+    // mission, which is its lesson.
+    turns: { firstCommands: null, turnLimit: 18 },
+    turnAi: { margin: 1.4, sides: 2, reinforce: 1, frontKeep: 7, castleKeep: 24, incomeMul: 0.6, patience: 99 },
+    rules: { startRing: 6 },
+    // A ridge runs from north to south. Its only gap is the pass (@, a hill with a tower), open to the
+    // west on two edges. In the south a narrow way runs along the coast; EMBER's outpost stands in front
+    // of it on the person's side, linked to EMBER's land through the field on that way.
+    // Free land holds 10 and the start ring only 6: the way to the pass costs troops (with 5 and 10
+    // every stand-in took the pass by turn 7).
+    layout: [
+      'm  m  .:10 .:10 .:10 .:10 m  .  .  m  m',
+      '  m  .  .:10 .:10 .:10 m  .  .  .  m',
+      'w  K0 .  .:10 .:10 .:10 h1+@:20 .1:10 .  K1 w',
+      '  m  .  .:10 .:10 .:10 .:10 m  .1:6 .  m',
+      'm  m  .:10 .:10 .:10 f1+:12 .1:6 .1:6 .  m  m',
     ],
   },
 ];

@@ -49,6 +49,8 @@ export class Game {
     // Mission goal. Taking every rival castle always wins; a mission may add a second way.
     const goal = mission.objective;
     this.objective = goal && goal.type === 'hold' && map.citadel >= 0 ? { type: 'hold', tile: map.citadel, seconds: goal.seconds } : { type: 'conquer' };
+    // A field marked on the map (@): whichever kingdom takes it wins.
+    if (goal && goal.type === 'take' && map.goal >= 0) this.objective = { type: 'take', tile: map.goal };
     // Seconds each kingdom has held the citadel securely so far; `time` is the current holder's total.
     this.hold = { owner: -1, time: 0, secure: false, times: map.castles.map(() => 0) };
 
@@ -894,6 +896,7 @@ export class Game {
     this.events.push({ type: 'capture', owner: winner, previous, tile: t.id, citadel: t.terrain === 'citadel', sides });
     if (t.castle >= 0 && t.castle !== winner) this._conquer(t.castle, winner, t);
     if (this.objective.type === 'lair' && t.id === this.objective.tile && winner !== this.wild) this._finish(winner, 'lair');
+    if (this.objective.type === 'take' && t.id === this.objective.tile && winner >= 0 && winner !== this.wild) this._finish(winner, 'take');
     return true;
   }
 
@@ -928,6 +931,12 @@ export class Game {
     const alive = this.factions.filter((f) => f.alive && !f.wild);
     if (this.human >= 0 && fallen === this.human) this._finish(heir, 'castle');
     else if (alive.length <= 1) this._finish(alive.length ? alive[0].id : -1, 'castle');
+  }
+
+  /** The field the mission wants taken (the great cave, a marked field), unless `me` holds it already; else -1. */
+  goalField(me) {
+    const o = this.objective;
+    return (o.type === 'lair' || o.type === 'take') && this.tiles[o.tile].owner !== me ? o.tile : -1;
   }
 
   /** `winner` is -1 if monsters took the player's castle and no kingdom won. */
@@ -998,7 +1007,9 @@ export class Game {
         if (o.owner >= 0) rival = true;
         else open = true;
       }
-      t.front = rival || open;
+      // The field a mission wants taken (a pass) is manned like a front even far behind it, and
+      // never sends its troops away.
+      t.front = rival || open || (this.objective.type === 'take' && t.id === this.objective.tile);
       t.rivalFront = rival;
       t.guard = !t.front && t.castle < 0 && t.neighbors.includes(f.castle);
       want[t.id] = t.front ? this.cap(t) - t.units : t.guard ? (alarm ? this.cap(t) : R.ringGuard) - t.units : 0;

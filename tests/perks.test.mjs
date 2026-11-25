@@ -106,8 +106,8 @@ test('a raid that is called off tells whoever was marked', () => {
   assert.ok(!den.lair.marked);
 });
 
-test('the campaign on trial: mission 1 with a choice, then the troll woods', () => {
-  assert.deepEqual(PROBES.map((m) => [m.id, m.no]), [['erstekrone', 1], ['trollwald', 2]]);
+test('the campaign on trial: mission 1 with a choice, then the troll woods, then the toll road', () => {
+  assert.deepEqual(PROBES.map((m) => [m.id, m.no]), [['erstekrone', 1], ['trollwald', 2], ['wegzoll', 3]]);
   for (const m of PROBES) assert.ok(m.probe && m.after, `${m.id} is on trial and tells how it went on`);
   const [first, woods] = PROBES;
   assert.equal(CAMPAIGN[0].reward, undefined, 'the mission of the menu itself is untouched');

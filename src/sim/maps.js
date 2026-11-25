@@ -256,6 +256,7 @@ function place(tiles, wide) {
 //   !  after the letter gives the field to the monsters (the wilds):  .!:20   h!:30
 //   !t a troll cave of the monsters, with its size as garrison:  .!t   .!t:40
 //   +  tower, *  farm (after the owner):  .1+   .0*
+//   @  the field the mission wants taken (objective 'take'), after the building:  h1+@:20
 //   :n sets the garrison:  h:12   .1+:15   K1:30
 
 const TERRAIN = { '.': 'plain', p: 'plain', f: 'forest', h: 'hill', m: 'mountain', w: 'water', c: 'citadel', K: 'plain' };
@@ -263,7 +264,7 @@ const TERRAIN = { '.': 'plain', p: 'plain', f: 'forest', h: 'hill', m: 'mountain
 const NEUTRAL_UNITS = { plain: 8, forest: 9, hill: 12, citadel: 30 };
 // Lairs of the monsters, by their letter after "!".
 const LAIRS = { t: 'troll' };
-const TOKEN = /^([.pfhmwcK])(\d|![a-z]?)?([+*])?(?::(\d+))?$/;
+const TOKEN = /^([.pfhmwcK])(\d|![a-z]?)?([+*])?(@)?(?::(\d+))?$/;
 
 export function buildAuthored(mission, seed, wide = true) {
   const tiles = [];
@@ -272,6 +273,7 @@ export function buildAuthored(mission, seed, wide = true) {
   const wild = []; // fields of the monsters; the game hands them to their side
   const lairs = []; // their lairs: { id, kind, size }
   let citadel = -1;
+  let goal = -1; // the field to take (@)
 
   mission.layout.forEach((line, row) => {
     line.trim().split(/\s+/).forEach((token, col) => {
@@ -300,15 +302,19 @@ export function buildAuthored(mission, seed, wide = true) {
         if (m[3] === '+') t.building = 'tower';
         else if (m[3] === '*') t.building = 'farm';
       }
+      if (m[4]) {
+        if (!t.passable || m[1] === 'K' || goal >= 0) throw new Error(`Karte ${mission.id}: Ziel "${token}" in Zeile ${row + 1} geht nicht`);
+        goal = id;
+      }
       t.units = t.passable ? NEUTRAL_UNITS[t.terrain] ?? 3 : 0;
-      if (m[4] !== undefined && t.passable) {
-        t.units = Number(m[4]);
+      if (m[5] !== undefined && t.passable) {
+        t.units = Number(m[5]);
         t.fixed = true;
       } else if (owner >= 0 && m[1] !== 'K') {
         t.units = 6;
         t.fixed = true;
       }
-      if (lair) lairs.push({ id, kind: lair, size: m[4] !== undefined ? Number(m[4]) : null });
+      if (lair) lairs.push({ id, kind: lair, size: m[5] !== undefined ? Number(m[5]) : null });
       tiles.push(t);
       lookup.set(hexKey(q, row), id);
     });
@@ -316,5 +322,5 @@ export function buildAuthored(mission, seed, wide = true) {
   for (let i = 0; i < castles.length; i++) if (castles[i] === undefined) throw new Error(`Karte ${mission.id}: Burg ${i} fehlt`);
 
   link(tiles, lookup);
-  return { tiles, castles, citadel, wild, lairs, seed, ...place(tiles, wide) };
+  return { tiles, castles, citadel, wild, lairs, goal, seed, ...place(tiles, wide) };
 }

@@ -210,11 +210,14 @@ test('for a trial the knight waits at the person\'s castle; without it there is 
   const { PROBES } = await import('../src/sim/missions.js');
   for (const mission of PROBES) {
     const trial = new TurnGame({ mission, human: 0, hero: 'knight' });
-    assert.ok(trial.heroTrial);
+    // A mission that brings him itself is no trial: a win there counts.
+    assert.equal(trial.heroTrial, !mission.hero, mission.id);
     assert.equal(trial.heroField(0), trial.factions[0].castle, mission.id);
     assert.equal(trial.tiles.filter((t) => t.hero).length, 1);
     const plain = new TurnGame({ mission, human: 0 });
-    assert.ok(!plain.heroTrial && plain.tiles.every((t) => t.hero === null), mission.id);
+    assert.ok(!plain.heroTrial, mission.id);
+    if (mission.hero) assert.equal(plain.heroField(0), plain.factions[0].castle, mission.id);
+    else assert.ok(plain.tiles.every((t) => t.hero === null), mission.id);
   }
 });
 

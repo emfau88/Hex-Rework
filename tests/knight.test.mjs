@@ -143,9 +143,10 @@ test('figure showcase: the knight is set by hand, one per kingdom, and a second 
   assert.equal(match.placeHero(match.factions[0].castle), false, 'not in a real match');
 });
 
-test('no mission has a hero yet', () => {
+test('in real time no mission has a hero; only the toll road brings him, and only in turns', () => {
   for (const mission of [...MISSIONS, ...CAMPAIGN, ...PROBES]) {
     const game = new Game({ mission, human: 0 });
     assert.ok(game.tiles.every((t) => t.hero === null), mission.id);
   }
+  assert.deepEqual([...MISSIONS, ...CAMPAIGN, ...PROBES].filter((m) => m.hero).map((m) => m.id), ['wegzoll']);
 });

@@ -35,6 +35,8 @@ export function aiThink(game, f) {
     if (facesRival(t)) k = ring.has(t.id) ? P.frontKeep + 3 : P.frontKeep;
     if (t.building) k = Math.max(k, 4);
     if (t.id === prize) k = Math.max(k, P.reinforce >= 2 ? 16 : 8);
+    // The field a mission wants taken (a pass): whoever holds it sits on it like on a castle.
+    else if (game.objective.type === 'take' && t.id === game.objective.tile) k = Math.max(k, P.castleKeep);
     else if (t.terrain === 'citadel') k = Math.max(k, 8);
     else if (prizeRing.has(t.id) && tiles[prize].owner === me && P.reinforce >= 2) k = Math.max(k, 9);
     return k;
@@ -77,8 +79,9 @@ export function aiThink(game, f) {
       frontier.push(o.castle);
     }
   }
-  // A mission against the wilds: their largest lair is the goal and counts like a rival castle.
-  const lairGoal = game.objective.type === 'lair' && tiles[game.objective.tile].owner !== me ? game.objective.tile : -1;
+  // A mission with a goal on the map (the largest lair of the wilds, a marked field): it counts like a
+  // rival castle.
+  const lairGoal = game.goalField(me);
   if (lairGoal >= 0) {
     toCastle[lairGoal] = 0;
     frontier.push(lairGoal);

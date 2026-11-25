@@ -404,12 +404,16 @@ Felder um eine Burg nehmen müssen, um sie wirksam anzugreifen. Die Kampagne hat
 | | gewinnt | in Zug | verliert Felder | alle drei Sterne |
 |---|---|---|---|---|
 | Kluger | 100 % | 10 bis 13, meist 11 | 0 bis 5, meist 2 | 70 bis 77 % |
-| Zielstrebiger | 100 % | 20 bis 38, meist 26 | sehr viele | nie |
+| Zielstrebiger | 100 % | 7 bis 8 | 0 bis 1 | immer |
 | Anfänger | 100 % | 21 | 0 bis 2 | nie (zu langsam) |
+| Wartender | 0 %, seine Burg fällt | – | – | – |
 
 - Die Burg fiel dem Klugen von 2 bis 3 Seiten, mit 48 bis 70 Truppen gegen 36 bis 40.
 - Der Anfänger-Testspieler greift Burgen nach eigener Regel erst ab Zug 21 an. Sein Zug sagt hier nichts.
-- Der Zielstrebige lässt jedes Feld leer zurück und verliert es wieder. Er gewinnt trotzdem immer, nur spät.
+- **Korrektur 25.11.2026:** Im Messwerkzeug spielte der Gegner des Zielstrebigen bis dahin selbst zielstrebig,
+  und der Gegner des Wartenden tat gar nichts. Die alten Zeilen (Zielstrebiger Zug 20 bis 38, Wartender nie
+  besiegt) waren falsch. Die Zeilen oben sind neu gemessen, mit zwei Würfelsätzen. Mission 2 war nicht
+  betroffen: Dort gibt es kein zweites Reich.
 - Im Browser im Handy-Format durchgespielt (Befehle ausgelöst, nicht getippt): Sieg in Zug 8, ein Feld verloren,
   alle fünf Sätze kamen an der richtigen Stelle.
 - Geschätzt hatte ich für dich 7 bis 10 Züge, also etwa 2 bis 3 Minuten. Du brauchtest 3 Züge.
@@ -475,11 +479,40 @@ behebt. Dann wird sie ersetzt.
     wartet er zu Beginn an deiner Burg. Ein Sieg damit zählt nicht für deinen Spielstand. Keine Mission hat ihn sonst.
   - Im Handy-Format geprüft: Angriff gratis, Scheitern, 3 Züge Pause und Rückkehr.
 - [ ] Der Computergegner geht mit dem Helden um: Er weiß, dass dessen Feld gefährlich ist.
-- [ ] Neues Missionsziel „Nimm dieses Feld“.
-- [ ] Die Karte bauen.
+- [x] Neues Missionsziel „Nimm dieses Feld“ (25.11.2026, tests/take.test.mjs).
+  - Auf der Karte steht das Feld mit `@`. Wer es nimmt, gewinnt sofort. Die Wildnis gewinnt damit nicht.
+  - Es trägt das Zeichen „ZIEL“. Oben steht „Ziel: Pass · noch 18 Züge“.
+  - Wer das Feld hält, sitzt darauf wie auf einer Burg: Der Gegner schickt von dort keine Truppen weg, und der
+    Nachschub füllt es auf, statt davon zu nehmen.
+- [x] Die Karte bauen (25.11.2026). Link: `?probe=wegzoll`. 36 Felder, ein Gebirgskamm von oben nach unten.
+  - Die einzige Lücke ist der Pass: ein Hügel mit Turm und 20 Mann. Von deiner Seite kommt man nur über 2 Kanten heran.
+  - EMBERs Vorposten (Wald mit Turm, 12) steht auf deiner Seite. Über ihn führt der zweite Weg hinter den Pass.
+  - Der Ritter wartet von Anfang an an deiner Burg. Ein Sieg zählt hier normal.
+  - Freies Land kostet 10, deine Felder an der Burg beginnen mit 6. Nach Zug 18 ist die Mission verloren.
+  - Erste Fassungen waren viel zu leicht: Mit freiem Land zu 5 nahmen alle Testspieler den Pass bis Zug 7.
+  - Mehr Mann auf dem Pass hilft nicht: Ein Feld fasst höchstens 20.
+
+  **Gemessen** (60 Partien je Testspieler, zwei Würfelsätze, Stufe Normal, ohne Verbesserung)
+
+  | Testspieler | gewinnt | in Zug | alle drei Sterne |
+  |---|---|---|---|
+  | Anfänger | 82 bis 85 % | 8 bis 16, meist 12 | 16 bis 22 % |
+  | Kluger | 88 bis 93 % | 7 bis 15, meist 11 | 13 % |
+  | Zielstrebiger | 100 % | 7 bis 10, meist 8 bis 9 | 7 % |
+  | Wartender | 0 %, verliert an der Zuggrenze | – | – |
+
+  - Wo der Anfänger verliert, fällt seine Burg (4 bis 6 Mal) oder die Zeit läuft ab (3 bis 7 Mal).
+  - Ohne den freien Angriff des Ritters gewinnt der Anfänger nur 2 %, der Kluge 15 %. Der Ritter trägt die
+    Mission, und das soll sie zeigen.
+  - Der dritte Stern („höchstens 3 Felder verloren“) ist hier schwer: EMBER holt sich oft Felder zurück.
 - [ ] Die zweite Wahl bauen: Sturmleitern oder Feldschanzen.
-- [ ] Rechnerprobe mit jeder Wahl aus Bündel 2.
-- [ ] Texte: Einweisung, Lehrsatz, Geschichte.
+- [ ] Rechnerprobe mit jeder Wahl aus Bündel 2. Erste Messung (25.11.2026, eine Würfelreihe):
+  - Mit dem Trommler wie ohne: Anfänger 87 %, Zug 12.
+  - **Mit dem Kornspeicher zu leicht:** Anfänger 100 %, Zug 6 bis 11, meist 8. Das ist über der Grenze von 95 %.
+    Noch nicht entschieden, was daraus folgt.
+- [x] Texte: Einweisung, Lehrsatz, Geschichte (25.11.2026, Entwurf). Der Hauptmann sagt vier Sätze: zu Beginn
+      (der Ritter und die goldene Raute), wenn Kunibert heimreitet, am Pass (zwei Wege) und drei Züge vor Schluss.
+      Nach dem Sieg: Im Zollhaus liegt keine Krone, sie ging zum Turm der Prinzessin (führt zu Mission 4).
 - [ ] Du spielst die Mission 2 bis 3 Mal mit Zeitmessung und beantwortest die vier Fragen.
 - [ ] Entscheidung: behalten, ändern oder verwerfen.
 

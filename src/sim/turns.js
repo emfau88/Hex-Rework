@@ -49,9 +49,11 @@ export class TurnGame extends Game {
       const home = this.tiles[this.factions[this.human].castle];
       home.units = Math.min(this.cap(home), home.units + this.T.perks.granary.start);
     }
-    // A hero of the person waits at the castle (so far only for trials: …&ritter).
-    this.heroTrial = Boolean(o.hero) && this.human >= 0;
-    if (this.heroTrial) this.tiles[this.factions[this.human].castle].hero = o.hero;
+    // A hero of the person waits at the castle: one the mission brings along (`hero`), or one only on
+    // trial (o.hero, …&ritter), which counts nothing.
+    const hero = mission.hero || o.hero;
+    this.heroTrial = Boolean(o.hero) && !mission.hero && this.human >= 0;
+    if (hero && this.human >= 0) this.tiles[this.factions[this.human].castle].hero = hero;
     const diff = TURN_DIFFICULTY[this.difficulty] || TURN_DIFFICULTY.normal;
     for (const f of this.factions) {
       if (f.wild || f.human) continue;
@@ -809,8 +811,8 @@ export function planBreak(game, f) {
       queue.push(o.castle);
     }
   }
-  // Where the goal is a lair of the wilds, it counts like a rival castle.
-  const lairGoal = game.objective.type === 'lair' && tiles[game.objective.tile].owner !== me ? game.objective.tile : -1;
+  // Where the goal is a field on the map (a lair of the wilds, a marked field), it counts like a rival castle.
+  const lairGoal = game.goalField(me);
   if (lairGoal >= 0) {
     toCastle[lairGoal] = 0;
     queue.push(lairGoal);

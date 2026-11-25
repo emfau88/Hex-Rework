@@ -19,8 +19,9 @@ nicht mehr, es zählt die Form der Front.
   [emfau88.github.io/Hex-Rework/runden/?probe=kampagne](https://emfau88.github.io/Hex-Rework/runden/?probe=kampagne).
   Nur Mission 2 „Im Trollwald“:
   [emfau88.github.io/Hex-Rework/runden/?probe=trollwald](https://emfau88.github.io/Hex-Rework/runden/?probe=trollwald),
-  lokal `http://localhost:4180/?probe=trollwald`. Messen mit `node tools/audit/mission.mjs erstekrone` oder
-  `… trollwald`. Mit `&ritter` am Link (z. B. `?probe=erstekrone&ritter`) wartet Ritter Kunibert an deiner Burg,
+  lokal `http://localhost:4180/?probe=trollwald`. Nur Mission 3 „Wegzoll“ (den Pass nehmen, mit dem Ritter):
+  [emfau88.github.io/Hex-Rework/runden/?probe=wegzoll](https://emfau88.github.io/Hex-Rework/runden/?probe=wegzoll).
+  Messen mit `node tools/audit/mission.mjs erstekrone`, `… trollwald` oder `… wegzoll`. Mit `&ritter` am Link (z. B. `?probe=erstekrone&ritter`) wartet Ritter Kunibert an deiner Burg,
   zum Ausprobieren seiner Regel in Zügen; ein Sieg damit zählt nicht für den Spielstand.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)

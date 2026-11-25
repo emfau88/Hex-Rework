@@ -29,6 +29,8 @@ const ai = JSON.parse(opt('ai', '{}')); // the rivals' planner in turns (mission
 const layoutFile = opt('layout', null);
 const perks = opt('perks', '').split(',').filter(Boolean); // improvements of the person: drummer, granary
 const trace = args.includes('--trace');
+// --ohne-ritter: the stand-ins leave the knight's free attack unused (as before 25.11.2026)
+const noKnight = args.includes('--ohne-ritter');
 
 const BEGINNER = Object.freeze({ margin: 1.4, sides: 2, waves: 0, reinforce: 1, frontKeep: 3, castleKeep: 16, build: 0.2, idleBuild: false, incomeMul: 1, humanBias: 1, rushAfter: 160 });
 const CLEVER = Object.freeze({ margin: 1.1, sides: 6, waves: 2, reinforce: 3, frontKeep: 6, castleKeep: 26, build: 0.5, idleBuild: true, incomeMul: 1, humanBias: 1, rushAfter: 48 });
@@ -41,7 +43,7 @@ const CLEVER = Object.freeze({ margin: 1.1, sides: 6, waves: 2, reinforce: 3, fr
 const SEEKER = 'seeker';
 function seek(g, me) {
   const tiles = g.tiles;
-  const goal = g.objective.type === 'lair' ? g.objective.tile : g.factions.find((f) => f.alive && !f.wild && f.id !== me)?.castle ?? -1;
+  const goal = g.objective.type === 'lair' || g.objective.type === 'take' ? g.objective.tile : g.factions.find((f) => f.alive && !f.wild && f.id !== me)?.castle ?? -1;
   if (goal < 0) return;
   const dist = new Int16Array(tiles.length).fill(-1);
   dist[goal] = 0;
@@ -68,6 +70,46 @@ function seek(g, me) {
     }
     if (!best || !g.attack(me, best.target, best.parts)) break;
   }
+}
+
+/**
+ * A mission with the knight: every stand-in uses his free attack at the start of each move, the way a
+ * person would. He attacks the field nearest to the goal that he takes, alone with all but one troop of
+ * his field or together with every own field next to it (the fields behind follow). Through own land
+ * he reaches any field at its border, so he need not stand at the front himself.
+ */
+function knightStep(g, me) {
+  const from = g.freeAttack(me);
+  if (from < 0) return;
+  const tiles = g.tiles;
+  const goal = g.goalField(me) >= 0 ? g.goalField(me) : g.factions.find((f) => f.alive && !f.wild && f.id !== me)?.castle ?? -1;
+  if (goal < 0) return;
+  const dist = new Int16Array(tiles.length).fill(-1);
+  dist[goal] = 0;
+  const queue = [goal];
+  for (let i = 0; i < queue.length; i++) for (const n of tiles[queue[i]].neighbors) if (dist[n] < 0 && tiles[n].passable) { dist[n] = dist[queue[i]] + 1; queue.push(n); }
+  const own = Math.floor(tiles[from].units) - 1;
+  if (own < 1) return;
+  let best = null;
+  const seen = new Set();
+  for (const t of tiles) {
+    if (t.owner !== me) continue;
+    for (const n of t.neighbors) {
+      const o = tiles[n];
+      if (!o.passable || o.owner === me || seen.has(n)) continue;
+      seen.add(n);
+      const alone = [{ origin: from, units: own }];
+      const joined = [...g.assaultParts(me, n, 1, true).filter((p) => p.origin !== from), ...alone];
+      for (const parts of [alone, joined]) {
+        const res = g.preview(me, n, parts);
+        if (!res || !res.won || !res.free) continue;
+        const score = -dist[n] * 100 - res.lost;
+        if (!best || score > best.score) best = { target: n, parts, score };
+        break;
+      }
+    }
+  }
+  if (best) g.attack(me, best.target, best.parts);
 }
 
 const base = [...MISSIONS, ...PROBES].find((m) => m.id === id);
@@ -98,8 +140,12 @@ function play(seed, person, log) {
     const me = g.current;
     const wild = me === g.wild;
     const before = g.tiles.map((t) => t.owner);
-    if (!wild && person === SEEKER) seek(g, me);
-    else if (wild || person !== 'idle') aiTurn(g, g.factions[me]);
+    if (me === 0 && person !== 'idle' && !noKnight) knightStep(g, me);
+    // Only kingdom 0 is the stand-in; every other kingdom and the wilds play as in the game.
+    // (Until 25.11.2026 the rivals of the single-minded one played single-minded too, and those of
+    // the idle one did nothing: both rows were wrong where a mission has a rival kingdom.)
+    if (me === 0 && person === SEEKER) seek(g, me);
+    else if (me !== 0 || person !== 'idle') aiTurn(g, g.factions[me]);
     for (const c of g.entry.commands) {
       // How a rival's castle fell to kingdom 0: from how many edges, with how many troops, against how many.
       if (me === 0 && c.type === 'attack' && c.won && castles.has(c.target)) {
@@ -113,7 +159,7 @@ function play(seed, person, log) {
     }
     if (log) {
       const mine = g.tiles.filter((t) => t.owner === 0);
-      const cmds = g.entry.commands.map((c) => (c.type === 'attack' ? `${wild ? 'Überfall' : 'Angriff'} auf ${c.target} mit ${c.plan.reduce((s, p) => s + p.units, 0)} (${c.won ? 'genommen' : 'abgewehrt'}, Verlust ${Math.round(c.lost)})` : c.type === 'build' ? `baut ${c.building}` : `verschiebt ${c.units}`));
+      const cmds = g.entry.commands.map((c) => (c.type === 'attack' ? `${wild ? 'Überfall' : 'Angriff'} auf ${c.target} mit ${c.plan.reduce((s, p) => s + p.units, 0)} (${c.won ? 'genommen' : 'abgewehrt'}, Verlust ${Math.round(c.lost)}${c.hero ? (c.free ? ', Ritter gratis' : ', Ritter') : ''})` : c.type === 'build' ? `baut ${c.building}` : `verschiebt ${c.units}`));
       const lairs = g.lairs.map((l) => (g.tiles[l].lair ? `${l}:${Math.floor(g.tiles[l].units)}${g.tiles[l].lair.marked && g.tiles[l].lair.target >= 0 ? `→${g.tiles[l].lair.target}` : ''}` : `${l}:–`)).join(' ');
       log(`Zug ${String(g.turn).padStart(2)} ${wild ? 'Wildnis' : 'Reich  '} Felder ${String(mine.length).padStart(2)} Truppen ${String(Math.round(mine.reduce((s, t) => s + t.units, 0))).padStart(3)} · Höhlen ${lairs} · ${cmds.join('; ') || '–'}`);
     }
