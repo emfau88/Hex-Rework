@@ -380,7 +380,21 @@ Felder um eine Burg nehmen müssen, um sie wirksam anzugreifen. Die Kampagne hat
 - [x] Der erste Befehl klappt immer: Die Hälfte eines Startfelds (6 von 12) nimmt ein freies Feld (5).
 - [x] Auf EMBERs Burg steht das Schild „ZIEL“.
 - [x] Das Messwerkzeug zeigt jetzt auch die Sterne und von wie vielen Seiten die Burg fiel.
-- [ ] Du spielst sie. Fragen: Ist sie zu leicht? Kommen die Sätze zur rechten Zeit? Stört eine Blase?
+- [x] Du hast sie gespielt (25.11.2026): Sieg in Zug 3 nach 1:18 Minuten, nichts verloren. Viel schneller als
+      gedacht. Deine Entscheidung: **erst mal so lassen.**
+- [ ] Offen: Kommen die Sätze zur rechten Zeit? Stört eine Blase? (In Zug 1 kamen vermutlich drei Sätze kurz
+      hintereinander.)
+
+**Deine Partie, im Rechner nachgespielt** (EMBERs Züge stimmten genau)
+
+- Zug 1: 25 der 26 Truppen deiner Burg zogen in drei Befehlen quer über die Mitte bis vor EMBERs Startfeld.
+  Truppen ziehen durch eigenes Land beliebig weit.
+- Zug 1, EMBER: Von den drei Feldern an seiner Burg schickte er je 9 von 10 weg, dort blieben 2 bis 3. Im
+  Rundenmodus halten nur Felder an der Front Truppen zurück, nicht die an der Burg.
+- Zug 3: Du nahmst zwei dieser Felder und stürmtest die Burg mit 48 Truppen von vier Feldern gegen 27.
+- Falls sie später länger werden soll, besprochen und zurückgestellt: EMBER hält die Felder an der Burg voll,
+  die Burg startet voll (40 statt 20), mehr Abstand zwischen den Burgen, kürzere Wege für Truppen (großer
+  Eingriff, betrifft alle Missionen).
 
 **Gemessen** (60 Partien je Testspieler, zwei Würfelsätze, Stufe Normal)
 
@@ -395,7 +409,7 @@ Felder um eine Burg nehmen müssen, um sie wirksam anzugreifen. Die Kampagne hat
 - Der Zielstrebige lässt jedes Feld leer zurück und verliert es wieder. Er gewinnt trotzdem immer, nur spät.
 - Im Browser im Handy-Format durchgespielt (Befehle ausgelöst, nicht getippt): Sieg in Zug 8, ein Feld verloren,
   alle fünf Sätze kamen an der richtigen Stelle.
-- **Nicht gemessen:** wie lange du brauchst. Geschätzt 7 bis 10 Züge, also etwa 2 bis 3 Minuten.
+- Geschätzt hatte ich für dich 7 bis 10 Züge, also etwa 2 bis 3 Minuten. Du brauchtest 3 Züge.
 
 **Fertig, wenn** Mission 2 mit beiden Wahlen die Abnahme erfüllt und du beide Wahlen reizvoll findest. Keine darf
 die klar bessere sein.
