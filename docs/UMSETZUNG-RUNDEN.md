@@ -458,7 +458,8 @@ behebt. Dann wird sie ersetzt.
   - An der Zahl seines Felds steht sein Zeichen: ein Helm mit Federbusch.
   - Noch nicht: der freie Angriff jeden Zug und die 3 Züge Pause. Das sind Regeln für Züge, sie kommen im
     dritten Schritt. Keine Mission hat ihn bisher.
-- [ ] Du schaust ihn an: bleibt, ändern oder raus.
+- [x] Du schaust ihn an: bleibt, ändern oder raus. Erst „schwer zu erkennen“, dann 15 % größer, dunkles Pferd im
+      Profil, kleinere Satteldecke. Dein Urteil am 25.11.2026: „passt“, er bleibt.
 - [ ] Die Regel des Helden für Züge bauen, mit Tests für die Vorschau.
 - [ ] Bedienung klären: Wie bewegt man ihn? Mit einem Trupp schicken oder eigens antippen.
 - [ ] Der Computergegner geht mit dem Helden um: Er weiß, dass dessen Feld gefährlich ist.
