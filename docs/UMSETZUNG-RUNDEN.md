@@ -319,7 +319,10 @@ entstehen.
 - [x] Die Kette: `?probe=kampagne` öffnet Mission 1, „Nächste Mission“ führt zu „Im Trollwald“.
 - [x] Du hast die alte Mission 1 der Kette gespielt (Zug 16, 4:30 Minuten). Dein Urteil: für den Anfang zu groß,
       und die Burg soll fallen, ohne dass man alle Felder ringsum nehmen muss.
-- [ ] Du spielst die neue Mission 1, wählst, und spielst „Im Trollwald“.
+- [x] Du spielst die neue Mission 1 (Zug 3, 1:18 Minuten) und „Im Trollwald“ (25.11.2026, ohne Verbesserung, über
+      den eigenen Link: Zug 6, 2:30 Minuten, ein Feld verloren, alle drei Sterne). Die große Höhle hielt deinen
+      ersten Angriff mit 17 und fiel dem zweiten mit 29. Von vier Überfällen hielt dein Turm drei ab.
+- [ ] Offen: „Im Trollwald“ mit Trommler oder Kornspeicher, um die beiden Wahlen zu vergleichen.
 
 **Gemessen** („Im Trollwald“, 60 Partien je Testspieler, zwei Würfelsätze)
 
