@@ -117,9 +117,13 @@ Eine kleine Testinsel, um Figuren einzeln anzusehen. Sie steht nicht im Menü, n
 [emfau88.github.io/Hex-Rework/?schau](https://emfau88.github.io/Hex-Rework/?schau) (geht erst nach dem
 nächsten Hochladen), lokal `http://localhost:4180/?schau`.
 
-- **Werkzeuge:** „Befehle“ spielt wie sonst. „Troll“ setzt eine Trollhöhle mit so vielen Trollen, wie die Zahl
+- **Werkzeuge:** „Befehle“ spielt wie sonst. „Ritter“ stellt Ritter Kunibert auf ein Feld eines Reichs (nur in
+  der Testversion unter `runden/?schau`). „Troll“ setzt eine Trollhöhle mit so vielen Trollen, wie die Zahl
   daneben sagt. „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld auf diese Seite, mit so
   vielen Truppen, wie die Zahl sagt. Burgen bleiben, wie sie sind.
+- **Ritter Kunibert** (der erste Held): wartet zu Beginn an der eigenen Burg, reitet mit jedem Trupp seines
+  Felds mit, und wo er angreift, kämpfen 12 statt 8 an der Kante. Scheitert sein Angriff oder fällt sein Feld,
+  reitet er heim in die Burg. Prüfungen in `tests/knight.test.mjs`.
 - **Zeit:** anhalten, ¼, ½, 1 oder 3-fach, „+1 s“ für genau eine Sekunde. Leertaste hält an und startet.
 - **Werte:** Das zuletzt angetippte Feld zeigt bei Ungeheuern Stärke, Angriff, Reichweite, Deckung und
   Vorhaben, bei Reichen Truppen, Zuwachs, Deckung und den laufenden Kampf.

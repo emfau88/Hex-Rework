@@ -445,7 +445,19 @@ behebt. Dann wird sie ersetzt.
 
 **Schritte**
 
-- [ ] Den Ritter für die Figurenschau bauen: Modell, Bewegung, Angriff. Am PC und am Handy geprüft.
+- [x] Den Ritter für die Figurenschau bauen: Modell, Bewegung, Angriff. Am PC und am Handy geprüft (25.11.2026).
+      Link: [Figurenschau der Testversion](https://emfau88.github.io/Hex-Rework/runden/?schau).
+  - Eine große Figur wie der Troll: Ritter auf hellem Pferd, Helm mit weißem Federbusch, Lanze mit Wimpel.
+    Umhang, Satteldecke, Schild und Wimpel tragen die Farbe seines Reichs.
+  - Er wartet zu Beginn an deiner Burg. Der Knopf „Ritter“ stellt ihn auf ein Feld eines Reichs, ein zweiter
+    Tipp auf sein Feld nimmt ihn weg. Jedes Reich hat nur einen.
+  - Er reitet mit jedem Trupp seines Felds mit, außer mit dem Nachschub. Auf dem Marsch reitet er vorne.
+  - Wo er angreift, kämpfen 12 statt 8 an der Kante. Die Vorschau rechnet das mit.
+  - Gewinnt er, steht er auf dem neuen Feld. Scheitert sein Angriff oder fällt sein Feld, reitet er heim in
+    die Burg („Kunibert reitet heim“). Fällt die Burg, ist er fort.
+  - An der Zahl seines Felds steht sein Zeichen: ein Helm mit Federbusch.
+  - Noch nicht: der freie Angriff jeden Zug und die 3 Züge Pause. Das sind Regeln für Züge, sie kommen im
+    dritten Schritt. Keine Mission hat ihn bisher.
 - [ ] Du schaust ihn an: bleibt, ändern oder raus.
 - [ ] Die Regel des Helden für Züge bauen, mit Tests für die Vorschau.
 - [ ] Bedienung klären: Wie bewegt man ihn? Mit einem Trupp schicken oder eigens antippen.
