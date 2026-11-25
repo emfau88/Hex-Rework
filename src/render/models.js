@@ -550,6 +550,58 @@ export function knight(m) {
   side(0.16, 0.71, 0.165, 0.12, 0.07, 0.01);
 }
 
+/**
+ * The stone giant: a hulk of grey rock on pillar legs with boulders for shoulders and fists, moss on
+ * top, a square head with pale glowing eyes above the shoulders and long arms down to the knees. Standing on the origin and facing +z, drawn
+ * instanced like the soldiers, about three times as tall as one on the board. The rope round his
+ * waist and the band on his arm take the colour of his side (violet for the wilds).
+ * With `lifted` he stands on his left leg with the right foot raised high: the warning before a stomp.
+ */
+export function giant(m, lifted = false) {
+  const rock = lin('#aaa59b');
+  const mid = lin('#878177');
+  const dark = lin('#5d5851');
+  const moss = lin('#6f8f4c');
+  const glow = lin('#bfefff');
+  const side = (x, y, z, w, h, d) => m.box(x, y, z, w, h, d, BLACK, 0, 0, 0.75); // in the colour of his side
+
+  // Legs: two pillars on broad slabs. Raised, the right one bends forward at the knee.
+  m.box(-0.095, 0, 0.01, 0.13, 0.27, 0.14, mid);
+  m.box(-0.095, 0, 0.04, 0.16, 0.05, 0.17, dark);
+  if (lifted) {
+    prism(m, [0.095, 0.28, 0], [0.1, 0.31, 0.16], 0.065, 0.06, mid);
+    prism(m, [0.1, 0.31, 0.16], [0.1, 0.17, 0.2], 0.06, 0.055, mid);
+    m.box(0.1, 0.13, 0.22, 0.16, 0.05, 0.17, dark);
+  } else {
+    m.box(0.095, 0, 0.01, 0.13, 0.27, 0.14, mid);
+    m.box(0.095, 0, 0.04, 0.16, 0.05, 0.17, dark);
+  }
+  // Body: hips, a belly and a broad chest, with dark cracks in the stone.
+  m.box(0, 0.26, 0, 0.32, 0.09, 0.19, dark);
+  side(0, 0.28, 0, 0.34, 0.035, 0.2); // rope round the waist
+  m.box(0, 0.32, 0.005, 0.34, 0.13, 0.21, rock);
+  m.box(0, 0.44, 0.01, 0.44, 0.15, 0.24, rock);
+  m.box(-0.07, 0.4, 0.128, 0.018, 0.1, 0.01, dark, 0.3);
+  m.box(0.09, 0.47, 0.133, 0.014, 0.07, 0.01, dark, -0.5);
+  // Boulders for shoulders, with moss on top, and a square head that stands out above them.
+  for (const s of [-1, 1]) {
+    m.box(s * 0.25, 0.47, 0, 0.17, 0.15, 0.2, mid, s * 0.35);
+    m.box(s * 0.25, 0.62, -0.01, 0.13, 0.03, 0.15, moss, s * 0.35);
+  }
+  m.box(0, 0.58, 0.03, 0.18, 0.16, 0.16, rock);
+  m.box(0, 0.7, 0.04, 0.2, 0.045, 0.17, dark); // heavy brow
+  m.box(0, 0.745, 0.01, 0.13, 0.03, 0.12, moss); // moss on the crown
+  for (const s of [-1, 1]) m.box(s * 0.045, 0.64, 0.111, 0.045, 0.032, 0.01, glow, 0, 0.9); // glowing eyes
+  m.box(0, 0.6, 0.111, 0.08, 0.014, 0.01, dark); // mouth
+  // Long arms down to the knees with boulders for fists. Raised foot: the arms swing out for balance.
+  const out = lifted ? 0.05 : 0;
+  for (const s of [-1, 1]) {
+    prism(m, [s * 0.27, 0.49, 0.01], [s * (0.3 + out), 0.26, 0.05], 0.06, 0.055, mid);
+    m.box(s * (0.31 + out), 0.11, 0.06, 0.15, 0.15, 0.15, dark, s * 0.4);
+  }
+  side(-0.285, 0.38, 0.015, 0.13, 0.04, 0.13); // band on his left arm
+}
+
 /** A four-sided beam from point `a` to point `b`, `r0` thick at `a` and `r1` at `b`. */
 function prism(m, a, b, r0, r1, color) {
   const d = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);

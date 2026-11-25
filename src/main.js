@@ -40,7 +40,7 @@ const OPEN_FOR_TESTING = ALL_MISSIONS.some((m) => !m.turnsTuned);
 const holdTurns = (m) => Math.ceil(m.objective.seconds / (m.turns?.seconds ?? TURN_RULES.seconds));
 // Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
 // fast the time runs there.
-const LAB_TOOLS = ['order', 'knight', 'troll', 'wild', 'own', 'rival', 'free'];
+const LAB_TOOLS = ['order', 'knight', 'troll', 'giant', 'wild', 'own', 'rival', 'free'];
 const LAB_AMOUNTS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 99];
 const LAB_SPEEDS = [0.25, 0.5, 1, 3];
 const LAB_SPEED_LABEL = { 0.25: '¼×', 0.5: '½×', 1: '1×', 3: '3×' };
@@ -400,7 +400,7 @@ class App {
   /** Side that a tap sets with this tool: -1 free land, null for "orders". */
   labOwner(tool) {
     const game = this.game;
-    return tool === 'wild' || tool === 'troll' ? game.wild : tool === 'own' ? this.ui.human : tool === 'rival' ? 1 - this.ui.human : tool === 'free' ? -1 : null;
+    return tool === 'wild' || tool === 'troll' || tool === 'giant' ? game.wild : tool === 'own' ? this.ui.human : tool === 'rival' ? 1 - this.ui.human : tool === 'free' ? -1 : null;
   }
 
   /** Whether a tap on the board sets troops instead of giving orders. */
@@ -458,7 +458,9 @@ class App {
       this.say(id, i18n.t('labCastleNo'));
       return;
     }
-    const done = lab.tool === 'troll' ? this.game.placeLair(id, 'troll', lab.amount) : this.game.place(this.labOwner(lab.tool), id, lab.amount);
+    const done = lab.tool === 'troll' ? this.game.placeLair(id, 'troll', lab.amount)
+      : lab.tool === 'giant' ? this.game.placeGiant(id, lab.amount)
+      : this.game.place(this.labOwner(lab.tool), id, lab.amount);
     if (done) this.sfx.play('build', 0.5);
     this.updateLabInfo();
   }
@@ -502,7 +504,23 @@ class App {
     const sides = new Set(foes.map((p) => p.from)).size;
     const sideText = sides === 1 ? i18n.t('labSide1') : i18n.t('labSides', { n: sides });
     const rows = [];
-    if (f && f.wild) {
+    if (f && f.wild && t.giant) {
+      // The stone giant: narrow edges, heals unless enough sides attack, stomps in a battle.
+      const G = game.R.giant;
+      rows.push([i18n.t('labStrength'), `${n} / ${t.giant.size}`]);
+      const heal = sides >= G.ring ? i18n.t('labHealNot', { n: G.ring })
+        : t.units >= t.giant.size - 0.01 ? i18n.t('full') : i18n.t('labHealYes', { n: G.heal, r: G.ring });
+      rows.push([i18n.t('labHeal'), heal]);
+      rows.push([i18n.t('labAttack'), i18n.t('labStomp', { n: G.stomp, s: G.every })]);
+      rows.push([i18n.t('labEdge'), i18n.t('labGiantEdge', { n: G.edge, m: game.R.frontage, k: G.fight })]);
+      rows.push([i18n.t('labCover'), cover]);
+      let plan = i18n.t('labPlanHold');
+      if (sides) {
+        const s = Math.max(0, Math.ceil((t.giant.at - game.time) / (this.ui.pace || 1) - 1e-6));
+        plan = `${i18n.t('labPlanDefend', { sides: sideText })} · ${t.giant.lift ? i18n.t('labPlanLift') : i18n.t('labPlanStomp', { s })}`;
+      }
+      rows.push([i18n.t('labPlan'), plan]);
+    } else if (f && f.wild) {
       // A lair breeds and raids; any other field of the wilds only holds what stands on it.
       const lair = t.lair;
       const L = lair ? game.R[lair.kind] : null;
@@ -732,6 +750,8 @@ class App {
       if (!b || !this.lab) return;
       this.input.cancel(); // a selection or an armed attack belongs to the tool before
       this.lab.tool = b.dataset.tool;
+      // The giant comes with his own strength; the number can still be changed afterwards.
+      if (this.lab.tool === 'giant') this.lab.amount = this.game.R.giant.size;
       this.sfx.play('select');
       this.refreshLab();
     });
@@ -1130,6 +1150,17 @@ class App {
       case 'lair':
         if (mine(e.by)) this.sfx.play('castle', 0.6);
         this.note(i18n.t('evLair', { name: name(e.by) }));
+        break;
+      case 'giantlift':
+        // The warning before a stomp: there is still time to pull troops away from his edges.
+        this.say(e.tile, i18n.t('evGiantLift'));
+        break;
+      case 'stomp':
+        this.sfx.play('stomp', 0.8);
+        break;
+      case 'felled':
+        this.sfx.play('castle', mine(e.by) ? 0.7 : 0.35);
+        this.note(i18n.t('evFelled', { name: name(e.by) }));
         break;
       case 'victory':
         this.banner(i18n.t('wins', { name: name(e.winner) }), null, 4000);

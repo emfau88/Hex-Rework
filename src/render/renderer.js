@@ -15,6 +15,10 @@ const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
 const MAX_BEASTS = 200; // monster figures (trolls)
 const MAX_HEROES = 16; // hero figures (the knight)
+// Figures that stand alone on their field, one mesh each, drawn instanced from buffers of their own.
+// The stone giant has two: standing, and with his foot raised before a stomp.
+const SOLO = { giant: (m) => models.giant(m, false), giantLift: (m) => models.giant(m, true) };
+const MAX_SOLO = 24;
 const TURN_SECONDS = 0.45; // a turn of the view by one side of the island
 const MAX_ZOOM = 2.6;
 const INSTANCE = 12; // floats per figure: position and turn, colour and size, tilt and kingdom
@@ -196,6 +200,9 @@ const KNIGHT_SPOT = [0.04, 0.16];
 const KNIGHT_KEEP = [0.34, 0.64];
 const BESIDE_KNIGHT = [[], [[-0.44, 0]], [[-0.44, 0], [0.46, -0.04]]];
 const KEEP_BESIDE_KNIGHT = [[], [[-0.3, 0.6]], [[-0.42, 0.52], [-0.12, 0.68]]];
+// The stone giant stands alone in the middle of his field, about three soldiers tall.
+const GIANT_SIZE = 2.3;
+const GIANT_SPOT = [0, 0.08];
 const CAVE_FIRE = [0.4, 0.2];
 const FIRE = ['#ffb347', '#ff7a2e', '#ffe08a'].map(lin);
 const WOOD_DARK = lin('#4a3424');
@@ -306,6 +313,21 @@ export class DioramaRenderer {
     this.knightInstanceCount = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.knightInstanceBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.knightInstances.byteLength, gl.DYNAMIC_DRAW);
+
+    // Lone figures: the stone giant, standing and with his foot raised.
+    this.solo = {};
+    for (const [kind, build] of Object.entries(SOLO)) {
+      const buffer = gl.createBuffer();
+      const instances = gl.createBuffer();
+      const mesh = new Mesh();
+      build(mesh);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.a), gl.STATIC_DRAW);
+      const data = new Float32Array(MAX_SOLO * INSTANCE);
+      gl.bindBuffer(gl.ARRAY_BUFFER, instances);
+      gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
+      this.solo[kind] = { vao: this._vao(buffer, instances), instances, count: mesh.count, data, n: 0 };
+    }
 
     // Shadow map with hardware comparison (free 2×2 filtering per tap).
     const lowEnd = (navigator.hardwareConcurrency || 8) <= 4;
@@ -706,6 +728,15 @@ export class DioramaRenderer {
       this.anim[e.tile].vel -= 0.7;
     } else if (e.type === 'siege') {
       this.anim[e.tile].vel -= 0.5;
+    } else if (e.type === 'stomp') {
+      // The giant's stomp: a wave of dust over all his edges, the field drops and the view shakes.
+      this.effects.push({ tile: e.tile, color: lin('#d8cdb4'), at: time, life: 0.8, sparks: 10, size: 2.2 });
+      this.anim[e.tile].vel -= 1.6;
+      this.shake = Math.max(this.shake, 0.16);
+    } else if (e.type === 'felled') {
+      // The giant falls: a big cloud of stone dust, then the winner's colour.
+      this.effects.push({ tile: e.tile, color: lin('#cfc6b2'), at: time, life: 1.4, sparks: 12, size: 2.6 });
+      this.shake = Math.max(this.shake, 0.3);
     } else if (e.type === 'build') {
       this.effects.push({ tile: e.tile, color: lin('#f4d989'), at: time, life: 0.9, sparks: 6, size: 0.8 });
       this.anim[e.tile].vel += 1.1;
@@ -994,11 +1025,18 @@ export class DioramaRenderer {
     let n = 0;
     let tn = 0;
     let kn = 0;
+    for (const s of Object.values(this.solo)) s.n = 0;
     const shade = this.shade;
-    // `beast`: the figure is a monster of that kind (a troll) or the knight instead of a soldier.
+    // `beast`: the figure is a monster of that kind (a troll), the knight or a lone figure (the
+    // giant) instead of a soldier.
     const put = (x, y, z, rot, c, s, kingdom, tilt = 0, beast = null) => {
       let o, a;
-      if (beast === 'knight') {
+      const solo = beast ? this.solo[beast] : null;
+      if (solo) {
+        if (solo.n >= MAX_SOLO) return;
+        o = solo.n++ * INSTANCE;
+        a = solo.data;
+      } else if (beast === 'knight') {
         if (kn >= MAX_HEROES) return;
         o = kn++ * INSTANCE;
         a = kd;
@@ -1015,6 +1053,7 @@ export class DioramaRenderer {
       a[o + 4] = c[0]; a[o + 5] = c[1]; a[o + 6] = c[2]; a[o + 7] = s;
       a[o + 8] = tilt; a[o + 9] = kingdom; a[o + 10] = 0; a[o + 11] = 0;
       if (beast === 'knight') shadeDisc(shade, x, y + 0.004, z, 0.27 * s, 0.4);
+      else if (solo) shadeDisc(shade, x, y + 0.004, z, 0.24 * s, 0.4);
       else shadeDisc(shade, x, y + 0.004, z, (beast ? 0.19 : 0.13) * s, 0.6);
     };
 
@@ -1025,7 +1064,10 @@ export class DioramaRenderer {
       const beast = t.beast;
       const keep = t.castle >= 0 || t.ruin || t.terrain === 'citadel' || t.cave;
       let count, spots;
-      if (beast) {
+      if (t.giant) {
+        count = 0;
+        spots = []; // drawn alone below
+      } else if (beast) {
         count = keep ? Math.min(1, trolls(t.units)) : trolls(t.units);
         spots = keep ? TROLL_FRONT[count] : TROLL_FORMATION[count];
       } else if (t.hero) {
@@ -1042,6 +1084,18 @@ export class DioramaRenderer {
       const y = t.height + a.lift + 0.012;
       const foes = t.pools.length ? t.pools.filter((p) => p.owner !== t.owner) : null;
       const fighting = Boolean(foes && foes.length);
+      if (t.giant) {
+        // The giant stays in the middle of his field. In battle he turns to the first edge attacked;
+        // before a stomp he stands on one leg with the other foot raised.
+        const [sx, sz] = this.turned(...GIANT_SPOT);
+        let rot = this.turnAngle + (hash(t.id) - 0.5) * 0.5;
+        if (fighting) {
+          const p = foes[0];
+          const k = smooth(clamp((time - p.since) / 0.45, 0, 1));
+          rot += wrapAngle(this.poolPosition(game, t, p).angle + Math.PI - rot) * k;
+        }
+        put(t.x + sx, y, t.z + sz, rot, c, GIANT_SIZE, kingdom, 0, t.giant.lift ? 'giantLift' : 'giant');
+      }
       for (let i = 0; i < spots.length; i++) {
         const wobble = hash(t.id * 5 + i);
         // The newest figure of a garrison: at peace it grows in, in battle it is the one that falls.
@@ -1160,6 +1214,10 @@ export class DioramaRenderer {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, td.subarray(0, tn * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.knightInstanceBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, kd.subarray(0, kn * INSTANCE));
+    for (const s of Object.values(this.solo)) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, s.instances);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, s.data.subarray(0, s.n * INSTANCE));
+    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shadeBuffer);
@@ -1191,6 +1249,12 @@ export class DioramaRenderer {
       gl.uniform1f(u.uInst, 1);
       gl.bindVertexArray(this.knightVao);
       gl.drawArraysInstanced(gl.TRIANGLES, 0, this.knightCount, this.knightInstanceCount);
+    }
+    for (const s of Object.values(this.solo)) {
+      if (!s.n) continue;
+      gl.uniform1f(u.uInst, 1);
+      gl.bindVertexArray(s.vao);
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, s.count, s.n);
     }
   }
 

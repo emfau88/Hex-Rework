@@ -93,6 +93,11 @@ export class Sfx {
         this.tone(82, 0.7, { gain: 0.34 * v, slide: 0.5 });
         for (const [i, f] of [220, 277, 330].entries()) this.tone(f, 0.7, { type: 'triangle', gain: 0.1 * v, delay: 0.12 + i * 0.04 });
         break;
+      case 'stomp':
+        // The stone giant's foot comes down: a deep thud.
+        this.noise(0.3, { gain: 0.3 * v, cutoff: 260 });
+        this.tone(55, 0.4, { gain: 0.36 * v, slide: 0.5 });
+        break;
       case 'alarm':
         this.tone(740, 0.12, { type: 'square', gain: 0.07 });
         this.tone(740, 0.12, { type: 'square', gain: 0.07, delay: 0.18 });

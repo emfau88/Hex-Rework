@@ -70,6 +70,13 @@ export const RULES = Object.freeze({
   // Every `every` seconds a party of `raid` trolls falls on the weakest kingdom field next to it; the
   // target is marked `warn` seconds before. Starting values for the figure showcase, not yet measured.
   troll: Object.freeze({ size: 30, grow: 0.2, every: 50, raid: 8, warn: 10 }),
+  // The stone giant (so far only in the figure showcase) stands still with `size` strength. At his
+  // edges only `edge` attackers fight instead of `frontage`, and however strong he is, he strikes like
+  // `fight` defenders. In a battle he stomps every `every` seconds: every attacker at every edge loses
+  // `stomp`; `lift` seconds before, he raises his foot. While fewer than `ring` sides attack him, he
+  // heals `heal` per second up to his size. With these numbers two or three sides never fell him
+  // (3 × 1.5 = 4.5 damage per second against 5 healed), four sides take about 10 seconds, six about 7.
+  giant: Object.freeze({ size: 60, edge: 3, fight: 8, every: 5, lift: 1.5, stomp: 6, heal: 5, ring: 4 }),
 });
 
 // think      seconds between decisions

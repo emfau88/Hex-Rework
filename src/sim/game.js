@@ -155,6 +155,17 @@ export class Game {
     return this.R.frontage * (1 + this.stormProgress() * (this.R.stormFrontage - 1));
   }
 
+  /** Attackers that can fight at one edge of field `t`: at a giant's edges only a few. */
+  edge(t) {
+    const F = this.frontage();
+    return t.giant ? (F * this.R.giant.edge) / this.R.frontage : F;
+  }
+
+  /** How many of the garrison of `t` strike at once: all of them, but a giant strikes like a few. */
+  strike(t) {
+    return t.giant ? this.R.giant.fight : Infinity;
+  }
+
   /** Troops per second. With `potential`, what the field would yield if owned and supplied. */
   income(t, potential = false) {
     if (!t.passable) return 0;
@@ -294,12 +305,15 @@ export class Game {
     const t = this.tiles[tileId];
     const R = this.R;
     const def = this.defense(t);
-    const F = this.frontage();
+    const F = this.edge(t);
+    const strike = this.strike(t);
     const room = this.cap(t) + R.overfill;
     // Kingdom fields and lairs grow, crowd and wither during the battle; free land and other monsters do not.
     const owned = this.breeds(t);
     const cap = this.growCap(t);
     const grow = owned && t.supplied ? this.income(t) : 0;
+    // A giant heals and stomps during the battle: played forward on a copy of his clock.
+    const giant = t.giant ? { ...t.giant } : null;
     let D = t.units;
 
     const pools = []; // attackers at the edges
@@ -339,6 +353,10 @@ export class Game {
     while (tick < last && (pools.length || next < coming.length)) {
       tick++;
       if (owned) D = this._drift(D, t.supplied, cap, grow);
+      if (giant) {
+        D = this._giantStep(giant, D, pools, this.time + tick * R.step).units;
+        for (let i = pools.length - 1; i >= 0; i--) if (pools[i].units <= 0.01) pools.splice(i, 1);
+      }
       for (; next < coming.length && coming[next].tick <= tick; next++) {
         const c = coming[next];
         if (c.owner === t.owner) D = Math.min(room, D + c.units);
@@ -351,7 +369,7 @@ export class Game {
         }
       }
       if (!pools.length) continue;
-      D = this._clash(D, pools, def, F, defMul);
+      D = this._clash(D, pools, def, F, defMul, strike);
       for (let i = pools.length - 1; i >= 0; i--) if (pools[i].units <= 0.01) pools.splice(i, 1);
       if (D > 0) continue;
       D = 0;
@@ -401,16 +419,48 @@ export class Game {
 
   /**
    * One step of battle at the edges of a field: every pool loses troops, the new garrison is returned.
-   * Used by the match and by the forecast alike. `mul` lets a planner assume a tougher garrison.
+   * Used by the match and by the forecast alike. `mul` lets a planner assume a tougher garrison;
+   * `strike` caps how many of the garrison hit back (a giant, see strike()).
    */
-  _clash(units, pools, def, F, mul = 1) {
+  _clash(units, pools, def, F, mul = 1, strike = Infinity) {
     const R = this.R;
     let eng = 0;
     // Where the knight leads, more of his troops fight at that edge at once.
     for (const p of pools) eng += p.e = Math.min(p.units, p.hero === 'knight' ? (F * R.knightEdge) / R.frontage : F);
-    const toAtt = R.hit * R.step * units * mul;
+    const toAtt = R.hit * R.step * Math.min(units, strike) * mul;
     for (const p of pools) p.units -= (toAtt * p.e) / eng;
     return units - (R.hit * R.step * eng) / (def * mul);
+  }
+
+  /**
+   * One step of a stone giant with strength `units`, before the blows of that step. `foes` are the
+   * attackers at his edges, `s` is his clock { size, at, lift } (the real one, or a copy for the
+   * forecast) and `now` the time at the end of the step. While fewer than `ring` sides attack him, he
+   * heals. The first stomp of a battle comes one full interval after it began; `lift` seconds before,
+   * he raises his foot. A stomp takes `stomp` troops from every attacker at every edge.
+   * Used by the match and by the forecast alike. Returns his new strength and what he did.
+   */
+  _giantStep(s, units, foes, now) {
+    const G = this.R.giant;
+    const sides = new Set();
+    for (const p of foes) sides.add(p.from);
+    if (sides.size < G.ring) units = Math.min(s.size, units + G.heal * this.R.step);
+    let lifted = false;
+    let stomped = false;
+    if (!foes.length) {
+      s.at = -1;
+      s.lift = false;
+      return { units, lifted, stomped };
+    }
+    if (s.at < 0) s.at = now + G.every;
+    if (!s.lift && now >= s.at - G.lift - 1e-9) s.lift = lifted = true;
+    if (now >= s.at - 1e-9) {
+      for (const p of foes) p.units -= Math.min(p.units, G.stomp);
+      s.at += G.every;
+      s.lift = false;
+      stomped = true;
+    }
+    return { units, lifted, stomped };
   }
 
   /** Who moves into a field whose garrison is gone, and with how many troops: the strongest attacker. */
@@ -566,6 +616,7 @@ export class Game {
     t.lair = null;
     t.cave = false;
     t.beast = null;
+    t.giant = null;
     // A hero stays if his side keeps the field; otherwise he goes home to his castle.
     const hero = t.hero;
     const previous = t.owner;
@@ -615,6 +666,18 @@ export class Game {
     }
     home.hero = kind;
     this.events.push({ type: 'herohome', owner, tile: home.id, hero: kind });
+  }
+
+  /**
+   * Figure showcase only: a stone giant of the wilds on `tileId` with `units` strength, which is also
+   * what he heals back up to. He never leaves his field.
+   */
+  placeGiant(tileId, units) {
+    if (this.wild < 0 || !this.place(this.wild, tileId, units)) return false;
+    const t = this.tiles[tileId];
+    t.beast = 'giant';
+    t.giant = { size: t.units, at: -1, lift: false };
+    return true;
   }
 
   /** Figure showcase only: a lair of `kind` with `units` monsters, which is also its size. */
@@ -725,6 +788,7 @@ export class Game {
 
     // Growth, crowding and withering. Free land and monsters keep their numbers; lairs breed.
     for (const t of tiles) {
+      if (t.giant) this._giant(t);
       if (!this.breeds(t)) continue;
       t.units = this._drift(t.units, t.supplied, this.growCap(t), t.supplied ? this.income(t) : 0);
       if (t.order && t.units >= t.orderCost + 1) this._complete(t);
@@ -840,9 +904,20 @@ export class Game {
     }
     if (!t.pools.length) return false;
 
-    t.units = this._clash(t.units, t.pools, this.defense(t), this.frontage());
+    t.units = this._clash(t.units, t.pools, this.defense(t), this.edge(t), 1, this.strike(t));
     t.lastBattle = this.time;
 
+    this._dropBeaten(t);
+    if (t.units > 0) return false;
+    if (!t.pools.length) {
+      t.units = 0;
+      return false;
+    }
+    return this._capture(t);
+  }
+
+  /** Attackers with nobody left leave the edges of `t`: beaten off, a hero among them rides home. */
+  _dropBeaten(t) {
     for (let i = t.pools.length - 1; i >= 0; i--) {
       const p = t.pools[i];
       if (p.units > 0.01) continue;
@@ -850,12 +925,17 @@ export class Game {
       if (p.hero) this._heroHome(p.owner, p.hero); // his attack failed
       if (!t.pools.some((x) => x.owner === p.owner)) this.events.push({ type: 'repel', owner: p.owner, defender: t.owner, tile: t.id });
     }
-    if (t.units > 0) return false;
-    if (!t.pools.length) {
-      t.units = 0;
-      return false;
+  }
+
+  /** The stone giant on `t` heals, raises his foot and stomps (see _giantStep). */
+  _giant(t) {
+    const r = this._giantStep(t.giant, t.units, t.pools.filter((p) => p.owner !== t.owner), this.time);
+    t.units = r.units;
+    if (r.lifted) this.events.push({ type: 'giantlift', tile: t.id });
+    if (r.stomped) {
+      this.events.push({ type: 'stomp', tile: t.id });
+      this._dropBeaten(t);
     }
-    return this._capture(t);
   }
 
   /** The garrison is gone: the strongest attacker at the edges moves in. */
@@ -868,6 +948,10 @@ export class Game {
     if (t.lair && winner !== this.wild) {
       this.events.push({ type: 'lair', tile: t.id, by: winner, beast: t.lair.kind });
       t.lair = null;
+    }
+    if (t.giant && winner !== this.wild) {
+      this.events.push({ type: 'felled', tile: t.id, by: winner });
+      t.giant = null;
     }
     if (t.beast || beast) t.beast = beast;
     // The hero of the fallen garrison goes home; one who led the attack moves in.

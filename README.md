@@ -121,7 +121,9 @@ nächsten Hochladen), lokal `http://localhost:4180/?schau`.
 
 - **Werkzeuge:** „Befehle“ spielt wie sonst. „Ritter“ stellt Ritter Kunibert auf ein Feld eines Reichs (nur in
   der Testversion unter `runden/?schau`). „Troll“ setzt eine Trollhöhle mit so vielen Trollen, wie die Zahl
-  daneben sagt. „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld auf diese Seite, mit so
+  daneben sagt. „Riese“ stellt einen Steinriesen auf (Stärke 60): An seinen Kanten kämpfen nur 3 statt 8, er
+  heilt, solange weniger als 4 Seiten angreifen, und stampft im Kampf alle 5 s; vorher hebt er den Fuß
+  (`tests/giant.test.mjs`). „Wildnis“, die beiden Reiche und „Frei“ setzen das angetippte Feld auf diese Seite, mit so
   vielen Truppen, wie die Zahl sagt. Burgen bleiben, wie sie sind.
 - **Ritter Kunibert** (der erste Held): wartet zu Beginn an der eigenen Burg, reitet mit jedem Trupp seines
   Felds mit, und wo er angreift, kämpfen 12 statt 8 an der Kante. Scheitert sein Angriff oder fällt sein Feld,

@@ -200,6 +200,7 @@ function initTile(t) {
   t.lastAttacker = -1;
   t.beast = null; // kind of monster on a field of the wilds ('troll'); null for plain monsters
   t.hero = null; // a hero of the field's owner stands here ('knight'); he goes along with its troops
+  t.giant = null; // a stone giant of the wilds: { size, at (next stomp, -1 at peace), lift (foot raised) }
   t.lair = null; // a monster lair on this field (see Game._makeLair)
   t.cave = false; // a cave stands here; it stays when its lair has been taken
 }

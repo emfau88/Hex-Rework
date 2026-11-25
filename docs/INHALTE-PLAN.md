@@ -89,6 +89,12 @@ Höhle stehen. Einzelheiten in Abschnitt 17 von [REWORK-PLAN.md](REWORK-PLAN.md)
 - **Im Bild:** ein Steinriese, etwa dreimal so groß wie ein Soldat.
 - **Nebenbei:** Die schmale Kante taugt später auch für Brücken und Furten.
 
+**Gebaut am 25.11.2026**, vorerst nur in der Figurenschau (Werkzeug „Riese“) und nur im Echtzeitspiel.
+Entschieden beim Bauen: Er schlägt zurück wie 8 Verteidiger, egal wie stark er ist. Er stampft alle 5 s und
+nimmt dabei jedem Angreifer an jeder Kante 6; 1,5 s vorher hebt er den Fuß. Er heilt 5 pro Sekunde, solange
+weniger als 4 Seiten angreifen. Fällt er, steht danach nichts mehr von ihm auf dem Feld. Werte in `src/sim/rules.js`
+(`giant`), Prüfungen in `tests/giant.test.mjs`.
+
 ### 3 · Wolfsrudel
 
 - **Fähigkeit:** zieht über freies Land von Feld zu Feld und fällt Felder mit wenig Truppen an. Vor starken

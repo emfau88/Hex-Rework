@@ -61,7 +61,7 @@ function figureSign(ctx, kind, x, y, r, side, saved = null) {
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = planned ? 'rgba(6, 20, 27, 0.86)' : kind === 'troll' ? '#b3c19d' : '#f2ead8';
+  ctx.fillStyle = planned ? 'rgba(6, 20, 27, 0.86)' : kind === 'troll' ? '#b3c19d' : kind === 'giant' ? '#bdb6a8' : '#f2ead8';
   ctx.fill();
   ctx.lineWidth = Math.max(1.6, r * 0.24);
   ctx.strokeStyle = planned ? 'rgba(255, 255, 255, 0.3)' : side;
@@ -134,6 +134,29 @@ function figureSign(ctx, kind, x, y, r, side, saved = null) {
       ctx.closePath();
       ctx.fill();
     }
+  }
+  if (kind === 'giant') {
+    // A stone face: moss on the crown, a crack down the forehead, one heavy brow over pale glowing
+    // eyes, a flat mouth. Grey where the troll is green, and no tusks.
+    const s = r * 0.8;
+    const dark = '#3b3a36';
+    ctx.fillStyle = '#5f7a3c';
+    ctx.beginPath(); // moss
+    ctx.ellipse(x, y - s * 0.86, s * 0.62, s * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = dark;
+    ctx.fillRect(x - s * 0.82, y - s * 0.34, s * 1.64, s * 0.28); // brow
+    ctx.fillRect(x - s * 0.44, y + s * 0.4, s * 0.88, s * 0.14); // mouth
+    ctx.lineWidth = Math.max(1, s * 0.1);
+    ctx.strokeStyle = dark;
+    ctx.beginPath(); // a crack from the moss down to the brow
+    ctx.moveTo(x + s * 0.08, y - s * 0.66);
+    ctx.lineTo(x - s * 0.06, y - s * 0.5);
+    ctx.lineTo(x + s * 0.1, y - s * 0.34);
+    ctx.stroke();
+    ctx.fillStyle = '#bfefff';
+    ctx.fillRect(x - s * 0.5, y - s * 0.04, s * 0.3, s * 0.2); // eyes
+    ctx.fillRect(x + s * 0.2, y - s * 0.04, s * 0.3, s * 0.2);
   }
   ctx.restore();
 }

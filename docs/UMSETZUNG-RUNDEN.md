@@ -548,7 +548,11 @@ Handy lästig bleibt.
 
 **Schritte**
 
-- [ ] Den Steinriesen für die Figurenschau bauen. Am PC und am Handy geprüft.
+- [x] Den Steinriesen für die Figurenschau bauen. Am PC und am Handy geprüft (25.11.2026). Knopf „Riese“
+  in der Figurenschau, nur im Echtzeitspiel, noch nicht im Rundenmodus. Gemessen im Rechner: von 2 oder 3
+  Seiten hält er immer, von 4 Seiten mit je 20 fällt er auf Wiese nach etwa 11 s, von 6 Seiten mit je 12 nach
+  etwa 8 s. Im Wald (Deckung 1,25) hält er gegen 4 Seiten mit je 20. Die Vorschau sagt genau das, was im Spiel
+  passiert.
 - [ ] Du schaust ihn an: bleibt, ändern oder raus.
 - [ ] Seine Regel für Züge bauen, mit Tests: Die Vorschau stimmt auch mit Stampfen und Heilen.
 - [ ] Neues Missionsziel „Besiege den Boss“.
