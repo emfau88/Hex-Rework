@@ -59,9 +59,18 @@ export class TurnPlay {
 
   // ------------------------------------------------------- the person's commands
 
-  /** Commands the person still has; one whose troops are on their way is spent already. */
+  /** Commands the person still has; one whose troops are on their way is spent already (not the knight's free attack). */
   left() {
-    return this.game.commandsLeft - (this.acting ? 1 : 0);
+    return this.game.commandsLeft - (this.acting && !this.acting.free ? 1 : 0);
+  }
+
+  /** Whether the knight's free attack of this move is still open (one on its way counts as made). */
+  free() {
+    const g = this.game;
+    if (g.phase !== 'running' || g.current !== this.human || g.heroUsed) return false;
+    // While troops march, he may be riding along with a move.
+    if (this.acting) return !this.acting.free && (g.heroField(this.human) >= 0 || this.acting.armies.some((a) => a.hero));
+    return g.heroField(this.human) >= 0;
   }
 
   /** Tap or drag from an own field: to an own field it moves troops, to a foreign one it attacks. */
@@ -69,7 +78,8 @@ export class TurnPlay {
     this.flush();
     const g = this.game;
     const me = this.human;
-    if (g.commandsLeft < 1) return 'commands';
+    // With no command left, the knight's field may still make its free attack.
+    if (g.commandsLeft < 1 && !(g.tiles[to].owner !== me && g.freeAttack(me) === from)) return 'commands';
     const amount = g.sendAmount(from, fraction);
     if (amount < 1) return 'troops';
     const path = g.findPath(me, from, to);
@@ -82,18 +92,19 @@ export class TurnPlay {
     const parts = [{ origin: from, units: amount }];
     const res = g.preview(me, to, parts);
     if (!res) return 'troops';
-    return this._act({ type: 'attack', target: to, parts }, res.plan.map((p) => ({ origin: p.origin, units: p.units, path: p.path, stop: p.path.length - 1.5 })));
+    return this._act({ type: 'attack', target: to, parts }, res.plan.map((p) => ({ origin: p.origin, units: p.units, path: p.path, stop: p.path.length - 1.5 })), res.free);
   }
 
   /** Double tap on a foreign field: every own field next to it attacks, those right behind follow. */
   assault(target, fraction) {
     this.flush();
     const g = this.game;
-    if (g.commandsLeft < 1) return 'commands';
     const parts = g.assaultParts(this.human, target, fraction, true);
     const res = parts.length ? g.preview(this.human, target, parts) : null;
+    // With no command left, only an attack the knight rides along with is still free.
+    if (g.commandsLeft < 1 && !res?.free) return 'commands';
     if (!res) return 'troops';
-    return this._act({ type: 'attack', target, parts }, res.plan.map((p) => ({ origin: p.origin, units: p.units, path: p.path, stop: p.path.length - 1.5 })));
+    return this._act({ type: 'attack', target, parts }, res.plan.map((p) => ({ origin: p.origin, units: p.units, path: p.path, stop: p.path.length - 1.5 })), res.free);
   }
 
   /**
@@ -101,18 +112,14 @@ export class TurnPlay {
    * command when they arrive (_arrive). What the fields had is kept, so the rules get exactly the
    * numbers the command was given with. Returns null, like a command that was taken.
    */
-  _act(cmd, columns) {
+  _act(cmd, columns, free = false) {
     const g = this.game;
     const now = this.app.last ?? 0;
-    const before = [];
-    for (const c of columns) {
-      if (!before.some((b) => b[0] === c.origin)) before.push([c.origin, g.tiles[c.origin].units]);
-      g.tiles[c.origin].units -= c.units;
-    }
-    const armies = columns.map((c) => this._army(this.human, c.units, c.path, cmd.type, c.stop));
+    const before = this._leave(columns);
+    const armies = columns.map((c) => this._army(this.human, c.units, c.path, cmd.type, c.stop, c.hero));
     g.armies.push(...armies);
     const dur = BEAT.own * this.scale();
-    this.acting = { cmd, before, armies, start: now, dur, until: now + dur };
+    this.acting = { cmd, before, armies, start: now, dur, until: now + dur, free };
     this._show({ owner: this.human, kind: cmd.type, target: cmd.type === 'move' ? cmd.to : cmd.target, armies, result: null });
     return null;
   }
@@ -123,11 +130,37 @@ export class TurnPlay {
     const a = this.acting;
     this.acting = null;
     g.armies = g.armies.filter((x) => !a.armies.includes(x));
-    for (const [id, units] of a.before) g.tiles[id].units = units;
+    this._back(a.before);
     this._show(null);
     if (a.cmd.type === 'move') g.move(this.human, a.cmd.from, a.cmd.to, a.cmd.units);
     else g.attack(this.human, a.cmd.target, a.cmd.parts);
     this.app.updateHud(true);
+  }
+
+  /**
+   * Troops set out on screen: they leave their fields, and a hero rides along at the head of the
+   * column from his field (`hero` of the column). Returns what the fields had, for _back.
+   */
+  _leave(columns) {
+    const g = this.game;
+    const before = [];
+    for (const c of columns) {
+      const t = g.tiles[c.origin];
+      if (!before.some((b) => b[0] === c.origin)) before.push([c.origin, t.units, t.hero]);
+      t.units -= c.units;
+      c.hero = t.hero || null;
+      t.hero = null;
+    }
+    return before;
+  }
+
+  /** The fields get back what they had before their troops set out on screen; then the rules settle the command. */
+  _back(before) {
+    for (const [id, units, hero] of before) {
+      const t = this.game.tiles[id];
+      t.units = units;
+      t.hero = hero;
+    }
   }
 
   /** Lets the person's marching troops arrive at once. Called before anything that needs the board settled. */
@@ -142,10 +175,11 @@ export class TurnPlay {
     // Worked out again only when the board has changed (the frame asks every time).
     let sum = 0;
     for (const t of g.tiles) sum += t.units * (t.id + 1) + (t.owner + 2) * (t.id * 7 + 3);
-    const key = `${target}:${fraction}:${g.turn}:${g.current}:${g.commandsLeft}:${sum}`;
+    const key = `${target}:${fraction}:${g.turn}:${g.current}:${g.commandsLeft}:${g.heroUsed}:${g.heroField(this.human)}:${sum}`;
     if (this.cache?.key === key) return this.cache.value;
     const parts = g.assaultParts(this.human, target, fraction, true);
-    const value = { res: parts.length ? g.preview(this.human, target, parts) : null, none: g.commandsLeft < 1 };
+    const res = parts.length ? g.preview(this.human, target, parts) : null;
+    const value = { res, none: g.commandsLeft < 1 && !res?.free };
     this.cache = { key, value };
     return value;
   }
@@ -229,9 +263,9 @@ export class TurnPlay {
         this.memo.done = true;
         return;
       }
-      const before = [[cmd.from, g.tiles[cmd.from].units]];
-      g.tiles[cmd.from].units -= cmd.units;
-      const armies = [this._army(f.id, cmd.units, path, 'move', path.length - 1)];
+      const column = { origin: cmd.from, units: cmd.units };
+      const before = this._leave([column]);
+      const armies = [this._army(f.id, cmd.units, path, 'move', path.length - 1, column.hero)];
       this.beat = { kind: 'move', cmd, before, armies, start: now, dur: BEAT.march * this.scale(), until: now + BEAT.march * this.scale() };
       g.armies.push(...armies);
       this._show({ owner: f.id, kind: 'move', target: cmd.to, armies, result: null });
@@ -239,9 +273,9 @@ export class TurnPlay {
     }
     // An attack: its troops leave their fields now and fight when they reach the edge. What the
     // fields had is kept, so the rules get back exactly the same numbers before they settle it.
-    const before = res.plan.map((p) => [p.origin, g.tiles[p.origin].units]);
-    for (const p of res.plan) g.tiles[p.origin].units -= p.units;
-    const armies = res.plan.map((p) => this._army(f.id, p.units, p.path, 'attack', p.path.length - 1.5));
+    const columns = res.plan.map((p) => ({ origin: p.origin, units: p.units, path: p.path }));
+    const before = this._leave(columns);
+    const armies = columns.map((c) => this._army(f.id, c.units, c.path, 'attack', c.path.length - 1.5, c.hero));
     this.beat = { kind: 'attack', cmd, before, armies, start: now, dur: BEAT.march * this.scale(), until: now + BEAT.march * this.scale() };
     g.armies.push(...armies);
     this._show({ owner: f.id, kind: 'attack', target: cmd.target, armies, result: null });
@@ -277,9 +311,9 @@ export class TurnPlay {
     else this._stop();
   }
 
-  _army(owner, units, path, kind, stop) {
+  _army(owner, units, path, kind, stop, hero = null) {
     // `show`: its number is drawn whoever it marches against (the overlay hides rivals among themselves).
-    return { id: this.game.nextArmyId++, owner, units, path, seg: 0, t: 0, leg: 1, kind, done: false, stop, show: true };
+    return { id: this.game.nextArmyId++, owner, units, path, seg: 0, t: 0, leg: 1, kind, done: false, stop, show: true, hero };
   }
 
   /** Columns that are already in the rules' list (supply) march for `beat` seconds. */
@@ -309,7 +343,7 @@ export class TurnPlay {
       this._pass();
     } else if (b.kind === 'attack' || b.kind === 'move') {
       g.armies = [];
-      for (const [id, units] of b.before) g.tiles[id].units = units;
+      this._back(b.before);
       this.outcome = null;
       if (!this._run(b.cmd)) this.memo.done = true;
       // The arrows stay through the short rest, now with the outcome of the battle at the field.
@@ -452,11 +486,15 @@ export class TurnPlay {
       title.textContent = i18n.t('turnMine');
       title.style.color = '';
       const n = this.left();
-      sub.textContent = n > 1 ? i18n.t('turnCommands', { n }) : n === 1 ? i18n.t('turnCommands1') : i18n.t('turnNoneLeft');
+      // The knight's free attack comes on top of the commands (short: the line is narrow on a phone).
+      sub.textContent = this.free()
+        ? (n > 1 ? i18n.t('turnHeroPlus', { n }) : n === 1 ? i18n.t('turnHeroPlus1') : i18n.t('turnHeroOnly'))
+        : (n > 1 ? i18n.t('turnCommands', { n }) : n === 1 ? i18n.t('turnCommands1') : i18n.t('turnNoneLeft'));
     }
     const left = this.busy && mine ? 0 : mine ? this.left() : g.commandsLeft;
     const color = this.busy && !mine ? PALETTE_HEX[f.color] : PALETTE_HEX[g.factions[this.human].color];
-    const pips = this.busy && f.wild ? '' : Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}" style="--c:${color}"></i>`).join('');
+    const hero = !this.busy && mine && this.free() ? '<i class="on hero"></i>' : '';
+    const pips = this.busy && f.wild ? '' : Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}" style="--c:${color}"></i>`).join('') + hero;
     const el = $('#turn-pips');
     if (el.innerHTML !== pips) el.innerHTML = pips;
     const undo = $('#btn-undo');
@@ -464,7 +502,7 @@ export class TurnPlay {
     undo.disabled = !g.history.length;
     const end = $('#btn-endturn');
     end.textContent = this.busy ? i18n.t('turnSkip') : i18n.t('turnEnd');
-    end.classList.toggle('ready', !this.busy && this.left() < 1);
+    end.classList.toggle('ready', !this.busy && this.left() < 1 && !this.free());
     end.disabled = g.phase !== 'running' || (!this.busy && performance.now() < this.readyAt);
   }
 }

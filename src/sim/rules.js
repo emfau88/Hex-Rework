@@ -130,6 +130,10 @@ export const TURN_RULES = Object.freeze({
   // land. A party has `raid` trolls plus `more` for every raid the cave has sent before; the share `home`
   // of the cave's size always stays at home. Starting values, to be measured mission by mission.
   troll: Object.freeze({ grow: 2, every: 5, warn: 1, raid: 8, more: 2, reach: 3, home: 0.4, first: 4, stagger: 2 }),
+  // The knight in turns: the first attack in a move that he rides along with costs no command. If his
+  // attack fails or his field falls, he rides home and sits out `away` moves of his kingdom; then he
+  // stands at the castle again. Starting values.
+  hero: Object.freeze({ away: 3 }),
   // Improvements the person earns in the campaign (docs/UMSETZUNG-RUNDEN.md). The rivals never have them.
   //   drummer  one more command in every `every`-th turn
   //   granary  a farm gives `farm` more troops per turn; the castle feeds `castle` more and starts with `start` more

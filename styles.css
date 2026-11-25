@@ -479,6 +479,14 @@ canvas {
   opacity: 1;
 }
 
+/* The knight's free attack: a gold diamond after the commands. */
+#turn-pips i.hero {
+  --c: #f2c36b;
+  margin-left: 2px;
+  border-radius: 2px;
+  transform: rotate(45deg) scale(0.9);
+}
+
 #turnbar button {
   height: 40px;
   padding: 0 12px;

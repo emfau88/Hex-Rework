@@ -456,12 +456,24 @@ behebt. Dann wird sie ersetzt.
   - Gewinnt er, steht er auf dem neuen Feld. Scheitert sein Angriff oder fällt sein Feld, reitet er heim in
     die Burg („Kunibert reitet heim“). Fällt die Burg, ist er fort.
   - An der Zahl seines Felds steht sein Zeichen: ein Helm mit Federbusch.
-  - Noch nicht: der freie Angriff jeden Zug und die 3 Züge Pause. Das sind Regeln für Züge, sie kommen im
-    dritten Schritt. Keine Mission hat ihn bisher.
+  - Der freie Angriff jeden Zug und die 3 Züge Pause sind Regeln für Züge. Sie stehen beim dritten Schritt.
 - [x] Du schaust ihn an: bleibt, ändern oder raus. Erst „schwer zu erkennen“, dann 15 % größer, dunkles Pferd im
       Profil, kleinere Satteldecke. Dein Urteil am 25.11.2026: „passt“, er bleibt.
-- [ ] Die Regel des Helden für Züge bauen, mit Tests für die Vorschau.
-- [ ] Bedienung klären: Wie bewegt man ihn? Mit einem Trupp schicken oder eigens antippen.
+- [x] Bedienung klären. Deine Wahl am 25.11.2026: **A**. Er reitet mit jedem Trupp seines Felds mit, wie in der
+      Figurenschau. Es gibt keinen neuen Knopf. Nachteil: Truppen ohne ihn kann man von seinem Feld nicht wegschicken.
+- [x] Die Regel des Helden für Züge bauen, mit Tests für die Vorschau (25.11.2026, tests/knightturns.test.mjs).
+  - Er reitet bei jedem Angriff und jedem Verschieben von seinem Feld mit, nicht mit dem Nachschub.
+  - Der erste Angriff, bei dem er mitreitet, kostet in jedem Zug keinen Befehl. Das geht auch, wenn keine Befehle
+    mehr übrig sind. Ein zweiter Angriff mit ihm kostet einen Befehl.
+  - Wo er angreift, kämpfen 12 statt 8 an der Kante. Die Vorschau rechnet das genau mit.
+  - Gewinnt er, steht er auf dem neuen Feld. Scheitert sein Angriff oder fällt sein Feld, reitet er heim. Er
+    setzt dann 3 Züge deines Reichs aus und steht im 4. Zug wieder an der Burg. Fällt die Burg, ist er fort.
+  - Anzeige: Unten steht „3 Befehle + Ritter“, dazu eine goldene Raute neben den Punkten. Solange er fehlt, steht
+    sein Helm hell und hohl an der Burg, und der Ring darum füllt sich mit jedem ausgesetzten Zug. Meldungen:
+    „Kunibert reitet heim · fehlt 3 Züge“ und „Kunibert ist zurück“. Im Protokoll heißt R „Ritter dabei“, R0 „gratis“.
+  - Zum Ausprobieren: An den Link einer Testmission `&ritter` hängen, z. B. `?probe=erstekrone&ritter`. Dann
+    wartet er zu Beginn an deiner Burg. Ein Sieg damit zählt nicht für deinen Spielstand. Keine Mission hat ihn sonst.
+  - Im Handy-Format geprüft: Angriff gratis, Scheitern, 3 Züge Pause und Rückkehr.
 - [ ] Der Computergegner geht mit dem Helden um: Er weiß, dass dessen Feld gefährlich ist.
 - [ ] Neues Missionsziel „Nimm dieses Feld“.
 - [ ] Die Karte bauen.

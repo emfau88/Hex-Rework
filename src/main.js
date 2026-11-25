@@ -101,6 +101,9 @@ class App {
     // …?probe=kampagne opens the first mission of the campaign on trial.
     const wanted = new URLSearchParams(location.search).get('probe');
     const probe = wanted === 'kampagne' ? PROBE_MISSIONS[0] : PROBE_MISSIONS.find((m) => m.id === wanted);
+    // …&ritter: Ritter Kunibert waits at the person's castle in the missions on trial (turn mode only).
+    // A trial with him counts nothing in the saved progress.
+    this.knightTrial = Boolean(probe) && new URLSearchParams(location.search).has('ritter');
     if (probe) this.openMission(probe);
     $('#say').addEventListener('click', () => this.hush());
     requestAnimationFrame((ms) => this.frame(ms));
@@ -222,6 +225,7 @@ class App {
       autoSupply: mission.turnMode ? true : this.store.supply,
       wide: this.wide(),
       perks: this.perksFor(mission),
+      hero: this.knightTrial && mission.turnMode && mission.probe ? 'knight' : null,
     });
     this.turns = mission.turnMode ? new TurnPlay(this) : null;
     // The captain's lines: which were said already, and which wait for their turn on screen.
@@ -1066,6 +1070,15 @@ class App {
       case 'herohome':
         this.say(e.tile, i18n.t('evKnightHome'));
         break;
+      case 'heroaway':
+        // Turn mode: he rides home and sits out a few moves.
+        this.say(e.tile, i18n.t('evKnightAway', { n: e.turns }));
+        if (mine(e.owner)) this.note(i18n.t('evKnightAway', { n: e.turns }), true);
+        break;
+      case 'heroback':
+        this.say(e.tile, i18n.t('evKnightBack'));
+        if (mine(e.owner)) this.note(i18n.t('evKnightBack'));
+        break;
       case 'herolost':
         if (mine(e.owner)) this.note(i18n.t('evKnightLost'));
         break;
@@ -1315,7 +1328,8 @@ class App {
     const fast = m.turnMode ? game.turn <= m.parTurns : game.time <= m.par;
     const goals = [won, won && fast, won && stats.lost <= (m.loseLimit ?? 3)];
     const got = goals.filter(Boolean).length;
-    if (won && !m.random) {
+    // A trial with the knight (…&ritter) counts nothing.
+    if (won && !m.random && !game.heroTrial) {
       this.store.done[m.id] = true;
       this.store.stars[m.id] = Math.max(this.store.stars[m.id] || 0, got);
       this.store.best[m.id] = Math.min(this.store.best[m.id] || Infinity, Math.round(game.time));
@@ -1382,19 +1396,22 @@ class App {
     const game = this.game;
     const m = this.mission;
     const human = this.ui.human;
-    const head = `${m.id} · ${this.store.difficulty} · Startwert ${this.seed} · ${game.winner === human ? 'Sieg' : 'kein Sieg'} (${game.reason || 'läuft'}) · Zug ${game.turn} · ${clock((this.playMs || 0) / 1000)} min · Verloren ${game.humanStats.lost}`;
+    const head = `${m.id} · ${this.store.difficulty} · Startwert ${this.seed}${game.heroTrial ? ' · mit Ritter' : ''} · ${game.winner === human ? 'Sieg' : 'kein Sieg'} (${game.reason || 'läuft'}) · Zug ${game.turn} · ${clock((this.playMs || 0) / 1000)} min · Verloren ${game.humanStats.lost}`;
     const times = new Map((this.moveTimes || []).map((x) => [x.turn, x.s]));
     const lines = game.log.map((e) => {
       const who = e.owner === human ? 'ich' : this.nameOf(game.factions[e.owner]);
       const cmds = e.commands.map((c) => {
-        if (c.type === 'attack') return `A${c.target}:${c.plan.reduce((s, p) => s + p.units, 0)}${c.won ? '+' : '−'}`;
-        if (c.type === 'move') return `M${c.from}>${c.to}:${c.units}`;
+        // R: the knight rode along; R0: it was his free attack.
+        const knight = c.hero ? (c.free ? 'R0' : 'R') : '';
+        if (c.type === 'attack') return `A${c.target}:${c.plan.reduce((s, p) => s + p.units, 0)}${c.won ? '+' : '−'}${knight}`;
+        if (c.type === 'move') return `M${c.from}>${c.to}:${c.units}${knight}`;
         return `B${c.tile}:${c.building}`;
       });
       const secs = e.owner === human && times.has(e.turn) ? ` ${times.get(e.turn)}s` : '';
       return `Z${e.turn} ${who}${secs}: ${cmds.join(' ') || '–'}`;
     });
-    return [head, 'A Ziel:Truppen+ genommen / − abgewehrt · M von>nach:Truppen · B Feld:Gebäude', ...lines].join('\n');
+    const key = 'A Ziel:Truppen+ genommen / − abgewehrt · M von>nach:Truppen · B Feld:Gebäude' + (game.heroTrial ? ' · R Ritter dabei, R0 gratis' : '');
+    return [head, key, ...lines].join('\n');
   }
 
   // --------------------------------------------------------------- tutorial

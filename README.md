@@ -20,7 +20,8 @@ nicht mehr, es zählt die Form der Front.
   Nur Mission 2 „Im Trollwald“:
   [emfau88.github.io/Hex-Rework/runden/?probe=trollwald](https://emfau88.github.io/Hex-Rework/runden/?probe=trollwald),
   lokal `http://localhost:4180/?probe=trollwald`. Messen mit `node tools/audit/mission.mjs erstekrone` oder
-  `… trollwald`.
+  `… trollwald`. Mit `&ritter` am Link (z. B. `?probe=erstekrone&ritter`) wartet Ritter Kunibert an deiner Burg,
+  zum Ausprobieren seiner Regel in Zügen; ein Sieg damit zählt nicht für den Spielstand.
 - **Was als Nächstes ansteht:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Plan, Messwerte und bekannte Schwächen:** [docs/REWORK-PLAN.md](docs/REWORK-PLAN.md)
 
@@ -123,7 +124,8 @@ nächsten Hochladen), lokal `http://localhost:4180/?schau`.
   vielen Truppen, wie die Zahl sagt. Burgen bleiben, wie sie sind.
 - **Ritter Kunibert** (der erste Held): wartet zu Beginn an der eigenen Burg, reitet mit jedem Trupp seines
   Felds mit, und wo er angreift, kämpfen 12 statt 8 an der Kante. Scheitert sein Angriff oder fällt sein Feld,
-  reitet er heim in die Burg. Prüfungen in `tests/knight.test.mjs`.
+  reitet er heim in die Burg. Prüfungen in `tests/knight.test.mjs`. In Zügen kostet sein erster Angriff je Zug
+  keinen Befehl, und nach einer Niederlage setzt er 3 Züge aus (`tests/knightturns.test.mjs`).
 - **Zeit:** anhalten, ¼, ½, 1 oder 3-fach, „+1 s“ für genau eine Sekunde. Leertaste hält an und startet.
 - **Werte:** Das zuletzt angetippte Feld zeigt bei Ungeheuern Stärke, Angriff, Reichweite, Deckung und
   Vorhaben, bei Reichen Truppen, Zuwachs, Deckung und den laufenden Kampf.

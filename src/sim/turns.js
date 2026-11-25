@@ -21,6 +21,7 @@ export class TurnGame extends Game {
    * Takes the same options as Game, plus:
    * @param {number} [o.first]  kingdom that moves first (default: the person, or kingdom 0)
    * @param {string[]} [o.perks]  improvements the person has earned in the campaign (TURN_RULES.perks)
+   * @param {string} [o.hero]  a hero of the person ('knight') who waits at the castle
    */
   constructor(o) {
     super(o);
@@ -48,6 +49,9 @@ export class TurnGame extends Game {
       const home = this.tiles[this.factions[this.human].castle];
       home.units = Math.min(this.cap(home), home.units + this.T.perks.granary.start);
     }
+    // A hero of the person waits at the castle (so far only for trials: …&ritter).
+    this.heroTrial = Boolean(o.hero) && this.human >= 0;
+    if (this.heroTrial) this.tiles[this.factions[this.human].castle].hero = o.hero;
     const diff = TURN_DIFFICULTY[this.difficulty] || TURN_DIFFICULTY.normal;
     for (const f of this.factions) {
       if (f.wild || f.human) continue;
@@ -61,6 +65,7 @@ export class TurnGame extends Game {
     this.turn = 1;
     this.current = this.starter;
     this.commandsLeft = 0;
+    this.heroUsed = false; // the knight's free attack of this move has been made
     this.history = []; // states before each command of this turn, for undo
     this.log = []; // one entry per move of a kingdom: growth, supply and commands, for the replay
     this.entry = null;
@@ -112,7 +117,13 @@ export class TurnGame extends Game {
    */
   forecast(tileId, extra = [], { defMul = 1 } = {}) {
     const t = this.tiles[tileId];
-    const r = this._battle(t, extra, defMul);
+    // A hero on the field the troops set out from goes along with them (see _plan).
+    const parts = extra.map((x) => {
+      if (x.hero !== undefined) return x;
+      const src = this.tiles[x.path ? x.path[0] : x.from];
+      return { ...x, hero: src && src.owner === x.owner ? src.hero : null };
+    });
+    const r = this._battle(t, parts, defMul);
     const sent = new Map();
     for (const x of extra) if (x.units > 0 && x.owner !== t.owner) sent.set(x.owner, (sent.get(x.owner) || 0) + x.units);
     const time = r.ticks * this.R.step;
@@ -137,8 +148,10 @@ export class TurnGame extends Game {
         continue;
       }
       const q = pools.find((x) => x.owner === p.owner && x.from === p.from);
-      if (q) q.units += p.units;
-      else pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0 });
+      if (q) {
+        q.units += p.units;
+        if (p.hero) q.hero = p.hero;
+      } else pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0, hero: p.hero || null });
     }
     const def = this.defense(t);
     const F = this.frontage();
@@ -156,6 +169,43 @@ export class TurnGame extends Game {
   /** Whether `owner` may give a command right now. */
   canCommand(owner) {
     return this.phase === 'running' && owner === this.current && this.commandsLeft > 0;
+  }
+
+  /** The field where the hero of `owner` stands, or -1 (none, or he is away). */
+  heroField(owner) {
+    for (const t of this.tiles) if (t.owner === owner && t.hero) return t.id;
+    return -1;
+  }
+
+  /**
+   * The field whose next attack is free in this move: where the knight of `owner` stands, as long as
+   * he has not attacked yet in this move. -1 otherwise.
+   */
+  freeAttack(owner) {
+    if (this.phase !== 'running' || owner !== this.current || this.heroUsed) return -1;
+    return this.heroField(owner);
+  }
+
+  /**
+   * A hero whose attack failed or whose field fell rides home: he sits out `T.hero.away` moves of his
+   * kingdom and then stands at the castle again (_startTurn). Without a castle he is gone.
+   */
+  _heroHome(owner, kind) {
+    const f = owner >= 0 ? this.factions[owner] : null;
+    const home = f && !f.wild && f.alive && f.castle >= 0 ? this.tiles[f.castle] : null;
+    if (!home || home.owner !== owner) {
+      this.events.push({ type: 'herolost', owner, hero: kind });
+      return;
+    }
+    const away = this.T.hero.away;
+    f.heroAway = { kind, left: away, sitting: false };
+    this.events.push({ type: 'heroaway', owner, tile: home.id, hero: kind, turns: away });
+  }
+
+  /** Moves the hero of `owner` still sits out, this one included while it is his kingdom's move (0: none). */
+  heroAway(owner) {
+    const away = owner >= 0 ? this.factions[owner].heroAway : null;
+    return away ? away.left : 0;
   }
 
   /** Start of a kingdom's move: the clock, the storm, the citadel, growth and supply. */
@@ -177,8 +227,21 @@ export class TurnGame extends Game {
     // The drummer: one more command in every third turn.
     if (this.perk('drummer', f.id) && this.turn % T.perks.drummer.every === 0) this.commandsMax += T.perks.drummer.commands;
     this.commandsLeft = this.commandsMax;
+    this.heroUsed = false;
     this.entry = { turn: this.turn, owner: f.id, growth: [], supply: [], commands: [] };
     this.log.push(this.entry);
+
+    // A hero who rode home sits out his moves; after the last one he stands at the castle again.
+    const away = f.heroAway;
+    if (away && away.left > 0) away.sitting = true;
+    else if (away) {
+      f.heroAway = null;
+      const home = f.castle >= 0 ? this.tiles[f.castle] : null;
+      if (home && home.owner === f.id) {
+        home.hero = away.kind;
+        this.events.push({ type: 'heroback', owner: f.id, tile: home.id, hero: away.kind });
+      } else this.events.push({ type: 'herolost', owner: f.id, hero: away.kind });
+    }
 
     if (this.objective.type === 'hold') this._holdTurn(f);
     if (this.phase !== 'running') return;
@@ -363,6 +426,12 @@ export class TurnGame extends Game {
   /** End of the move, second half (after shipSupply and deliver): the next living kingdom begins. */
   passOn() {
     if (this.phase !== 'running') return false;
+    // A move the hero sat out is over.
+    const away = this.factions[this.current].heroAway;
+    if (away && away.sitting) {
+      away.left--;
+      away.sitting = false;
+    }
     this.history = [];
     this.armies = [];
     let next = this.current;
@@ -454,7 +523,8 @@ export class TurnGame extends Game {
       const path = this.findPath(owner, p.origin, target);
       if (!path) return null;
       seen.add(p.origin);
-      plan.push({ owner, origin: p.origin, from: path[path.length - 2], units, path });
+      // A hero on the field rides along with its troops.
+      plan.push({ owner, origin: p.origin, from: path[path.length - 2], units, path, hero: src.hero || null });
     }
     return plan;
   }
@@ -466,12 +536,21 @@ export class TurnGame extends Game {
    *   back    survivors beyond what the field feeds, returning to the fields they attacked from
    *   lost    attackers that fell
    *   killed  defenders that fell
+   *   hero    the hero who rides along (null: none)
+   *   free    the attack costs no command: the knight's first attack in this move
    */
   preview(owner, target, parts) {
     if (this.phase !== 'running') return null;
     const plan = this._plan(owner, target, parts);
     if (!plan) return null;
     return this._outcome(owner, this.tiles[target], plan);
+  }
+
+  /** The hero riding along with an attack (null: none), and whether it is his free attack of this move. */
+  _rider(owner, plan) {
+    const part = plan.find((p) => p.hero);
+    const hero = part ? part.hero : null;
+    return { hero, free: hero === 'knight' && owner === this.current && !this.heroUsed };
   }
 
   _outcome(owner, t, plan) {
@@ -482,7 +561,7 @@ export class TurnGame extends Game {
       sent += p.units;
       out.set(p.origin, (out.has(p.origin) ? out.get(p.origin) : this.tiles[p.origin].units) - p.units);
     }
-    const res = { owner, target: t.id, defender: t.owner, before: t.units, sent, won: r.fallen, left: r.D, back: [], lost: sent, killed: t.units - r.D, ticks: r.ticks, plan, pools: r.pools };
+    const res = { owner, target: t.id, defender: t.owner, before: t.units, sent, won: r.fallen, left: r.D, back: [], lost: sent, killed: t.units - r.D, ticks: r.ticks, plan, pools: r.pools, ...this._rider(owner, plan) };
     if (!r.fallen) return res;
     const { units } = this._spoils(r.pools, r.room);
     let total = 0;
@@ -506,16 +585,23 @@ export class TurnGame extends Game {
     return res;
   }
 
-  /** Attack `target` with the given parts ({origin, units}). Costs one command. Returns the outcome or null. */
+  /**
+   * Attack `target` with the given parts ({origin, units}). Costs one command; the knight's first
+   * attack in a move costs none, even with no command left. Returns the outcome or null.
+   */
   attack(owner, target, parts) {
-    if (!this.canCommand(owner)) return null;
+    if (this.phase !== 'running' || owner !== this.current) return null;
     const plan = this._plan(owner, target, parts);
     if (!plan) return null;
     const t = this.tiles[target];
     const res = this._outcome(owner, t, plan);
+    if (!res.free && !this.canCommand(owner)) return null;
     this._save();
     const tiles = this.tiles;
-    for (const p of plan) tiles[p.origin].units -= p.units;
+    for (const p of plan) {
+      tiles[p.origin].units -= p.units;
+      if (p.hero) tiles[p.origin].hero = null; // he rides along
+    }
     if (!t.pools.length) t.siegeFrom = t.units;
     t.lastBattle = this.time;
     t.lastAttacker = owner;
@@ -523,23 +609,30 @@ export class TurnGame extends Game {
     if (!res.won) {
       t.units = res.left;
       this.events.push({ type: 'repel', owner, defender: t.owner, tile: t.id });
+      if (res.hero) this._heroHome(owner, res.hero); // his attack failed
     } else {
-      // Monsters that take a field bring their kind along (see _capture).
+      // Monsters that take a field bring their kind along, a hero moves in (see _capture).
       const beast = owner === this.wild ? tiles[plan[0].origin].beast : null;
-      t.pools = res.pools.map((p) => ({ owner: p.owner, from: p.from, units: p.units, since: this.time, ...(beast ? { beast } : null) }));
+      t.pools = res.pools.map((p) => ({ owner: p.owner, from: p.from, units: p.units, since: this.time, hero: p.hero || null, ...(beast ? { beast } : null) }));
       t.units = 0;
       this._capture(t);
       t.pools = [];
+      // The troops he led at the edge fell, although others took the field: he rides home.
+      if (res.hero && t.hero !== res.hero) this._heroHome(owner, res.hero);
       for (const b of res.back) tiles[b.tile].units += b.units;
       this._supply();
     }
     if (owner === this.human) this.humanStats.sent++;
-    this.commandsLeft--;
-    this.entry.commands.push({ type: 'attack', target, plan, won: res.won, left: res.left, back: res.back, lost: res.lost, killed: res.killed });
+    if (res.free) this.heroUsed = true;
+    else this.commandsLeft--;
+    this.entry.commands.push({ type: 'attack', target, plan, won: res.won, left: res.left, back: res.back, lost: res.lost, killed: res.killed, ...(res.hero ? { hero: res.hero, free: res.free } : null) });
     return res;
   }
 
-  /** Moves troops between own fields, any distance through own land, at once. Costs one command. */
+  /**
+   * Moves troops between own fields, any distance through own land, at once. A hero on the field
+   * rides along. Costs one command.
+   */
   move(owner, from, to, amount) {
     if (!this.canCommand(owner)) return null;
     const src = this.tiles[from];
@@ -552,11 +645,16 @@ export class TurnGame extends Game {
     this._save();
     src.units -= units;
     dst.units += units;
-    this.events.push({ type: 'move', owner, from, to, units, path });
+    const hero = src.hero || null;
+    if (hero) {
+      dst.hero = hero;
+      src.hero = null;
+    }
+    this.events.push({ type: 'move', owner, from, to, units, path, hero });
     if (owner === this.human) this.humanStats.sent++;
     this.commandsLeft--;
-    this.entry.commands.push({ type: 'move', from, to, units, path });
-    return { from, to, units, path };
+    this.entry.commands.push({ type: 'move', from, to, units, path, ...(hero ? { hero } : null) });
+    return { from, to, units, path, hero };
   }
 
   /** Builds at once with the troops on the field (state 'now'). Costs one command. */
@@ -600,6 +698,7 @@ export class TurnGame extends Game {
     this.hold = s.hold;
     this.rng.s = s.rng;
     this.commandsLeft = s.commandsLeft;
+    this.heroUsed = s.heroUsed;
     this.entry.commands.length = s.commands;
     this.sceneVersion++;
     this.events.push({ type: 'undo', owner: this.current });
@@ -613,7 +712,7 @@ export class TurnGame extends Game {
         supplied: t.supplied, siegeFrom: t.siegeFrom, lastCapture: t.lastCapture, stormedAt: t.stormedAt, lastBattle: t.lastBattle,
         lastAttacker: t.lastAttacker, beast: t.beast, hero: t.hero, lair: t.lair && { ...t.lair }, cave: t.cave,
       })),
-      factions: this.factions.map((f) => ({ alive: f.alive, alarm: f.alarm })),
+      factions: this.factions.map((f) => ({ alive: f.alive, alarm: f.alarm, heroAway: f.heroAway ? { ...f.heroAway } : null })),
       phase: this.phase,
       winner: this.winner,
       reason: this.reason,
@@ -622,6 +721,7 @@ export class TurnGame extends Game {
       hold: { ...this.hold, times: this.hold.times.slice() },
       rng: this.rng.s,
       commandsLeft: this.commandsLeft,
+      heroUsed: this.heroUsed,
       commands: this.entry.commands.length,
     });
   }

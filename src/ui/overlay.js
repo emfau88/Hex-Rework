@@ -96,9 +96,10 @@ function figureSign(ctx, kind, x, y, r, side, saved = null) {
     }
   }
   if (kind === 'knight') {
-    // A great helm with its eye slit, under a white plume.
+    // A great helm with its eye slit, under a plume in the colour of his side. Light on dark while he
+    // is away.
     const s = r * 0.8;
-    ctx.fillStyle = '#22323a';
+    ctx.fillStyle = planned ? '#d9d2c4' : '#22323a';
     ctx.beginPath();
     ctx.moveTo(x - s * 0.52, y + s * 0.72);
     ctx.lineTo(x - s * 0.52, y - s * 0.22);
@@ -107,7 +108,7 @@ function figureSign(ctx, kind, x, y, r, side, saved = null) {
     ctx.lineTo(x + s * 0.52, y + s * 0.72);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#f2ead8';
+    ctx.fillStyle = planned ? 'rgba(6, 20, 27, 0.86)' : '#f2ead8';
     ctx.fillRect(x - s * 0.4, y - s * 0.12, s * 0.8, s * 0.17); // eye slit
     ctx.fillRect(x - s * 0.04, y + s * 0.05, s * 0.08, s * 0.45); // breathing line
     ctx.fillStyle = side;
@@ -254,8 +255,12 @@ export class Overlay {
       // troll), a tower or a farm. So it can be told at a glance even where the model itself is small.
       // A building that is only ordered shows its sign in outline, with how much is saved up.
       // The knight goes first: where he stands decides where the next attack hits hardest.
-      const kind = owned ? t.hero || t.beast || t.building || t.order || null : null;
-      const saved = kind && !t.hero && !t.beast && !t.building ? t.units / (t.orderCost + 1) : null;
+      // A knight who rode home and sits out moves shows at his castle in outline; his ring closes
+      // with every move he has sat out (turn mode only).
+      const away = owned && t.castle >= 0 && !t.hero ? game.factions[t.owner].heroAway : null;
+      const kind = owned ? t.hero || away?.kind || t.beast || t.building || t.order || null : null;
+      const saved = away ? 1 - away.left / game.T.hero.away
+        : kind && !t.hero && !t.beast && !t.building ? t.units / (t.orderCost + 1) : null;
       const sign = kind ? h * 0.52 : 0;
       const signX = p.x - w / 2 - sign * 0.45;
       // A contested field carries a rim around its number; other plates keep clear of all of it.
