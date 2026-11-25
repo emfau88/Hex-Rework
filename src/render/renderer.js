@@ -14,6 +14,7 @@ import { MAP_ANGLE } from '../sim/maps.js';
 const LIGHT = normalize([-0.58, 1, 0.56]);
 const MAX_SOLDIERS = 900;
 const MAX_BEASTS = 200; // monster figures (trolls)
+const MAX_HEROES = 16; // hero figures (the knight)
 const TURN_SECONDS = 0.45; // a turn of the view by one side of the island
 const MAX_ZOOM = 2.6;
 const INSTANCE = 12; // floats per figure: position and turn, colour and size, tilt and kingdom
@@ -185,6 +186,15 @@ const TROLL_FORMATION = [[], [[0, 0.16]], [[-0.3, 0.08], [0.28, 0.26]]];
 // Before a cave one troll, left of its mouth, where the number in front does not cover it; the fire
 // burns on the right.
 const TROLL_FRONT = [[], [[-0.44, 0.1]]];
+// The knight is one big figure, like a troll: on a phone that reads better than a small one in a
+// crowd. On a field he stands in front in the middle and his troops keep to three figures behind
+// him; before a castle he stands on the right of its door.
+const KNIGHT_SIZE = 1.6;
+const KNIGHT_EDGE = 1.45; // at an edge and on the march
+const KNIGHT_SPOT = [0.04, 0.18];
+const KNIGHT_KEEP = [0.32, 0.64];
+const BESIDE_KNIGHT = [[], [[-0.38, 0.02]], [[-0.38, 0.02], [0.4, -0.02]], [[-0.38, 0.02], [0.4, -0.02], [0, -0.3]]];
+const KEEP_BESIDE_KNIGHT = [[], [[-0.3, 0.6]], [[-0.42, 0.52], [-0.12, 0.68]]];
 const CAVE_FIRE = [0.4, 0.2];
 const FIRE = ['#ffb347', '#ff7a2e', '#ffe08a'].map(lin);
 const WOOD_DARK = lin('#4a3424');
@@ -281,6 +291,20 @@ export class DioramaRenderer {
     this.trollInstanceCount = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.trollInstanceBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.trollInstances.byteLength, gl.DYNAMIC_DRAW);
+
+    // Heroes too: the knight.
+    this.knightBuffer = gl.createBuffer();
+    this.knightInstanceBuffer = gl.createBuffer();
+    this.knightVao = this._vao(this.knightBuffer, this.knightInstanceBuffer);
+    const knight = new Mesh();
+    models.knight(knight);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.knightBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(knight.a), gl.STATIC_DRAW);
+    this.knightCount = knight.count;
+    this.knightInstances = new Float32Array(MAX_HEROES * INSTANCE);
+    this.knightInstanceCount = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.knightInstanceBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.knightInstances.byteLength, gl.DYNAMIC_DRAW);
 
     // Shadow map with hardware comparison (free 2×2 filtering per tap).
     const lowEnd = (navigator.hardwareConcurrency || 8) <= 4;
@@ -965,24 +989,31 @@ export class DioramaRenderer {
   _buildSoldiers(game, time) {
     const d = this.instances;
     const td = this.trollInstances;
+    const kd = this.knightInstances;
     let n = 0;
     let tn = 0;
+    let kn = 0;
     const shade = this.shade;
-    // `beast`: the figure is a monster of that kind (a troll) instead of a soldier.
+    // `beast`: the figure is a monster of that kind (a troll) or the knight instead of a soldier.
     const put = (x, y, z, rot, c, s, kingdom, tilt = 0, beast = null) => {
-      let o;
-      if (beast) {
+      let o, a;
+      if (beast === 'knight') {
+        if (kn >= MAX_HEROES) return;
+        o = kn++ * INSTANCE;
+        a = kd;
+      } else if (beast) {
         if (tn >= MAX_BEASTS) return;
         o = tn++ * INSTANCE;
+        a = td;
       } else {
         if (n >= MAX_SOLDIERS) return;
         o = n++ * INSTANCE;
+        a = d;
       }
-      const a = beast ? td : d;
       a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = rot;
       a[o + 4] = c[0]; a[o + 5] = c[1]; a[o + 6] = c[2]; a[o + 7] = s;
       a[o + 8] = tilt; a[o + 9] = kingdom; a[o + 10] = 0; a[o + 11] = 0;
-      shadeDisc(shade, x, y + 0.004, z, (beast ? 0.19 : 0.13) * s, 0.6);
+      shadeDisc(shade, x, y + 0.004, z, (beast === 'knight' ? 0.21 : beast ? 0.19 : 0.13) * s, 0.6);
     };
 
     for (const t of game.tiles) {
@@ -995,6 +1026,10 @@ export class DioramaRenderer {
       if (beast) {
         count = keep ? Math.min(1, trolls(t.units)) : trolls(t.units);
         spots = keep ? TROLL_FRONT[count] : TROLL_FORMATION[count];
+      } else if (t.hero) {
+        // The knight takes the front: his troops keep to a few figures beside and behind him.
+        count = Math.min(keep ? 2 : 3, figures(t.units));
+        spots = keep ? KEEP_BESIDE_KNIGHT[count] : BESIDE_KNIGHT[count];
       } else {
         count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
         spots = keep ? KEEP_FRONT[count] : FORMATION[count];
@@ -1038,6 +1073,25 @@ export class DioramaRenderer {
         }
         put(x, y + hop, z, rot, c, size, kingdom, tilt, beast);
       }
+      if (t.hero === 'knight') {
+        // Turned a little, so his horse shows its side and not only its nose. Under attack he rides
+        // to the first edge the attackers stand at.
+        const [sx, sz] = this.turned(...(keep ? KNIGHT_KEEP : KNIGHT_SPOT));
+        let x = t.x + sx;
+        let z = t.z + sz;
+        let rot = this.turnAngle + 0.6;
+        let hop = 0;
+        if (fighting) {
+          const p = foes[0];
+          const pos = this.poolPosition(game, t, p);
+          const k = smooth(clamp((time - p.since) / 0.45, 0, 1));
+          x = mix(x, pos.x + pos.dx * 0.3, k);
+          z = mix(z, pos.z + pos.dz * 0.3, k);
+          rot += wrapAngle(pos.angle + Math.PI - rot) * k;
+          hop = Math.abs(Math.sin(time * 9 + t.id)) * 0.03 * k;
+        }
+        put(x, y + hop, z, rot, c, KNIGHT_SIZE, kingdom, 0, 'knight');
+      }
     }
 
     // Besiegers: a line at the edge, striking at the defenders who have come to meet them.
@@ -1051,8 +1105,16 @@ export class DioramaRenderer {
         // A troll stands for twice as many troops as a soldier at the edge, and there are two at most.
         const per = p.beast ? 12 : 6;
         const count = Math.max(1, Math.min(p.beast ? 2 : 4, Math.ceil(p.units / per)));
+        // Where the knight leads, he stands in the middle of the line and his troops make room.
+        const knight = p.hero === 'knight';
+        if (knight) {
+          const push = Math.abs(Math.sin(time * 6 + p.from)) * 0.1;
+          const y = ground - models.bankDrop(S, t, 0.7 + push);
+          put(pos.x + pos.dx * (0.04 + push), y + 0.02, pos.z + pos.dz * (0.04 + push), pos.angle, c, KNIGHT_EDGE, kingdom, 0, 'knight');
+        }
         for (let i = 0; i < count; i++) {
-          const lane = (i - (count - 1) / 2) * (p.beast ? 0.42 : 0.2);
+          let lane = (i - (count - 1) / 2) * (p.beast ? 0.42 : 0.2);
+          if (knight) lane += lane < 0 || (lane === 0 && i % 2) ? -0.15 : 0.15;
           const push = Math.abs(Math.sin(time * 7 + i * 2.1 + p.from)) * 0.09;
           const bob = Math.abs(Math.sin(time * 14 + i * 1.3 + p.from)) * 0.035;
           // The last figure of a pool goes down as the last of its troops fall.
@@ -1074,6 +1136,11 @@ export class DioramaRenderer {
       const count = beast ? (army.units > 12 ? 2 : 1) : Math.max(1, Math.min(6, Math.ceil(army.units / 5)));
       const fx = Math.sin(pos.angle);
       const fz = Math.cos(pos.angle);
+      if (army.hero === 'knight') {
+        // The knight rides ahead of his troops.
+        const gallop = Math.abs(Math.sin(time * 9 + army.id)) * 0.05;
+        put(pos.x + fx * 0.22, pos.y + 0.02 + gallop, pos.z + fz * 0.22, pos.angle, c, KNIGHT_EDGE, kingdom, 0, 'knight');
+      }
       for (let i = 0; i < count; i++) {
         const row = Math.floor(i / 2);
         const lane = count === 1 ? 0 : (i % 2 ? 1 : -1) * (beast ? 0.24 : 0.14);
@@ -1085,9 +1152,12 @@ export class DioramaRenderer {
 
     this.instanceCount = n;
     this.trollInstanceCount = tn;
+    this.knightInstanceCount = kn;
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.trollInstanceBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, td.subarray(0, tn * INSTANCE));
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.knightInstanceBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, kd.subarray(0, kn * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, d.subarray(0, n * INSTANCE));
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shadeBuffer);
@@ -1114,6 +1184,11 @@ export class DioramaRenderer {
       gl.uniform1f(u.uInst, 1);
       gl.bindVertexArray(this.trollVao);
       gl.drawArraysInstanced(gl.TRIANGLES, 0, this.trollCount, this.trollInstanceCount);
+    }
+    if (this.knightInstanceCount) {
+      gl.uniform1f(u.uInst, 1);
+      gl.bindVertexArray(this.knightVao);
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, this.knightCount, this.knightInstanceCount);
     }
   }
 

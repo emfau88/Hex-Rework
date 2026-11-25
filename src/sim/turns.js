@@ -611,7 +611,7 @@ export class TurnGame extends Game {
       tiles: this.tiles.map((t) => ({
         owner: t.owner, units: t.units, building: t.building, order: t.order, orderCost: t.orderCost, ruin: t.ruin, castle: t.castle,
         supplied: t.supplied, siegeFrom: t.siegeFrom, lastCapture: t.lastCapture, stormedAt: t.stormedAt, lastBattle: t.lastBattle,
-        lastAttacker: t.lastAttacker, beast: t.beast, lair: t.lair && { ...t.lair }, cave: t.cave,
+        lastAttacker: t.lastAttacker, beast: t.beast, hero: t.hero, lair: t.lair && { ...t.lair }, cave: t.cave,
       })),
       factions: this.factions.map((f) => ({ alive: f.alive, alarm: f.alarm })),
       phase: this.phase,

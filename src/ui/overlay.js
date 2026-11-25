@@ -95,6 +95,26 @@ function figureSign(ctx, kind, x, y, r, side, saved = null) {
       ctx.fillRect(px(u), py(v), w * k, h * k);
     }
   }
+  if (kind === 'knight') {
+    // A great helm with its eye slit, under a white plume.
+    const s = r * 0.8;
+    ctx.fillStyle = '#22323a';
+    ctx.beginPath();
+    ctx.moveTo(x - s * 0.52, y + s * 0.72);
+    ctx.lineTo(x - s * 0.52, y - s * 0.22);
+    ctx.quadraticCurveTo(x - s * 0.52, y - s * 0.62, x, y - s * 0.62);
+    ctx.quadraticCurveTo(x + s * 0.52, y - s * 0.62, x + s * 0.52, y - s * 0.22);
+    ctx.lineTo(x + s * 0.52, y + s * 0.72);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f2ead8';
+    ctx.fillRect(x - s * 0.4, y - s * 0.12, s * 0.8, s * 0.17); // eye slit
+    ctx.fillRect(x - s * 0.04, y + s * 0.05, s * 0.08, s * 0.45); // breathing line
+    ctx.fillStyle = side;
+    ctx.beginPath(); // plume, in the colour of his side
+    ctx.ellipse(x + s * 0.12, y - s * 0.78, s * 0.42, s * 0.2, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+  }
   if (kind === 'troll') {
     const s = r * 0.8;
     const dark = '#33402b';
@@ -233,8 +253,9 @@ export class Overlay {
       // What changes the rules of a field shows its sign on the left end of the plate: a figure (a
       // troll), a tower or a farm. So it can be told at a glance even where the model itself is small.
       // A building that is only ordered shows its sign in outline, with how much is saved up.
-      const kind = owned ? t.beast || t.building || t.order || null : null;
-      const saved = kind && !t.beast && !t.building ? t.units / (t.orderCost + 1) : null;
+      // The knight goes first: where he stands decides where the next attack hits hardest.
+      const kind = owned ? t.hero || t.beast || t.building || t.order || null : null;
+      const saved = kind && !t.hero && !t.beast && !t.building ? t.units / (t.orderCost + 1) : null;
       const sign = kind ? h * 0.52 : 0;
       const signX = p.x - w / 2 - sign * 0.45;
       // A contested field carries a rim around its number; other plates keep clear of all of it.
@@ -325,16 +346,17 @@ export class Overlay {
       for (const pool of t.pools) {
         if (!concerns(pool.owner, t)) continue;
         const g = groups.get(pool.owner);
-        if (!g) groups.set(pool.owner, { units: pool.units, lead: pool });
+        if (!g) groups.set(pool.owner, { units: pool.units, lead: pool, hero: pool.hero || null });
         else {
           g.units += pool.units;
           if (pool.units > g.lead.units) g.lead = pool;
+          if (pool.hero) g.hero = pool.hero;
         }
       }
       for (const [owner, g] of groups) {
         const pos = renderer.poolPosition(game, t, g.lead);
         const p = renderer.project(pos.x, pos.y + 0.78, pos.z);
-        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true, `${t.id}:${owner}`, g.lead.beast || null);
+        badge(p.x, p.y, String(Math.max(1, Math.round(g.units))), PALETTE_HEX[game.factions[owner].color], true, `${t.id}:${owner}`, g.hero || g.lead.beast || null);
       }
     }
     for (const key of this.spots.keys()) if (!spotsUsed.has(key)) this.spots.delete(key);
@@ -347,7 +369,7 @@ export class Overlay {
       if (a.done || a.kind === 'supply' || !(a.show || concerns(a.owner, game.tiles[a.path[a.path.length - 1]]))) continue;
       const pos = renderer.armyPosition(game, a);
       const p = renderer.project(pos.x, pos.y + 0.75, pos.z);
-      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, null, a.beast || null);
+      badge(p.x, p.y, String(a.units), PALETTE_HEX[game.factions[a.owner].color], false, null, a.hero || a.beast || null);
     }
     this.stats = { plates: plates.length, dropped, signs: drawn };
 

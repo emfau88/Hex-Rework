@@ -40,7 +40,7 @@ const OPEN_FOR_TESTING = ALL_MISSIONS.some((m) => !m.turnsTuned);
 const holdTurns = (m) => Math.ceil(m.objective.seconds / (m.turns?.seconds ?? TURN_RULES.seconds));
 // Figure showcase: what a tap does (play as usual, or set a side), how many troops it sets, and how
 // fast the time runs there.
-const LAB_TOOLS = ['order', 'troll', 'wild', 'own', 'rival', 'free'];
+const LAB_TOOLS = ['order', 'knight', 'troll', 'wild', 'own', 'rival', 'free'];
 const LAB_AMOUNTS = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 99];
 const LAB_SPEEDS = [0.25, 0.5, 1, 3];
 const LAB_SPEED_LABEL = { 0.25: '¼×', 0.5: '½×', 1: '1×', 3: '3×' };
@@ -384,6 +384,8 @@ class App {
     this.ui.goalMark = null;
     this.sayQueue = null;
     this.events = [];
+    // The knight waits at the player's castle, so he can be seen without setting anything.
+    this.game.placeHero(this.game.factions[0].castle, 'knight');
     this.buildLab();
     this.setMode('play');
     this.setHint('');
@@ -440,6 +442,13 @@ class App {
     const t = this.game.tiles[id];
     lab.inspect = id;
     if (!t.passable) return;
+    if (lab.tool === 'knight') {
+      // The knight stands on any field of a kingdom, its castle too; a second tap takes him off.
+      if (this.game.placeHero(id, 'knight')) this.sfx.play('build', 0.5);
+      else this.say(id, i18n.t('labKnightNo'));
+      this.updateLabInfo();
+      return;
+    }
     if (t.castle >= 0) {
       this.say(id, i18n.t('labCastleNo'));
       return;
@@ -514,6 +523,7 @@ class App {
       const growth = !f ? i18n.t('labNoGrowth') : !t.supplied ? i18n.t('labCut') : t.units >= game.cap(t) - 0.01 ? i18n.t('full') : `+${game.income(t).toFixed(2)}/s`;
       rows.push([i18n.t('panelGrowth'), growth]);
       rows.push([i18n.t('labCover'), cover]);
+      if (t.hero === 'knight') rows.push([i18n.t('labHero'), i18n.t('labKnight', { n: game.R.knightEdge, m: game.R.frontage })]);
       if (sides) {
         const units = Math.round(foes.reduce((s, p) => s + p.units, 0));
         rows.push([i18n.t('labFight'), i18n.t('labFightText', { sides: sideText, u: units })]);
@@ -1052,6 +1062,12 @@ class App {
         else this.sfx.play('capture', 0.22 * quiet);
         if (e.citadel) this.banner(i18n.t('citadel', { name: name(e.owner) }), null, 2200);
         if (e.citadel && mine(e.owner)) this.note(i18n.t('evCitadel'));
+        break;
+      case 'herohome':
+        this.say(e.tile, i18n.t('evKnightHome'));
+        break;
+      case 'herolost':
+        if (mine(e.owner)) this.note(i18n.t('evKnightLost'));
         break;
       case 'repel':
         if (mine(e.owner)) this.sfx.play('lost', 0.6);

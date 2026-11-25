@@ -496,6 +496,57 @@ export function troll(m) {
   }
 }
 
+/**
+ * Ritter Kunibert, the knight: on a pale horse, in plate with a great helm and a tall white plume,
+ * the lance raised with a pennant. Standing on the origin and facing +z, drawn instanced like the
+ * soldiers. The saddle cloth, his cape, his shield and the pennant take the colour of his side, so
+ * the side reads from above. Horse and rider give him an outline no other figure has.
+ */
+export function knight(m) {
+  const horse = lin('#e6dfcf');
+  const horseShade = lin('#b9af9b');
+  const mane = lin('#5c4a3a');
+  const hoof = lin('#2c2622');
+  const steel = lin('#d4dfe0');
+  const steelDark = lin('#8c9ea3');
+  const plume = lin('#fbf6ea');
+  const side = (x, y, z, w, h, d) => m.box(x, y, z, w, h, d, BLACK, 0, 0.22, 1.15); // in the colour of his side
+
+  // The horse: legs and hooves, body, saddle cloth, neck, head, ears, mane and tail.
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      m.box(sx * 0.055, 0, sz * 0.12, 0.045, 0.17, 0.05, horseShade);
+      m.box(sx * 0.055, 0, sz * 0.12 + 0.005, 0.05, 0.03, 0.06, hoof);
+    }
+  }
+  m.box(0, 0.15, 0, 0.15, 0.12, 0.34, horse);
+  side(0, 0.12, -0.01, 0.168, 0.165, 0.22);
+  prism(m, [0, 0.22, 0.12], [0, 0.36, 0.21], 0.05, 0.04, horse);
+  prism(m, [0, 0.37, 0.2], [0, 0.3, 0.33], 0.036, 0.028, horse);
+  for (const sx of [-1, 1]) m.box(sx * 0.022, 0.37, 0.2, 0.016, 0.045, 0.016, horseShade);
+  prism(m, [0, 0.27, 0.1], [0, 0.41, 0.19], 0.02, 0.016, mane);
+  prism(m, [0, 0.25, -0.17], [0, 0.09, -0.24], 0.026, 0.014, mane);
+
+  // The rider: legs along the horse's flanks, plate, cape, great helm with a slit and a tall plume.
+  for (const sx of [-1, 1]) m.box(sx * 0.095, 0.13, 0.01, 0.04, 0.15, 0.065, steel);
+  m.box(0, 0.27, -0.02, 0.15, 0.05, 0.1, steelDark);
+  m.box(0, 0.31, -0.02, 0.13, 0.13, 0.085, steel);
+  side(0, 0.19, -0.075, 0.15, 0.25, 0.02);
+  m.box(0, 0.44, -0.015, 0.095, 0.11, 0.095, steel);
+  m.box(0, 0.495, 0.033, 0.072, 0.016, 0.01, DARK);
+  m.cyl(0, 0.55, -0.015, 0.05, 0.032, 0.02, 6, steelDark);
+  prism(m, [0, 0.56, -0.02], [0, 0.69, -0.08], 0.018, 0.042, plume);
+  prism(m, [0, 0.69, -0.08], [0, 0.64, -0.17], 0.042, 0.016, plume);
+
+  // Shield on the left arm, lance in the right hand, raised, with a pennant.
+  side(-0.108, 0.25, 0.005, 0.02, 0.16, 0.12);
+  m.box(-0.12, 0.31, 0.005, 0.006, 0.035, 0.035, GOLD);
+  m.box(0.085, 0.31, 0, 0.04, 0.11, 0.06, steel);
+  prism(m, [0.095, 0.2, -0.08], [0.095, 0.82, 0.2], 0.013, 0.009, WOOD);
+  prism(m, [0.095, 0.82, 0.2], [0.095, 0.89, 0.232], 0.013, 0.002, steel);
+  side(0.16, 0.71, 0.165, 0.12, 0.07, 0.01);
+}
+
 /** A four-sided beam from point `a` to point `b`, `r0` thick at `a` and `r1` at `b`. */
 function prism(m, a, b, r0, r1, color) {
   const d = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);

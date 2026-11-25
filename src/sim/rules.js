@@ -29,6 +29,9 @@ export const RULES = Object.freeze({
   // 2. Edges: attackers that can fight at one edge at the same time, and damage per fighter and second.
   frontage: 8,
   hit: 0.5,
+  // The knight (a hero, so far only in the figure showcase): where he leads an attack, this many
+  // fight at that edge instead of `frontage`.
+  knightEdge: 12,
 
   // A defender on good ground takes less damage: damage is divided by this.
   defense: Object.freeze({ plain: 1, forest: 1.25, hill: 1.45, citadel: 1.3 }),

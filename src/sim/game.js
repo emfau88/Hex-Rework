@@ -308,20 +308,23 @@ export class Game {
       // Troops of the side that owns the field by now join its garrison in the next step.
       if (p.owner === t.owner) coming.push({ owner: p.owner, from: p.from, units: p.units, tick: 1 });
       else {
-        pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0 });
+        pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0, hero: p.hero || null });
         sent.set(p.owner, (sent.get(p.owner) || 0) + p.units);
       }
     }
     for (const x of extra) {
       if (!(x.units > 0)) continue;
-      coming.push({ owner: x.owner, from: x.from, units: x.units, tick: this._marchTicks(x.path || [x.from, tileId]) });
+      // A hero on the field the troops set out from goes along with them (see dispatch).
+      const src = this.tiles[x.path ? x.path[0] : x.from];
+      const hero = x.hero ?? (src && src.owner === x.owner ? src.hero : null);
+      coming.push({ owner: x.owner, from: x.from, units: x.units, tick: this._marchTicks(x.path || [x.from, tileId]), hero });
       if (x.owner !== t.owner) sent.set(x.owner, (sent.get(x.owner) || 0) + x.units);
     }
     if (marching) {
       for (const a of this.armies) {
         const n = a.path.length;
         if (a.done || a.path[n - 1] !== tileId) continue;
-        coming.push({ owner: a.owner, from: a.path[n - 2], units: a.units, tick: this._marchTicks(a.path, a.seg, a.t) });
+        coming.push({ owner: a.owner, from: a.path[n - 2], units: a.units, tick: this._marchTicks(a.path, a.seg, a.t), hero: a.hero || null });
         if (a.owner !== t.owner) sent.set(a.owner, (sent.get(a.owner) || 0) + a.units);
       }
     }
@@ -339,8 +342,10 @@ export class Game {
         if (c.owner === t.owner) D = Math.min(room, D + c.units);
         else {
           const p = pools.find((x) => x.owner === c.owner && x.from === c.from);
-          if (p) p.units += c.units;
-          else pools.push({ owner: c.owner, from: c.from, units: c.units, e: 0 });
+          if (p) {
+            p.units += c.units;
+            if (c.hero) p.hero = c.hero;
+          } else pools.push({ owner: c.owner, from: c.from, units: c.units, e: 0, hero: c.hero || null });
         }
       }
       if (!pools.length) continue;
@@ -399,7 +404,8 @@ export class Game {
   _clash(units, pools, def, F, mul = 1) {
     const R = this.R;
     let eng = 0;
-    for (const p of pools) eng += p.e = Math.min(p.units, F);
+    // Where the knight leads, more of his troops fight at that edge at once.
+    for (const p of pools) eng += p.e = Math.min(p.units, p.hero === 'knight' ? (F * R.knightEdge) / R.frontage : F);
     const toAtt = R.hit * R.step * units * mul;
     for (const p of pools) p.units -= (toAtt * p.e) / eng;
     return units - (R.hit * R.step * eng) / (def * mul);
@@ -511,6 +517,11 @@ export class Game {
     src.units -= amount;
     const army = this._spawn(owner, amount, path, kind || (dst.owner === owner ? 'move' : 'attack'));
     if (src.beast) army.beast = src.beast; // monsters keep their kind on the march and at the edges
+    // A hero goes along with the troops of his field, but not with a supply column.
+    if (src.hero && army.kind !== 'supply') {
+      army.hero = src.hero;
+      src.hero = null;
+    }
     if (owner === this.human) this.humanStats.sent++;
     this.events.push({ type: 'send', owner, from, to, units: amount, kind: army.kind });
     return army;
@@ -553,12 +564,55 @@ export class Game {
     t.lair = null;
     t.cave = false;
     t.beast = null;
+    // A hero stays if his side keeps the field; otherwise he goes home to his castle.
+    const hero = t.hero;
+    const previous = t.owner;
+    t.hero = null;
     t.owner = owner;
     t.units = Math.max(owner >= 0 ? 1 : 0, Math.floor(units));
     t.siegeFrom = t.units;
     t.lastCapture = this.time;
+    if (hero && previous === owner) t.hero = hero;
+    else if (hero) this._heroHome(previous, hero);
     this._supply();
     return true;
+  }
+
+  /**
+   * Figure showcase only: the hero `kind` of the field's owner stands on `tileId` from now on. Each
+   * kingdom has one; wherever he was, he leaves. Tapping his own field again takes him off the board.
+   * Monsters and free land get none. Returns false if refused.
+   */
+  placeHero(tileId, kind = 'knight') {
+    const t = this.tiles[tileId];
+    const side = t && t.owner >= 0 ? this.factions[t.owner] : null;
+    if (!this.mission.sandbox || !t || !t.passable || !side || side.wild || !side.alive) return false;
+    if (t.hero === kind) {
+      t.hero = null;
+      return true;
+    }
+    for (const o of this.tiles) {
+      if (o.owner === side.id && o.hero === kind) o.hero = null;
+      for (const p of o.pools) if (p.owner === side.id && p.hero === kind) p.hero = null;
+    }
+    for (const a of this.armies) if (a.owner === side.id && a.hero === kind) a.hero = null;
+    t.hero = kind;
+    return true;
+  }
+
+  /**
+   * A hero whose field fell or whose attack failed goes back to his castle. If his kingdom has no
+   * castle any more, he is gone.
+   */
+  _heroHome(owner, kind) {
+    const f = owner >= 0 ? this.factions[owner] : null;
+    const home = f && !f.wild && f.alive && f.castle >= 0 ? this.tiles[f.castle] : null;
+    if (!home || home.owner !== owner) {
+      this.events.push({ type: 'herolost', owner, hero: kind });
+      return;
+    }
+    home.hero = kind;
+    this.events.push({ type: 'herohome', owner, tile: home.id, hero: kind });
   }
 
   /** Figure showcase only: a lair of `kind` with `units` monsters, which is also its size. */
@@ -683,6 +737,7 @@ export class Game {
         if (tile.owner === a.owner) {
           if (a.seg + 2 >= a.path.length) {
             tile.units = Math.min(this.cap(tile) + R.overfill, tile.units + a.units);
+            if (a.hero) tile.hero = a.hero;
             a.done = true;
             this.events.push({ type: 'arrive', owner: a.owner, tile: tile.id, units: a.units, kind: a.kind });
           } else {
@@ -763,6 +818,7 @@ export class Game {
     let pool = tile.pools.find((p) => p.owner === a.owner && p.from === from);
     if (!pool) tile.pools.push((pool = { owner: a.owner, from, units: 0, since: this.time }));
     if (a.beast) pool.beast = a.beast;
+    if (a.hero) pool.hero = a.hero;
     pool.units += a.units;
     tile.lastBattle = this.time;
     tile.lastAttacker = a.owner;
@@ -777,6 +833,7 @@ export class Game {
       const p = t.pools[i];
       if (p.owner !== t.owner) continue;
       t.units = Math.min(this.cap(t) + R.overfill, t.units + p.units);
+      if (p.hero) t.hero = p.hero;
       t.pools.splice(i, 1);
     }
     if (!t.pools.length) return false;
@@ -788,6 +845,7 @@ export class Game {
       const p = t.pools[i];
       if (p.units > 0.01) continue;
       t.pools.splice(i, 1);
+      if (p.hero) this._heroHome(p.owner, p.hero); // his attack failed
       if (!t.pools.some((x) => x.owner === p.owner)) this.events.push({ type: 'repel', owner: p.owner, defender: t.owner, tile: t.id });
     }
     if (t.units > 0) return false;
@@ -810,10 +868,16 @@ export class Game {
       t.lair = null;
     }
     if (t.beast || beast) t.beast = beast;
+    // The hero of the fallen garrison goes home; one who led the attack moves in.
+    const fallenHero = t.hero;
+    const hero = t.pools.find((p) => p.owner === winner && p.hero)?.hero ?? null;
+    t.hero = null;
 
     t.pools = t.pools.filter((p) => p.owner !== winner);
     t.owner = winner;
     t.units = units;
+    if (fallenHero) this._heroHome(previous, fallenHero);
+    if (hero) t.hero = hero;
     t.siegeFrom = units; // whoever still stands at the edges now fights the new garrison
     t.lastCapture = this.time;
     t.stormedAt = this.time; // taken in battle, as opposed to inherited with a fallen castle
@@ -851,6 +915,7 @@ export class Game {
       if (t.pools.length) t.pools = t.pools.filter((p) => p.owner !== fallen);
       if (t.owner !== fallen) continue;
       t.owner = heir;
+      t.hero = null; // a kingdom that fell has no hero left
       t.units = Math.max(1, Math.floor(t.units * this.R.conquestKeep));
       t.lastCapture = this.time;
       t.order = null;
