@@ -186,14 +186,15 @@ const TROLL_FORMATION = [[], [[0, 0.16]], [[-0.3, 0.08], [0.28, 0.26]]];
 // Before a cave one troll, left of its mouth, where the number in front does not cover it; the fire
 // burns on the right.
 const TROLL_FRONT = [[], [[-0.44, 0.1]]];
-// The knight is one big figure, like a troll: on a phone that reads better than a small one in a
-// crowd. On a field he stands in front in the middle and his troops keep to three figures behind
-// him; before a castle he stands on the right of its door.
-const KNIGHT_SIZE = 1.6;
-const KNIGHT_EDGE = 1.45; // at an edge and on the march
-const KNIGHT_SPOT = [0.04, 0.18];
-const KNIGHT_KEEP = [0.32, 0.64];
-const BESIDE_KNIGHT = [[], [[-0.38, 0.02]], [[-0.38, 0.02], [0.4, -0.02]], [[-0.38, 0.02], [0.4, -0.02], [0, -0.3]]];
+// The knight is one big figure, bigger than a troll: on a phone that reads better than a small one
+// in a crowd. On a field he stands in front in the middle and his troops keep to two figures beside
+// him; before a castle he stands on the right of its door. His shadow is wider and darker than a
+// soldier's, which sets him off from the ground.
+const KNIGHT_SIZE = 1.84;
+const KNIGHT_EDGE = 1.67; // at an edge and on the march
+const KNIGHT_SPOT = [0.04, 0.16];
+const KNIGHT_KEEP = [0.34, 0.64];
+const BESIDE_KNIGHT = [[], [[-0.44, 0]], [[-0.44, 0], [0.46, -0.04]]];
 const KEEP_BESIDE_KNIGHT = [[], [[-0.3, 0.6]], [[-0.42, 0.52], [-0.12, 0.68]]];
 const CAVE_FIRE = [0.4, 0.2];
 const FIRE = ['#ffb347', '#ff7a2e', '#ffe08a'].map(lin);
@@ -1013,7 +1014,8 @@ export class DioramaRenderer {
       a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = rot;
       a[o + 4] = c[0]; a[o + 5] = c[1]; a[o + 6] = c[2]; a[o + 7] = s;
       a[o + 8] = tilt; a[o + 9] = kingdom; a[o + 10] = 0; a[o + 11] = 0;
-      shadeDisc(shade, x, y + 0.004, z, (beast === 'knight' ? 0.21 : beast ? 0.19 : 0.13) * s, 0.6);
+      if (beast === 'knight') shadeDisc(shade, x, y + 0.004, z, 0.27 * s, 0.4);
+      else shadeDisc(shade, x, y + 0.004, z, (beast ? 0.19 : 0.13) * s, 0.6);
     };
 
     for (const t of game.tiles) {
@@ -1028,7 +1030,7 @@ export class DioramaRenderer {
         spots = keep ? TROLL_FRONT[count] : TROLL_FORMATION[count];
       } else if (t.hero) {
         // The knight takes the front: his troops keep to a few figures beside and behind him.
-        count = Math.min(keep ? 2 : 3, figures(t.units));
+        count = Math.min(2, figures(t.units));
         spots = keep ? KEEP_BESIDE_KNIGHT[count] : BESIDE_KNIGHT[count];
       } else {
         count = keep ? Math.min(3, figures(t.units)) : figures(t.units);
@@ -1074,12 +1076,12 @@ export class DioramaRenderer {
         put(x, y + hop, z, rot, c, size, kingdom, tilt, beast);
       }
       if (t.hero === 'knight') {
-        // Turned a little, so his horse shows its side and not only its nose. Under attack he rides
-        // to the first edge the attackers stand at.
+        // Seen from the side: horse and rider read best in profile, not nose first. Under attack he
+        // rides to the first edge the attackers stand at.
         const [sx, sz] = this.turned(...(keep ? KNIGHT_KEEP : KNIGHT_SPOT));
         let x = t.x + sx;
         let z = t.z + sz;
-        let rot = this.turnAngle + 0.6;
+        let rot = this.turnAngle + 1.25;
         let hop = 0;
         if (fighting) {
           const p = foes[0];

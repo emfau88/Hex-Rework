@@ -497,19 +497,21 @@ export function troll(m) {
 }
 
 /**
- * Ritter Kunibert, the knight: on a pale horse, in plate with a great helm and a tall white plume,
- * the lance raised with a pennant. Standing on the origin and facing +z, drawn instanced like the
- * soldiers. The saddle cloth, his cape, his shield and the pennant take the colour of his side, so
- * the side reads from above. Horse and rider give him an outline no other figure has.
+ * Ritter Kunibert, the knight: on a dark horse, in bright plate with a great helm and a tall white
+ * plume, the lance raised with a pennant. Standing on the origin and facing +z, drawn instanced like
+ * the soldiers. The saddle cloth, his cape, his shield and the pennant take the colour of his side, so
+ * the side reads from above. The horse is dark so that he stands out on light meadow and on his
+ * side's own colour alike (a pale one melted into both on a phone); rider and plume are bright
+ * against it.
  */
 export function knight(m) {
-  const horse = lin('#e6dfcf');
-  const horseShade = lin('#b9af9b');
-  const mane = lin('#5c4a3a');
-  const hoof = lin('#2c2622');
-  const steel = lin('#d4dfe0');
-  const steelDark = lin('#8c9ea3');
-  const plume = lin('#fbf6ea');
+  const horse = lin('#4a3021');
+  const horseShade = lin('#331f15');
+  const mane = lin('#140e0b');
+  const hoof = lin('#0d0b0a');
+  const steel = lin('#e6eeee');
+  const steelDark = lin('#7d9196');
+  const plume = lin('#fffaf0');
   const side = (x, y, z, w, h, d) => m.box(x, y, z, w, h, d, BLACK, 0, 0.22, 1.15); // in the colour of his side
 
   // The horse: legs and hooves, body, saddle cloth, neck, head, ears, mane and tail.
@@ -520,7 +522,8 @@ export function knight(m) {
     }
   }
   m.box(0, 0.15, 0, 0.15, 0.12, 0.34, horse);
-  side(0, 0.12, -0.01, 0.168, 0.165, 0.22);
+  // A small saddle cloth on top, so the dark horse keeps one outline from nose to tail.
+  side(0, 0.215, -0.02, 0.164, 0.07, 0.15);
   prism(m, [0, 0.22, 0.12], [0, 0.36, 0.21], 0.05, 0.04, horse);
   prism(m, [0, 0.37, 0.2], [0, 0.3, 0.33], 0.036, 0.028, horse);
   for (const sx of [-1, 1]) m.box(sx * 0.022, 0.37, 0.2, 0.016, 0.045, 0.016, horseShade);
@@ -535,8 +538,8 @@ export function knight(m) {
   m.box(0, 0.44, -0.015, 0.095, 0.11, 0.095, steel);
   m.box(0, 0.495, 0.033, 0.072, 0.016, 0.01, DARK);
   m.cyl(0, 0.55, -0.015, 0.05, 0.032, 0.02, 6, steelDark);
-  prism(m, [0, 0.56, -0.02], [0, 0.69, -0.08], 0.018, 0.042, plume);
-  prism(m, [0, 0.69, -0.08], [0, 0.64, -0.17], 0.042, 0.016, plume);
+  prism(m, [0, 0.56, -0.02], [0, 0.71, -0.08], 0.02, 0.05, plume);
+  prism(m, [0, 0.71, -0.08], [0, 0.65, -0.19], 0.05, 0.018, plume);
 
   // Shield on the left arm, lance in the right hand, raised, with a pennant.
   side(-0.108, 0.25, 0.005, 0.02, 0.16, 0.12);
