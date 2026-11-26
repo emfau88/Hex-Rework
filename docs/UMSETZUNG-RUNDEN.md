@@ -4,8 +4,9 @@ Stand 24.11.2026 · Zweig `runden` · **Gebaut sind die Bündel 0, 1 und 2.** Mi
 eine eigene, kleine Mission (siehe „Mission 1 neu“). Offen ist, dass du die Kette Mission 1 → Wahl →
 „Im Trollwald“ in der neuen Fassung spielst. Alles andere ist Plan.
 
-**Zum Spielen:** Die Kampagne auf Probe beginnt mit `?probe=kampagne` am Ende der Adresse. Eine einzelne Mission
-öffnet `?probe=trollwald`. Im Menü steht davon nichts.
+**Zum Spielen:** [emfau88.github.io/Hex-Rework/runden/](https://emfau88.github.io/Hex-Rework/runden/). Seit dem
+26.11.2026 steht die Kampagne auf Probe im Menü oben, jede Mission lässt sich direkt wählen. Die Links gehen weiter:
+`?probe=kampagne` am Ende der Adresse öffnet Mission 1, `?probe=trollwald` eine einzelne Mission.
 
 Den Rahmen (Geschichte, zehn Missionen, Belohnungen, Trollstamm als erste neue Fraktion) hast du am 24.11.2026
 bestätigt. Alle Zahlen sind Startwerte. Die zweite Hälfte der Kampagne ist ein Entwurf.

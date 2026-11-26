@@ -31,7 +31,8 @@ const inTurns = (m) => Object.freeze({ ...m, turnMode: true });
 const CAMPAIGN = CAMPAIGN_MISSIONS.map(inTurns);
 const FREE_PLAY = SKIRMISH.filter((m) => m.random).map(inTurns);
 const ALL_MISSIONS = [...CAMPAIGN, ...FREE_PLAY];
-// Missions on trial (docs/UMSETZUNG-RUNDEN.md): not in the menu, each has its own link …?probe=<id>.
+// The campaign on trial (docs/UMSETZUNG-RUNDEN.md): in the menu with every mission open, and each also
+// has its own link …?probe=<id>.
 const PROBE_MISSIONS = PROBES.map(inTurns);
 // While maps are still untuned, every mission is open: a mission that cannot be won yet must not
 // lock the ones after it away from being tried.
@@ -97,7 +98,7 @@ class App {
     this.startAttract();
     // The figure showcase has its own link and is not in the menu: …/index.html?schau
     if (new URLSearchParams(location.search).has('schau')) this.startLab();
-    // So does every mission on trial: …/index.html?probe=trollwald opens its briefing.
+    // Every mission on trial has one, too: …/index.html?probe=trollwald opens its briefing.
     // …?probe=kampagne opens the first mission of the campaign on trial.
     const wanted = new URLSearchParams(location.search).get('probe');
     const probe = wanted === 'kampagne' ? PROBE_MISSIONS[0] : PROBE_MISSIONS.find((m) => m.id === wanted);
@@ -609,14 +610,18 @@ class App {
     for (const b of document.querySelectorAll('.speed button')) b.classList.toggle('on', b.dataset.speed === speed);
     const untuned = `<span class="tag">${i18n.t('untuned')}</span>`;
     $('#untuned-note').hidden = !OPEN_FOR_TESTING;
-    $('#missions').innerHTML = CAMPAIGN.map((m) => {
+    const row = (m, tag) => {
       const open = this.unlocked(m);
       const got = this.store.stars[m.id] || 0;
       const stars = `<span class="mini-stars">${[0, 1, 2].map((k) => `<span class="${k < got ? 'got' : ''}">${star}</span>`).join('')}</span>`;
       const no = open ? m.no : '<svg><use href="#i-lock"/></svg>';
-      const blurb = open ? `${i18n.pick(m.blurb)}${m.turnsTuned ? '' : untuned}` : i18n.t('locked');
+      const blurb = open ? `${i18n.pick(m.blurb)}${tag}` : i18n.t('locked');
       return `<button data-mission="${m.id}" class="${open ? '' : 'locked'}"><span class="no">${no}</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${blurb}</span></span>${open ? stars : ''}</button>`;
-    }).join('');
+    };
+    // The campaign on trial: every mission can be picked straight away, without playing the ones before.
+    $('#probes').innerHTML = PROBE_MISSIONS.map((m) => row(m, '')).join('');
+    // The old campaign only to try (the note says so): without the tags, so the menu fits one screen.
+    $('#missions').innerHTML = CAMPAIGN.map((m) => row(m, '')).join('');
     $('#skirmish').innerHTML = FREE_PLAY.map(
       (m) => `<button data-mission="${m.id}"><span class="no">?</span><span class="txt"><span class="name">${i18n.pick(m.name)}</span><span class="blurb">${i18n.pick(m.blurb)}${m.turnsTuned ? '' : untuned}</span></span></button>`,
     ).join('');
@@ -658,9 +663,10 @@ class App {
     const pick = (e) => {
       const b = e.target.closest('button');
       if (!b) return;
-      const mission = ALL_MISSIONS.find((m) => m.id === b.dataset.mission);
+      const mission = [...PROBE_MISSIONS, ...ALL_MISSIONS].find((m) => m.id === b.dataset.mission);
       if (mission && this.unlocked(mission)) this.openMission(mission);
     };
+    $('#probes').addEventListener('click', pick);
     $('#missions').addEventListener('click', pick);
     $('#skirmish').addEventListener('click', pick);
     $('#btn-undo').addEventListener('click', () => this.undo());

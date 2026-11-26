@@ -14,8 +14,11 @@ nicht mehr, es zählt die Form der Front.
   `src/ui/turnplay.js`. Spielen: `node serve.mjs 4181`, im Menü „Rundenmodus · Test“ → „Duell in Runden“. Messen
   mit `node tools/simulate-turns.mjs`.
 - **Kampagne „Die Krone ist weg“ (im Bau):** Plan zum Abhaken in
-  [docs/UMSETZUNG-RUNDEN.md](docs/UMSETZUNG-RUNDEN.md). Missionen auf Probe stehen nicht im Menü, jede hat ihren
-  eigenen Link. Die Kette ab Mission 1 „Erste Krone“ (eine eigene, kleine Mission, nicht die aus dem Menü):
+  [docs/UMSETZUNG-RUNDEN.md](docs/UMSETZUNG-RUNDEN.md). **Spielen:**
+  [▶ emfau88.github.io/Hex-Rework/runden/](https://emfau88.github.io/Hex-Rework/runden/), im Menü oben unter
+  „Kampagne · Die Krone ist weg“. Jede Mission lässt sich dort direkt wählen, ohne die davor zu spielen;
+  Verbesserungen aus früheren Missionen gelten, sobald sie dort einmal gewählt wurden. Darunter steht die alte
+  Kampagne, nur zum Anspielen. Jede Mission hat außerdem ihren eigenen Link. Die Kette ab Mission 1 „Erste Krone“:
   [emfau88.github.io/Hex-Rework/runden/?probe=kampagne](https://emfau88.github.io/Hex-Rework/runden/?probe=kampagne).
   Nur Mission 2 „Im Trollwald“:
   [emfau88.github.io/Hex-Rework/runden/?probe=trollwald](https://emfau88.github.io/Hex-Rework/runden/?probe=trollwald),
