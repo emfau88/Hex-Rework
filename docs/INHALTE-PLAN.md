@@ -93,7 +93,7 @@ Höhle stehen. Einzelheiten in Abschnitt 17 von [REWORK-PLAN.md](REWORK-PLAN.md)
 Entschieden beim Bauen: Er schlägt zurück wie 8 Verteidiger, egal wie stark er ist. Er stampft alle 5 s und
 nimmt dabei jedem Angreifer an jeder Kante 6; 1,5 s vorher hebt er den Fuß. Er heilt 5 pro Sekunde, solange
 weniger als 4 Seiten angreifen. Fällt er, steht danach nichts mehr von ihm auf dem Feld. Werte in `src/sim/rules.js`
-(`giant`), Prüfungen in `tests/giant.test.mjs`.
+(`giant`), Prüfungen in `tests/giant.test.mjs`. Dein Urteil am 26.11.2026: bleibt so.
 
 ### 3 · Wolfsrudel
 

@@ -553,7 +553,7 @@ Handy lästig bleibt.
   Seiten hält er immer, von 4 Seiten mit je 20 fällt er auf Wiese nach etwa 11 s, von 6 Seiten mit je 12 nach
   etwa 8 s. Im Wald (Deckung 1,25) hält er gegen 4 Seiten mit je 20. Die Vorschau sagt genau das, was im Spiel
   passiert.
-- [ ] Du schaust ihn an: bleibt, ändern oder raus.
+- [x] Du schaust ihn an: bleibt, ändern oder raus. Dein Urteil am 26.11.2026: bleibt so.
 - [ ] Seine Regel für Züge bauen, mit Tests: Die Vorschau stimmt auch mit Stampfen und Heilen.
 - [ ] Neues Missionsziel „Besiege den Boss“.
 - [ ] Die Karte bauen.
