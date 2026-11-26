@@ -72,6 +72,7 @@ export class TurnGame extends Game {
     this.log = []; // one entry per move of a kingdom: growth, supply and commands, for the replay
     this.entry = null;
     this._collect = null; // set while the planner of a rival is asked for its next attack
+    this.healedTurn = 1; // the round in which the stone giants last healed (_startTurn)
     this._startTurn();
   }
 
@@ -136,8 +137,10 @@ export class TurnGame extends Game {
 
   /**
    * Edge battle until one side is gone, with the steps of the real-time match (_clash). Troops of the
-   * field's own side strengthen the garrison first. Returns the garrison `D`, the surviving pools and
-   * whether the field fell.
+   * field's own side strengthen the garrison first. A stone giant fights as in real time: narrow edges,
+   * he strikes like a few, he heals while too few sides attack and stomps by the clock of the battle,
+   * which starts anew with every attack. Returns the garrison `D`, the surviving pools, whether the
+   * field fell and how often the giant stomped.
    */
   _battle(t, parts, defMul = 1) {
     const room = this.cap(t) + this.R.overfill;
@@ -156,14 +159,24 @@ export class TurnGame extends Game {
       } else pools.push({ owner: p.owner, from: p.from, units: p.units, e: 0, hero: p.hero || null });
     }
     const def = this.defense(t);
-    const F = this.frontage();
+    const F = this.edge(t);
+    const strike = this.strike(t);
+    const giant = t.giant ? { ...t.giant, at: -1, lift: false } : null;
     let ticks = 0;
+    let stomps = 0;
     while (pools.length && D > 0 && ticks < MAX_TICKS) {
       ticks++;
-      D = this._clash(D, pools, def, F, defMul);
+      if (giant) {
+        const g = this._giantStep(giant, D, pools, ticks * this.R.step);
+        D = g.units;
+        if (g.stomped) stomps++;
+        for (let i = pools.length - 1; i >= 0; i--) if (pools[i].units <= 0.01) pools.splice(i, 1);
+        if (!pools.length) break;
+      }
+      D = this._clash(D, pools, def, F, defMul, strike);
       for (let i = pools.length - 1; i >= 0; i--) if (pools[i].units <= 0.01) pools.splice(i, 1);
     }
-    return { fallen: D <= 0 && pools.length > 0, D: Math.max(0, D), pools, ticks, room };
+    return { fallen: D <= 0 && pools.length > 0, D: Math.max(0, D), pools, ticks, room, stomps };
   }
 
   // ---------------------------------------------------------------- turns
@@ -218,6 +231,12 @@ export class TurnGame extends Game {
     if (!this.storm && this.stormProgress() > 0) {
       this.storm = true;
       this.events.push({ type: 'storm' });
+    }
+    // A stone giant heals while the round turns, nobody fights him then. Within a move no time passes:
+    // several attacks in one move wear him down together.
+    if (this.turn > this.healedTurn) {
+      this.healedTurn = this.turn;
+      for (const t of this.tiles) if (t.giant) t.units = Math.min(t.giant.size, t.units + T.giant.heal);
     }
     this.history = [];
     if (f.wild) {
@@ -563,7 +582,7 @@ export class TurnGame extends Game {
       sent += p.units;
       out.set(p.origin, (out.has(p.origin) ? out.get(p.origin) : this.tiles[p.origin].units) - p.units);
     }
-    const res = { owner, target: t.id, defender: t.owner, before: t.units, sent, won: r.fallen, left: r.D, back: [], lost: sent, killed: t.units - r.D, ticks: r.ticks, plan, pools: r.pools, ...this._rider(owner, plan) };
+    const res = { owner, target: t.id, defender: t.owner, before: t.units, sent, won: r.fallen, left: r.D, back: [], lost: sent, killed: t.units - r.D, ticks: r.ticks, stomps: r.stomps, plan, pools: r.pools, ...this._rider(owner, plan) };
     if (!r.fallen) return res;
     const { units } = this._spoils(r.pools, r.room);
     let total = 0;
@@ -608,6 +627,7 @@ export class TurnGame extends Game {
     t.lastBattle = this.time;
     t.lastAttacker = owner;
     for (const p of plan) this.events.push({ type: 'siege', owner, defender: t.owner, tile: t.id, from: p.from, units: p.units });
+    if (res.stomps) this.events.push({ type: 'stomp', tile: t.id, n: res.stomps });
     if (!res.won) {
       t.units = res.left;
       this.events.push({ type: 'repel', owner, defender: t.owner, tile: t.id });
@@ -712,7 +732,7 @@ export class TurnGame extends Game {
       tiles: this.tiles.map((t) => ({
         owner: t.owner, units: t.units, building: t.building, order: t.order, orderCost: t.orderCost, ruin: t.ruin, castle: t.castle,
         supplied: t.supplied, siegeFrom: t.siegeFrom, lastCapture: t.lastCapture, stormedAt: t.stormedAt, lastBattle: t.lastBattle,
-        lastAttacker: t.lastAttacker, beast: t.beast, hero: t.hero, lair: t.lair && { ...t.lair }, cave: t.cave,
+        lastAttacker: t.lastAttacker, beast: t.beast, hero: t.hero, lair: t.lair && { ...t.lair }, cave: t.cave, giant: t.giant && { ...t.giant },
       })),
       factions: this.factions.map((f) => ({ alive: f.alive, alarm: f.alarm, heroAway: f.heroAway ? { ...f.heroAway } : null })),
       phase: this.phase,

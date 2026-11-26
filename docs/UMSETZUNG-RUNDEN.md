@@ -554,7 +554,14 @@ Handy lästig bleibt.
   etwa 8 s. Im Wald (Deckung 1,25) hält er gegen 4 Seiten mit je 20. Die Vorschau sagt genau das, was im Spiel
   passiert.
 - [x] Du schaust ihn an: bleibt, ändern oder raus. Dein Urteil am 26.11.2026: bleibt so.
-- [ ] Seine Regel für Züge bauen, mit Tests: Die Vorschau stimmt auch mit Stampfen und Heilen.
+- [x] Seine Regel für Züge bauen, mit Tests: Die Vorschau stimmt auch mit Stampfen und Heilen (26.11.2026,
+  `tests/giantturns.test.mjs`). Ein Angriff auf ihn ist genau der Echtzeitkampf, bei dem alle Angreifer schon
+  an seinen Kanten stehen: schmale Kanten, er schlägt wie 8, heilt unter 4 Seiten, stampft alle 5 s des
+  Kampfs. Innerhalb eines Zugs vergeht keine Zeit, mehrere Angriffe im selben Zug zermürben ihn also
+  zusammen. Während die Runde wechselt, heilt er 40 (so viel wie in 8 s Echtzeit), nie über seine Stärke.
+  Gemessen auf Wiese: 2 oder 3 Seiten mit je 99 fällen ihn nie, 4 Seiten mit je 10 lassen ihn bei 30,
+  4 × 20 fällt ihn nach 10 s Kampf mit 18 Überlebenden, 5 × 15 und 6 × 12 ebenso. Die drei Missionen
+  und die Rundenrechnung laufen genau wie vorher. Zu sehen ist er im Rundenmodus erst mit seiner Mission.
 - [ ] Neues Missionsziel „Besiege den Boss“.
 - [ ] Die Karte bauen.
 - [ ] Rechnerprobe mit jeder bisher möglichen Wahl.

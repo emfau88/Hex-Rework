@@ -141,6 +141,10 @@ export const TURN_RULES = Object.freeze({
   // attack fails or his field falls, he rides home and sits out `away` moves of his kingdom; then he
   // stands at the castle again. Starting values.
   hero: Object.freeze({ away: 3 }),
+  // The stone giant in turns: in a battle he fights by the real-time rules above (narrow edges, heals
+  // under too few sides, stomps by the clock of the battle). Between rounds he heals `heal`, as much as
+  // in one turn's seconds of real time (8 × 5). Several attacks in the same move wear him down together.
+  giant: Object.freeze({ heal: 40 }),
   // Improvements the person earns in the campaign (docs/UMSETZUNG-RUNDEN.md). The rivals never have them.
   //   drummer  one more command in every `every`-th turn
   //   granary  a farm gives `farm` more troops per turn; the castle feeds `castle` more and starts with `start` more
